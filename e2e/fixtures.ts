@@ -1,6 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright'
 import { test as base, type ConsoleMessage, expect, type Page } from '@playwright/test'
 
+import type { Hero } from '../src/entities/character/model/hero-schema.ts'
 import { STORAGE_KEYS } from '../src/shared/config/storage-keys.ts'
 import { mockApi } from './support/api-mock.ts'
 
@@ -101,5 +102,15 @@ export async function useStoredFavorites(page: Page, keys: readonly string[]): P
       localStorage.setItem(key, value)
     },
     [STORAGE_KEYS.favorites, JSON.stringify(keys)] as const,
+  )
+}
+
+// Seeds the heroes this browser created (newest first) before any page script runs.
+export async function useStoredHeroes(page: Page, heroes: readonly Hero[]): Promise<void> {
+  await page.addInitScript(
+    ([key, value]) => {
+      localStorage.setItem(key, value)
+    },
+    [STORAGE_KEYS.heroes, JSON.stringify(heroes)] as const,
   )
 }

@@ -35,7 +35,9 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
   answers 501, which the console guard turns into a failure. A test that needs a different answer
   registers its own `page.route` after the fixture's.
 - `e2e/support/routes.ts` lists the routes the a11y and responsive specs visit, each with the
-  selector that marks it settled and, where it matters, the favorites the browser holds.
+  selector that marks it settled and, where it matters, the favorites and created heroes the
+  browser holds and a step that brings the page into the state under test; `openRoute` opens one.
+  Seed browser data with `useStoredFavorites` and `useStoredHeroes` (`e2e/fixtures.ts`).
   `e2e/support/state-probe.ts` records every data region's `data-state` (`#results`, `#profile`,
   `#episodes`, `#favorites`) from the first byte of HTML and flags any moment with two branches on
   screen. `trackApiCalls` (in `api-mock.ts`) counts the app's JSON API requests, not avatars.
@@ -91,7 +93,7 @@ least 4.5:1 in both themes.
   this browser holds (favorites, heroes) renders a skeleton in the prerendered HTML.
 - Created heroes exist only in the browser that made them, so one prerendered shell
   (`/heroes/shell`) serves every `/heroes/:id` through the rewrites in `public/_redirects`, which
-  `scripts/serve-dist.ts` applies too. The page validates the id and shows not-found itself.
+  `scripts/serve-dist.ts` applies too. The page looks the hero up and shows not-found itself.
 - Comments explain only a non-obvious why, and never run longer than two lines.
 - Zero ESLint warnings. Complexity ≤ 10, cognitive complexity ≤ 15, nesting depth ≤ 3, ≤ 4
   parameters, ≤ 3 nested callbacks, functions ≤ 60 lines, files ≤ 300 lines (tests are exempt from

@@ -1,8 +1,9 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, openPage, test, useStoredFavorites } from './fixtures'
+import { expect, openPage, test, useStoredHeroes } from './fixtures'
 import { LIST_URL } from './support/api-mock'
-import { ROUTES } from './support/routes'
+import { PORTAL_PETE } from './support/heroes'
+import { openRoute, ROUTES } from './support/routes'
 
 const WIDTHS = [320, 375, 640, 768, 1024, 1440, 1920] as const
 const CARD_WIDTHS = [320, 768, 1440] as const
@@ -10,6 +11,7 @@ const PROFILE_WIDTHS = [320, 768, 1280] as const
 // Bill (#45): one-line values at every width and a status badge; the favorites page caches nobody.
 const UNCACHED_CHARACTER_PATH = '/characters/45'
 const UNCACHED_CHARACTER_URL = /\/api\/character\/45$/
+const APP_SCRIPTS_URL = /\/assets\/.+\.js$/
 const VIEWPORT_HEIGHT = 900
 const NAV_LINK_MAX_HEIGHT = 48
 const TOO_WIDE_PX = 2000
@@ -60,10 +62,8 @@ for (const route of ROUTES) {
     }) => {
       consoleGuard.allowHttpErrors(...route.expectedHttpErrors)
       await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
-      await useStoredFavorites(page, route.favorites ?? [])
 
-      await openPage(page, route.path)
-      await expect(page.locator(route.settled)).toBeVisible()
+      await openRoute(page, route)
 
       expect(await hasHorizontalOverflow(page)).toBe(false)
       const linkHeights = await page
@@ -125,6 +125,26 @@ for (const width of PROFILE_WIDTHS) {
 
     expect(skeleton).toHaveLength(12)
     expect(await cellBoxes(page.locator('.character-profile__facts'))).toEqual(skeleton)
+  })
+}
+
+for (const width of PROFILE_WIDTHS) {
+  test(`a created hero takes exactly the prerendered shell's place at ${String(width)} px`, async ({
+    page,
+  }) => {
+    await useStoredHeroes(page, [PORTAL_PETE])
+    const release = await holdResponses(page, APP_SCRIPTS_URL)
+    await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
+
+    // Until the scripts arrive, the page is the shell exactly as it was prerendered.
+    await page.goto(`/heroes/${PORTAL_PETE.id}`, { waitUntil: 'commit' })
+    await expect(page.locator('#profile [data-state="loading"]')).toBeVisible()
+    const shell = await cellBoxes(page.locator('.character-profile-skeleton__facts'))
+    release()
+    await expect(page.locator('#profile [data-state="ready"]')).toBeVisible()
+
+    expect(shell).toHaveLength(12)
+    expect(await cellBoxes(page.locator('.character-profile__facts'))).toEqual(shell)
   })
 }
 

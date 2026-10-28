@@ -1,6 +1,6 @@
-import { expect, openPage, type Theme, test, useStoredFavorites, useStoredTheme } from './fixtures'
+import { expect, openPage, type Theme, test, useStoredTheme } from './fixtures'
 import { FIRST_LIST_PAGE_URL, failWith, LIST_URL } from './support/api-mock'
-import { ROUTES } from './support/routes'
+import { openRoute, ROUTES } from './support/routes'
 
 const THEMES: readonly Theme[] = ['light', 'dark']
 const SERVER_ERROR = 500
@@ -14,10 +14,8 @@ for (const theme of THEMES) {
     }) => {
       consoleGuard.allowHttpErrors(...route.expectedHttpErrors)
       await useStoredTheme(page, theme)
-      await useStoredFavorites(page, route.favorites ?? [])
 
-      await openPage(page, route.path)
-      await expect(page.locator(route.settled)).toBeVisible()
+      await openRoute(page, route)
 
       const { violations } = await makeAxeBuilder().analyze()
       expect(violations).toEqual([])

@@ -22,7 +22,7 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/hero-create').then((m) => m.CreateHeroPage),
   },
   {
-    // Every /heroes/:id is served the one prerendered shell; the page validates the id itself.
+    // Every /heroes/:id is served the one prerendered shell; the page looks the hero up itself.
     path: '/heroes/:id',
     name: 'hero',
     component: () => import('@/pages/hero').then((m) => m.HeroPage),
