@@ -44,6 +44,12 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
   `#episodes`, `#favorites`) from the first byte of HTML and flags any moment with two branches on
   screen. `trackApiCalls` (in `api-mock.ts`) counts the app's JSON API requests, not avatars.
 
+### Deploy
+
+Netlify builds with `netlify.toml`: `yarn build`, publish `dist`, Node 24 and the production
+`VITE_SITE_URL`. `public/_redirects` and `public/_headers` ship inside `dist`; keep
+`scripts/serve-dist.ts` in step with any rule added there.
+
 ## Architecture: Feature-Sliced Design
 
 Layers in `src/`, importing downward only: `app → pages → widgets → features → entities → shared`.

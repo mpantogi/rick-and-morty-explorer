@@ -17,7 +17,8 @@ gender and an https image URL with a live preview, saved in this browser). Creat
 character list, follow its filters and have a page of their own. The build writes `sitemap.xml`,
 `robots.txt` and `llms.txt`, and the brand mark ships as a favicon set, web manifest icons and a
 social card. Every page carries a Content Security Policy with build-time hashes of its inline
-scripts, and `public/_headers` adds the security and caching headers. Next: deployment.
+scripts, and `public/_headers` adds the security and caching headers. `netlify.toml` holds the
+Netlify build settings. Next: CI and the deployed site.
 
 ## Tech stack
 
@@ -90,9 +91,10 @@ The E2E suite never calls the live API: every request to it is answered from
 
 ## Configuration
 
-Both variables are optional. Their defaults live in `src/shared/config/env.ts`; the build and the
-app fail fast if either is not an `https:` URL. Set them in the shell or in an untracked
-`.env.local`.
+Both variables are optional. Their defaults live in `src/shared/config/parse-env.ts`; the build and
+the app fail fast if either is not an `https:` URL. Set them in the shell or in an untracked
+`.env.local`. Netlify builds with `netlify.toml`, which sets Node 24 and the production
+`VITE_SITE_URL`.
 
 | Variable            | Default                                  | Used for                               |
 | ------------------- | ---------------------------------------- | -------------------------------------- |
