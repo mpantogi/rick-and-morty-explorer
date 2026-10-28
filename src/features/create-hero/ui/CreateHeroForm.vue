@@ -31,14 +31,19 @@ const router = useRouter()
 const form = useTemplateRef<HTMLFormElement>('form')
 const genderErrorId = `${useId()}-gender-error`
 
-// vee-validate reports a field's error only once it has been left or submitted, then on every change.
+// Leaving a field or submitting sets touched; until then typing and autofill never show an error.
+const validateOnceTouched = ({ touched }: { touched: boolean }) => ({
+  validateOnModelUpdate: touched,
+  validateOnChange: touched,
+})
+
 const { defineField, errors, handleSubmit } = useForm({
   validationSchema: toTypedSchema(heroInputSchema),
   initialValues: { name: '', image: '' },
 })
-const [name, nameEvents] = defineField('name')
-const [gender, genderEvents] = defineField('gender')
-const [image, imageEvents] = defineField('image')
+const [name, nameEvents] = defineField('name', validateOnceTouched)
+const [gender, genderEvents] = defineField('gender', validateOnceTouched)
+const [image, imageEvents] = defineField('image', validateOnceTouched)
 
 function focusFirstInvalid({ errors: invalid }: { errors: Partial<Record<HeroField, string>> }) {
   const field = FIELDS.find((key) => invalid[key])

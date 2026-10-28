@@ -10,9 +10,13 @@ import CreateHeroForm from './CreateHeroForm.vue'
 
 const MAX_HEROES = 500
 const PREVIEW_PAUSE_MS = 400
+// vee-validate runs validation in 5 ms batches; this waits well past one.
+const VALIDATION_SETTLE_MS = 50
 const IMAGE = 'https://example.com/pete.png'
 const NAME_HINT = '2 to 60 characters.'
+const NAME_TOO_SHORT = 'Use at least 2 characters.'
 const IMAGE_HINT = 'A direct link to an image, starting with https://.'
+const SECURE_URL_ERROR = 'Enter a secure image URL starting with https://.'
 
 async function setup() {
   const rendered = await renderWithApp(CreateHeroForm, { route: '/heroes/new' })
@@ -58,14 +62,27 @@ describe('CreateHeroForm', () => {
     expect(within(gender()).getByRole('radio', { name: 'Genderless' })).toBeInTheDocument()
   })
 
-  it('shows no error before the visitor leaves a field or submits', async () => {
-    const { user, name } = await setup()
+  it.each([
+    { field: 'name', value: 'R', error: NAME_TOO_SHORT },
+    { field: 'image', value: 'http://example.com/pete.png', error: SECURE_URL_ERROR },
+  ] as const)(
+    'shows no $field error while the visitor is still in the field',
+    async ({ field, value, error }) => {
+      const form = await setup()
+      const control = form[field]
+      await form.user.click(control())
+      vi.useFakeTimers()
 
-    await user.type(name(), 'R')
+      await fireEvent.update(control(), value)
+      // A browser commits autofilled values with a change event, without a blur.
+      await fireEvent.change(control())
+      await vi.advanceTimersByTimeAsync(VALIDATION_SETTLE_MS)
 
-    expect(name()).toHaveAttribute('aria-invalid', 'false')
-    expect(screen.queryByText('Use at least 2 characters.')).not.toBeInTheDocument()
-  })
+      expect(control()).toHaveFocus()
+      expect(control()).toHaveAttribute('aria-invalid', 'false')
+      expect(screen.queryByText(error)).not.toBeInTheDocument()
+    },
+  )
 
   it('shows the name error once the visitor leaves the field', async () => {
     const { user, name } = await setup()
@@ -74,10 +91,29 @@ describe('CreateHeroForm', () => {
     await user.tab()
 
     await vi.waitFor(() => {
-      expect(name()).toHaveAccessibleDescription(`${NAME_HINT} Use at least 2 characters.`)
+      expect(name()).toHaveAccessibleDescription(`${NAME_HINT} ${NAME_TOO_SHORT}`)
     })
     expect(name()).toHaveAttribute('aria-invalid', 'true')
-    expect(name()).toHaveAccessibleErrorMessage('Use at least 2 characters.')
+    expect(name()).toHaveAccessibleErrorMessage(NAME_TOO_SHORT)
+  })
+
+  // The submit leaves focus in the name, so no other field's blur re-runs the schema.
+  it('clears the name error as the visitor fixes it, without leaving the field', async () => {
+    const { user, name, submit } = await setup()
+    await user.type(name(), 'R')
+    await user.click(submit())
+    await vi.waitFor(() => {
+      expect(name()).toHaveFocus()
+    })
+    expect(name()).toHaveAccessibleErrorMessage(NAME_TOO_SHORT)
+
+    await user.type(name(), 'ick')
+
+    await vi.waitFor(() => {
+      expect(name()).toHaveAttribute('aria-invalid', 'false')
+    })
+    expect(name()).toHaveFocus()
+    expect(screen.queryByText(NAME_TOO_SHORT)).not.toBeInTheDocument()
   })
 
   it('marks every empty field invalid on submit and focuses the name', async () => {
@@ -116,9 +152,7 @@ describe('CreateHeroForm', () => {
     await user.click(submit())
 
     await vi.waitFor(() => {
-      expect(image()).toHaveAccessibleErrorMessage(
-        'Enter a secure image URL starting with https://.',
-      )
+      expect(image()).toHaveAccessibleErrorMessage(SECURE_URL_ERROR)
     })
   })
 
