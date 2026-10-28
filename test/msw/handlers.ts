@@ -19,6 +19,10 @@ export const handlers = [
     const { body, status } = listCharacters(CHARACTERS, new URL(request.url))
     return apiJson(body, status)
   }),
+  http.get(`${API}/character/:ids`, ({ request }) => {
+    const { body, status } = findByIds(CHARACTERS, lastSegment(request), 'Character')
+    return apiJson(body, status)
+  }),
   http.get(`${API}/episode/:ids`, ({ request }) => {
     const { body, status } = findByIds(EPISODES, lastSegment(request), 'Episode')
     return apiJson(body, status)

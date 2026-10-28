@@ -5,7 +5,7 @@ import { ApiError } from '@/shared/api'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
 import { server } from '../../../../test/msw/server'
-import { fetchCharacterPage } from './characters-api'
+import { fetchCharacter, fetchCharacterPage, fetchCharactersByIds } from './characters-api'
 
 function captureListUrls(): string[] {
   const urls: string[] = []
@@ -51,5 +51,40 @@ describe('fetchCharacterPage', () => {
       status: 500,
     })
     await expect(fetchCharacterPage({}, 1)).rejects.toBeInstanceOf(ApiError)
+  })
+})
+
+describe('fetchCharactersByIds', () => {
+  it('asks for the ids in the bracket form and gets a list even for one id', async () => {
+    const urls: string[] = []
+    server.use(
+      http.get(`${API}/character/:ids`, ({ request }) => {
+        urls.push(decodeURIComponent(request.url))
+      }),
+    )
+
+    const characters = await fetchCharactersByIds([3])
+
+    expect(urls).toEqual([`${API}/character/[3]`])
+    expect(characters.map((character) => character.name)).toEqual(['Summer Smith'])
+  })
+
+  it('returns the API order (sorted by id, without duplicates or missing ids)', async () => {
+    const characters = await fetchCharactersByIds([266, 2, 99999, 1, 2])
+
+    expect(characters.map((character) => character.id)).toEqual([1, 2, 266])
+  })
+})
+
+describe('fetchCharacter', () => {
+  it('returns one parsed character', async () => {
+    await expect(fetchCharacter(2)).resolves.toMatchObject({ id: 2, name: 'Morty Smith' })
+  })
+
+  it('rejects with a not-found ApiError for an unknown id', async () => {
+    await expect(fetchCharacter(99999)).rejects.toMatchObject({
+      name: 'ApiError',
+      isNotFound: true,
+    })
   })
 })

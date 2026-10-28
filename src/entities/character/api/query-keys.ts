@@ -10,4 +10,8 @@ export const characterKeys = {
     [...characterKeys.apiPages(), params, page] as const,
   window: (params: ApiFilterParams, uiPage: number, localCount: number) =>
     [...characterKeys.all, 'window', params, uiPage, localCount] as const,
+  detail: (id: number) => [...characterKeys.all, 'detail', id] as const,
+  byIdsAll: () => [...characterKeys.all, 'by-ids'] as const,
+  // ids sorted ascending, so the same set of ids always shares one cache entry
+  byIds: (ids: readonly number[]) => [...characterKeys.byIdsAll(), ids] as const,
 }

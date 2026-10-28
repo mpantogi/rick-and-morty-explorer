@@ -13,16 +13,25 @@ interface RenderWithAppOptions {
   props?: Record<string, unknown>
   slots?: Record<string, string>
   routes?: RouteRecordRaw[]
+  // Pass one to seed the cache before the component mounts.
+  queryClient?: QueryClient
+}
+
+export function createTestQueryClient(): QueryClient {
+  return new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Infinity } } })
 }
 
 export async function renderWithApp(
   component: Component,
-  { route = '/', props, slots, routes = appRoutes }: RenderWithAppOptions = {},
+  {
+    route = '/',
+    props,
+    slots,
+    routes = appRoutes,
+    queryClient = createTestQueryClient(),
+  }: RenderWithAppOptions = {},
 ) {
   const router = createRouter({ history: createMemoryHistory(), routes })
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
-  })
   await router.push(route)
   await router.isReady()
   const user = userEvent.setup()

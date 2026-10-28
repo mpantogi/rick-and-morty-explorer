@@ -27,5 +27,7 @@ export const apiCharacterPageSchema = z.object({
   results: z.array(apiCharacterSchema),
 })
 
+export const apiCharacterListSchema = z.array(apiCharacterSchema)
+
 export type ApiCharacter = z.infer<typeof apiCharacterSchema>
 export type ApiCharacterPage = z.infer<typeof apiCharacterPageSchema>

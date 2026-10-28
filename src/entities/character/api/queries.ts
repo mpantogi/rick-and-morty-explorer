@@ -2,7 +2,7 @@ import { hashKey, type QueryClient, queryOptions } from '@tanstack/vue-query'
 
 import { toCharacterView } from '../model/mappers'
 import { type ApiWindow, type PagePlan, planPage, sliceApiWindow } from '../model/pagination'
-import { fetchCharacterPage } from './characters-api'
+import { fetchCharacter, fetchCharacterPage, fetchCharactersByIds } from './characters-api'
 import { type ApiFilterParams, characterKeys } from './query-keys'
 import type { ApiCharacterPage } from './schemas'
 
@@ -90,4 +90,14 @@ function windowQuery(
 export const characterQueries = {
   apiPage: apiPageQuery,
   window: windowQuery,
+  detail: (id: number) =>
+    queryOptions({
+      queryKey: characterKeys.detail(id),
+      queryFn: ({ signal }) => fetchCharacter(id, signal),
+    }),
+  byIds: (sortedIds: readonly number[]) =>
+    queryOptions({
+      queryKey: characterKeys.byIds(sortedIds),
+      queryFn: ({ signal }) => fetchCharactersByIds(sortedIds, signal),
+    }),
 }
