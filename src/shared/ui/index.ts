@@ -1,3 +1,4 @@
+export { default as AppLogo } from './brand/AppLogo.vue'
 export { buttonClasses } from './button/button-classes'
 export { default as EmptyState } from './EmptyState.vue'
 export { default as ErrorView } from './error/ErrorView.vue'
