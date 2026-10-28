@@ -14,7 +14,10 @@
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@unhead/vue": "2.1.17",
@@ -24,11 +27,18 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/user-event": "14.6.8",
+    "@testing-library/vue": "8.1.0",
     "@tsconfig/node24": "24.0.5",
+    "@types/jsdom": "28.0.3",
     "@types/node": "24.19.2",
     "@vitejs/plugin-vue": "6.0.10",
+    "@vitest/coverage-v8": "5.0.5",
     "@vitest/eslint-plugin": "1.6.28",
     "@vue/eslint-config-typescript": "14.9.0",
+    "@vue/test-utils": "2.5.1",
     "@vue/tsconfig": "0.9.1",
     "eslint": "10.13.0",
     "eslint-config-prettier": "10.1.8",
@@ -40,12 +50,15 @@
     "eslint-plugin-vuejs-accessibility": "2.6.3",
     "globals": "17.13.0",
     "jiti": "2.7.0",
+    "jsdom": "29.1.1",
+    "msw": "3.0.3",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
     "vite": "8.3.5",
+    "vitest": "5.0.5",
     "vue-eslint-parser": "10.4.1",
     "vue-tsc": "3.3.13"
   }
