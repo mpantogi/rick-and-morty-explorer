@@ -59,12 +59,8 @@ describe('toCharacterView', () => {
     expect(toCharacterView(apiCharacter({ type: 'Parasite' })).type).toBe('Parasite')
   })
 
-  it('skips episode URLs that do not end in a numeric id', () => {
-    const view = toCharacterView(
-      apiCharacter({
-        episode: [`${EPISODE}/7`, `${EPISODE}/abc`, `${EPISODE}/12/`, `${EPISODE}/51`],
-      }),
-    )
+  it('reads the episode ids from the end of the episode URLs', () => {
+    const view = toCharacterView(apiCharacter({ episode: [`${EPISODE}/7`, `${EPISODE}/51`] }))
 
     expect(view.episodeIds).toEqual([7, 51])
   })

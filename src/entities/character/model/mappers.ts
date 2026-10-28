@@ -4,8 +4,6 @@ import type { ApiCharacter } from '../api/schemas'
 import { apiKey } from './character-key'
 import type { CharacterGender, CharacterStatus, CharacterView } from './types'
 
-const EPISODE_ID = /\/episode\/(\d+)$/
-
 const STATUS_BY_API = {
   Alive: 'alive',
   Dead: 'dead',
@@ -19,11 +17,9 @@ const GENDER_BY_API = {
   unknown: 'unknown',
 } as const satisfies Record<ApiCharacter['gender'], CharacterGender>
 
-function toEpisodeIds(urls: readonly string[]): number[] {
-  return urls.flatMap((url) => {
-    const id = EPISODE_ID.exec(url)?.[1]
-    return id === undefined ? [] : [Number(id)]
-  })
+// The schema guarantees every episode URL ends in /episode/<id>.
+function toEpisodeId(url: string): number {
+  return Number(url.slice(url.lastIndexOf('/') + 1))
 }
 
 export function toCharacterView(character: ApiCharacter): CharacterView {
@@ -38,7 +34,7 @@ export function toCharacterView(character: ApiCharacter): CharacterView {
     image: character.image,
     origin: character.origin.name,
     location: character.location.name,
-    episodeIds: toEpisodeIds(character.episode),
+    episodeIds: character.episode.map(toEpisodeId),
     href: paths.character(character.id),
   }
 }

@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
 const httpUrl = z.url({ protocol: /^https?$/ })
+// Episode ids are read from these URLs, so one without an id fails the parse.
+const episodeUrl = httpUrl.regex(/\/episode\/\d+$/)
 const placeRef = z.object({ name: z.string(), url: z.string() })
 
 // z.object strips url/created, which keeps the query cache and the prerendered state small.
@@ -14,7 +16,7 @@ export const apiCharacterSchema = z.object({
   origin: placeRef,
   location: placeRef,
   image: httpUrl,
-  episode: z.array(httpUrl),
+  episode: z.array(episodeUrl),
 })
 
 export const apiCharacterPageSchema = z.object({

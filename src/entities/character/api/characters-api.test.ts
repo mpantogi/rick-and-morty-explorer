@@ -3,9 +3,16 @@ import { describe, expect, it } from 'vitest'
 
 import { ApiError } from '@/shared/api'
 
+import { CHARACTERS } from '../../../../test/fixtures/characters'
 import { API, apiJson } from '../../../../test/msw/handlers'
 import { recordRequests, server } from '../../../../test/msw/server'
 import { fetchCharacter, fetchCharacterPage, fetchCharactersByIds } from './characters-api'
+
+function serveMortyWithEpisodes(episode: string[]): void {
+  const morty = CHARACTERS.find((record) => record.id === 2)
+  if (!morty) throw new Error('No fixture character 2')
+  server.use(http.get(`${API}/character/:ids`, () => apiJson({ ...morty, episode })))
+}
 
 function captureListUrls(): string[] {
   const urls: string[] = []
@@ -81,5 +88,15 @@ describe('fetchCharacter', () => {
       name: 'ApiError',
       isNotFound: true,
     })
+  })
+
+  it.each([
+    ['a non-numeric id', 'https://rickandmortyapi.com/api/episode/abc'],
+    ['a trailing slash', 'https://rickandmortyapi.com/api/episode/12/'],
+    ['another resource', 'https://rickandmortyapi.com/api/location/3'],
+  ])('rejects an episode URL with %s as a broken API contract', async (_, url) => {
+    serveMortyWithEpisodes([url])
+
+    await expect(fetchCharacter(2)).rejects.toMatchObject({ name: 'ApiError', kind: 'parse' })
   })
 })
