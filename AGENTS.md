@@ -115,7 +115,9 @@ least 4.5:1 in both themes.
   (`src/shared/lib/validation/to-typed-schema.ts`); `@vee-validate/zod` does not support Zod 4, so
   never add it. One Zod schema validates both the form and what is read back from storage.
 - Zod runs jitless so the CSP never needs `'unsafe-eval'`: `src/app/zod-config.ts` must stay the
-  first import in `src/app/main.ts`, ahead of any module that builds or parses a schema.
+  first import in `src/app/main.ts`, ahead of any module that builds or parses a schema. The build
+  keeps that order across chunks with Rolldown's `strictExecutionOrder` (`vite.config.ts`); without
+  it, shared chunks run before the entry's first import.
 - Tests: Vitest with Testing Library; `test/render.ts` mounts a component (`renderWithApp`) or a
   composable (`renderComposable`) with the router, Pinia, Vue Query and the head manager. MSW
   handlers in `test/msw` serve `test/fixtures` (25 real API characters, 5 real episodes) through

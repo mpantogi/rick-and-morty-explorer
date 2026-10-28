@@ -13,5 +13,10 @@ export default defineConfig(({ mode }) => ({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  build: {
+    // Shared chunks otherwise run before the entry's own imports, so a schema could be built ahead
+    // of src/app/zod-config.ts and probe `new Function`, which a CSP without 'unsafe-eval' reports.
+    rolldownOptions: { output: { strictExecutionOrder: true } },
+  },
   ssgOptions: createSsgOptions(mode),
 }))
