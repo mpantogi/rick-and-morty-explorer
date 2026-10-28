@@ -97,8 +97,8 @@ describe('prerenderRoutes', () => {
 
     const routes = await prerenderRoutes()
 
-    expect(routes.slice(0, 3)).toEqual(['/', '/favorites', '/404'])
-    expect(routes.slice(3)).toEqual(
+    expect(routes.slice(0, 4)).toEqual(['/', '/favorites', '/heroes/new', '/404'])
+    expect(routes.slice(4)).toEqual(
       Array.from({ length: 24 }, (_, index) => `/characters/${String(index + 1)}`),
     )
   })

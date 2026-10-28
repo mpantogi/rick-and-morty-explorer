@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { GENDERS } from './types'
 
 const NAME_MIN = 2
-const HERO_NAME_MAX = 60
+export const HERO_NAME_MAX = 60
 const IMAGE_URL_MAX = 2048
 
 // One schema for the form and for every read from storage. Keys follow the form's field order.

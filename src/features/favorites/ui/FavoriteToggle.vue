@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { Heart } from '@lucide/vue'
 import { computed } from 'vue'
-import { toast } from 'vue-sonner'
 
 import type { CharacterKey } from '@/entities/character'
+import { showStorageLimit } from '@/shared/lib'
 import { BaseButton } from '@/shared/ui'
 
 import { useFavoritesStore } from '../model/favorites-store'
@@ -30,10 +30,7 @@ const iconClasses = computed(() =>
 
 function toggle(): void {
   if (!favorites.toggle(characterKey)) {
-    toast.error('Limit reached', {
-      id: 'favorites-limit',
-      description: 'You can save up to 500 heroes and 2,000 favorites.',
-    })
+    showStorageLimit()
     return
   }
   emit('change', isFavorite.value)

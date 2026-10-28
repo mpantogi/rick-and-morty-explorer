@@ -78,7 +78,7 @@ describe('FavoriteToggle', () => {
     expect(button).toHaveAttribute('aria-pressed', 'false')
     expect(rendered.emitted('change')).toBeUndefined()
     expect(toastError).toHaveBeenCalledWith('Limit reached', {
-      id: 'favorites-limit',
+      id: 'storage-limit',
       description: 'You can save up to 500 heroes and 2,000 favorites.',
     })
   })

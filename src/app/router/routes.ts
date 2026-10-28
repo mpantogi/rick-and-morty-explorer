@@ -17,6 +17,11 @@ export const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/favorites').then((m) => m.FavoritesPage),
   },
   {
+    path: '/heroes/new',
+    name: 'hero-create',
+    component: () => import('@/pages/hero-create').then((m) => m.CreateHeroPage),
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/pages/not-found').then((m) => m.NotFoundPage),
