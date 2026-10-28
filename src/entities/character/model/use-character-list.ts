@@ -1,13 +1,15 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { storeToRefs } from 'pinia'
 import { computed, type ComputedRef, type Ref, watch } from 'vue'
 
 import { type ErrorCase, toErrorCase } from '@/shared/api'
 import { ignorePrefetchError } from '@/shared/lib'
 
 import { characterQueries } from '../api/queries'
-import { toApiParams } from './filters'
+import { matchesFilters, toApiParams } from './filters'
+import { useHeroesStore } from './heroes-store'
 import { type ApiWindow, buildListPage, type ListPage } from './pagination'
-import type { CharacterFilters, CharacterView } from './types'
+import type { CharacterFilters } from './types'
 
 export type ListState =
   | { kind: 'loading' }
@@ -37,10 +39,14 @@ export function useCharacterList(
   page: Readonly<Ref<number>>,
 ): CharacterList {
   const queryClient = useQueryClient()
-  const localMatches: readonly CharacterView[] = []
+  const { views: heroes } = storeToRefs(useHeroesStore())
+  // The API cannot filter created heroes, so they are matched here by its own rules.
+  const localMatches = computed(() =>
+    heroes.value.filter((hero) => matchesFilters(hero, filters.value)),
+  )
   const params = computed(() => toApiParams(filters.value))
   const windowQuery = (uiPage: number) =>
-    characterQueries.window(params.value, uiPage, localMatches.length, queryClient)
+    characterQueries.window(params.value, uiPage, localMatches.value.length, queryClient)
 
   const query = useQuery(() => ({
     ...windowQuery(page.value),
@@ -54,7 +60,10 @@ export function useCharacterList(
     }
     const data = query.data.value
     if (data === undefined) return LOADING
-    return toListState(buildListPage(page.value, localMatches, data), query.isPlaceholderData.value)
+    return toListState(
+      buildListPage(page.value, localMatches.value, data),
+      query.isPlaceholderData.value,
+    )
   })
 
   watch(state, (current) => {

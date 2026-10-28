@@ -1,5 +1,6 @@
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { createHead } from '@unhead/vue/client'
+import { createPinia } from 'pinia'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, h, nextTick } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
@@ -16,6 +17,7 @@ async function mountApp(initialPath = '/') {
   document.body.append(host)
   const app = createApp(() => h(RouterView))
     .use(router)
+    .use(createPinia())
     .use(createHead())
     .use(VueQueryPlugin, {
       queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }),

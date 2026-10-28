@@ -2,16 +2,41 @@ import { http } from 'msw/http'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { type ComputedRef, nextTick, ref, watch } from 'vue'
 
+import { STORAGE_KEYS } from '@/shared/config'
+
 import { API, apiJson } from '../../../../test/msw/handlers'
 import { server } from '../../../../test/msw/server'
 import { renderComposable } from '../../../../test/render'
 import { characterKeys } from '../api/query-keys'
 import { EMPTY_FILTERS } from './filters'
+import type { Hero } from './hero-schema'
+import { useHeroesStore } from './heroes-store'
 import type { ListPage } from './pagination'
 import type { CharacterFilters } from './types'
 import { type ListState, useCharacterList } from './use-character-list'
 
 const READY = { kind: 'ready', isUpdating: false } as const
+
+function hero(name: string, gender: Hero['gender'], id: string): Hero {
+  return {
+    id,
+    name,
+    gender,
+    image: 'https://example.com/hero.png',
+    createdAt: '2026-10-28T12:00:00.000Z',
+  }
+}
+
+// Newest first, as the store keeps them.
+const HEROES: readonly Hero[] = [
+  hero('Portal Pete', 'male', '6c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f'),
+  hero('Plasma Pam', 'female', '7d2e3f4a-5b6c-4d7e-8f9a-0b1c2d3e4f5a'),
+  hero('Quantum Quinn', 'genderless', '8e3f4a5b-6c7d-4e8f-9a0b-1c2d3e4f5a6b'),
+]
+
+function saveHeroes(heroes: readonly Hero[] = HEROES): void {
+  localStorage.setItem(STORAGE_KEYS.heroes, JSON.stringify(heroes))
+}
 
 function trackListRequests(): URL[] {
   const urls: URL[] = []
@@ -43,6 +68,7 @@ async function setup(initial: { filters?: Partial<CharacterFilters>; page?: numb
   const kinds: ListState['kind'][] = []
   const rendered = await renderComposable(() => {
     const list = useCharacterList(filters, page)
+    const heroes = useHeroesStore()
     watch(
       () => list.state.value.kind,
       (kind) => {
@@ -50,9 +76,10 @@ async function setup(initial: { filters?: Partial<CharacterFilters>; page?: numb
       },
       { immediate: true },
     )
-    return list
+    return { ...list, heroes }
   })
-  return { ...rendered, state: rendered.result.state, filters, page, kinds }
+  const { state, heroes } = rendered.result
+  return { ...rendered, state, heroes, filters, page, kinds }
 }
 
 function readyPage(state: ComputedRef<ListState>): ListPage {
@@ -227,5 +254,94 @@ describe('useCharacterList', () => {
 
     expect(state.value).toEqual({ kind: 'loading' })
     expect(urls).toEqual([])
+  })
+
+  describe('with created heroes', () => {
+    it('lists the heroes first, then fills page 1 from the API', async () => {
+      saveHeroes()
+      const { state } = await setup()
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(names(state)).toEqual([
+        'Portal Pete',
+        'Plasma Pam',
+        'Quantum Quinn',
+        'Rick Sanchez',
+        'Morty Smith',
+        'Summer Smith',
+        'Beth Smith',
+        'Jerry Smith',
+        'Abadango Cluster Princess',
+        'Abradolf Lincler',
+        'Adjudicator Rick',
+        'Agency Director',
+      ])
+      expect(readyPage(state)).toMatchObject({
+        total: 28,
+        totalPages: 3,
+        rangeStart: 1,
+        rangeEnd: 12,
+      })
+    })
+
+    it('continues the API list on page 2 where page 1 left it', async () => {
+      saveHeroes()
+      const { state } = await setup({ page: 2 })
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(readyPage(state).items.map((item) => item.key)).toEqual(
+        Array.from({ length: 12 }, (_, index) => `api:${String(index + 10)}`),
+      )
+    })
+
+    it('filters the heroes by the same rules as the API', async () => {
+      saveHeroes()
+      const { state } = await setup({ filters: { gender: 'male', status: 'unknown' } })
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(names(state).slice(0, 2)).toEqual(['Portal Pete', 'Abradolf Lincler'])
+      expect(names(state)).not.toContain('Plasma Pam')
+    })
+
+    it('leaves the heroes out when a filter excludes them', async () => {
+      saveHeroes()
+      const { state } = await setup({ filters: { status: 'alive' } })
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(names(state)[0]).toBe('Rick Sanchez')
+    })
+
+    it('shows a hero the API cannot match, rather than an empty list', async () => {
+      saveHeroes()
+      const { state } = await setup({ filters: { name: 'quantum' } })
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(names(state)).toEqual(['Quantum Quinn'])
+      expect(readyPage(state)).toMatchObject({ total: 1, totalPages: 1 })
+    })
+
+    it('puts a newly created hero first without a reload', async () => {
+      const { state, heroes } = await setup()
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+
+      heroes.add({ name: 'Fresh Fran', gender: 'female', image: 'https://example.com/fran.png' })
+
+      await vi.waitFor(() => {
+        expect(names(state)[0]).toBe('Fresh Fran')
+      })
+      expect(readyPage(state).total).toBe(26)
+    })
   })
 })

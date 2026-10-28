@@ -13,8 +13,8 @@ In progress. In place: the app shell, theme, error pages, the `Base*` design sys
 character list (12 characters per page over the API's 20-item pages, URL-synced filters,
 pagination, and loading, empty and error states), character detail pages (profile and episode
 list), favorites (saved in this browser, listed on their own page) and the create-hero form (name,
-gender and an https image URL with a live preview, saved in this browser). Next: created heroes in
-the character list and on their own pages.
+gender and an https image URL with a live preview, saved in this browser). Created heroes lead the
+character list and follow its filters. Next: a page for each created hero.
 
 ## Tech stack
 
