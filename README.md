@@ -19,6 +19,7 @@ list) and favorites (saved in this browser, listed on their own page). Hero crea
 - Vue 3.5.44 with `<script setup>` and the Composition API
 - Vue Router 5.4.0, Pinia 4.1.0, TanStack Vue Query 5.105.0, VueUse 15.0.0
 - Zod 4.6.7, vue-sonner 2.0.9 (toasts), @unhead/vue 2.1.17 (head tags), @lucide/vue 1.62.0 (icons)
+- vee-validate 4.15.1 (forms), fed by the Zod schemas through a small local adapter
 - Vite 8.3.5 with vite-ssg 28.3.0, TypeScript 6.0.3, vue-tsc 3.3.13
 - Tailwind CSS 4.3.3
 - Vitest 5.0.5, Testing Library for Vue 8.1.0, MSW 3.0.3, jsdom 29.1.1
