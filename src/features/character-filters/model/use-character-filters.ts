@@ -1,6 +1,6 @@
 import { useDebounceFn } from '@vueuse/core'
 import { computed, type ComputedRef, onMounted, reactive, readonly, type Ref, watch } from 'vue'
-import { type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
+import { type LocationQueryRaw, type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 import {
   type CharacterFilters,
@@ -40,9 +40,15 @@ export function useCharacterFilters(): CharacterFiltersController {
   const page = computed(() => listQuery.value.page)
   const draft = reactive<CharacterFilters>({ ...filters.value })
 
+  // Replacing the current URL still runs scrollBehavior (a duplicated navigation), so skip no-ops.
+  function replaceQuery(query: LocationQueryRaw): void {
+    const target = router.resolve({ query })
+    if (target.fullPath !== route.fullPath) void router.replace(target)
+  }
+
   // Filter changes replace history and start again from page 1; only pagination pushes.
   function apply(): void {
-    void router.replace({ query: toListQuery(normalizeFilters(draft), FIRST_PAGE) })
+    replaceQuery(toListQuery(normalizeFilters(draft), FIRST_PAGE))
   }
   const applyDebounced = useDebounceFn(apply, TEXT_INPUT_DEBOUNCE_MS)
 
@@ -57,9 +63,9 @@ export function useCharacterFilters(): CharacterFiltersController {
     Object.assign(draft, applied)
   })
 
-  // Cleans hand-edited URLs (`page=0`, `status=al`); the router ignores a replace to the same URL.
+  // Cleans hand-edited URLs (`page=0`, `status=al`).
   onMounted(() => {
-    void router.replace({ query: toListQuery(filters.value, page.value) })
+    replaceQuery(toListQuery(filters.value, page.value))
   })
 
   return {
@@ -76,7 +82,7 @@ export function useCharacterFilters(): CharacterFiltersController {
     reset() {
       applyDebounced.cancel()
       Object.assign(draft, EMPTY_FILTERS)
-      void router.replace({ query: {} })
+      replaceQuery({})
     },
     pageLink: (target) => ({ query: toListQuery(filters.value, target) }),
   }

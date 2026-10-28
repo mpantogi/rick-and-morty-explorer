@@ -92,6 +92,13 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(summary(page)).toHaveText('Showing 1 of 1 character')
   })
 
+  test('opens at the top of the page', async ({ page }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  })
+
   for (const { filter, apply, url, total } of [
     {
       filter: 'status',
