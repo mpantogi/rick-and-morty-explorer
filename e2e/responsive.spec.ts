@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { expect, openPage, test, useStoredFavorites } from './fixtures'
 import { LIST_URL } from './support/api-mock'
@@ -6,12 +6,50 @@ import { ROUTES } from './support/routes'
 
 const WIDTHS = [320, 375, 640, 768, 1024, 1440, 1920] as const
 const CARD_WIDTHS = [320, 768, 1440] as const
+const PROFILE_WIDTHS = [320, 768, 1280] as const
+// Bill (#45): one-line values at every width and a status badge; the favorites page caches nobody.
+const UNCACHED_CHARACTER_PATH = '/characters/45'
+const UNCACHED_CHARACTER_URL = /\/api\/character\/45$/
 const VIEWPORT_HEIGHT = 900
 const NAV_LINK_MAX_HEIGHT = 48
 const TOO_WIDE_PX = 2000
 
+interface MountedApp {
+  config: { globalProperties: { $router: { push: (path: string) => Promise<unknown> } } }
+}
+
 function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
+}
+
+// Holds every matching response until the returned function releases them.
+async function holdResponses(page: Page, url: RegExp): Promise<() => void> {
+  let release: () => void = () => undefined
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route(url, async (route) => {
+    await gate
+    await route.fallback()
+  })
+  return release
+}
+
+// A client-side navigation, as a link would make, to a page with no link on screen.
+function navigateInApp(page: Page, path: string): Promise<void> {
+  return page.evaluate(async (target) => {
+    const root = document.querySelector<HTMLElement & { __vue_app__?: MountedApp }>('#app')
+    await root?.__vue_app__?.config.globalProperties.$router.push(target)
+  }, path)
+}
+
+function cellBoxes(list: Locator) {
+  return list.locator(':scope > dt, :scope > dd').evaluateAll((cells) =>
+    cells.map((cell) => {
+      const { x, y, width, height } = cell.getBoundingClientRect()
+      return { x, y: y + window.scrollY, width, height }
+    }),
+  )
 }
 
 for (const route of ROUTES) {
@@ -54,14 +92,7 @@ for (const width of CARD_WIDTHS) {
   })
 
   test(`cards take exactly their skeletons' place at ${String(width)} px`, async ({ page }) => {
-    let release: () => void = () => undefined
-    const gate = new Promise<void>((resolve) => {
-      release = resolve
-    })
-    await page.route(LIST_URL, async (route) => {
-      await gate
-      await route.fallback()
-    })
+    const release = await holdResponses(page, LIST_URL)
     await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
     await openPage(page, '/')
     const firstSkeleton = page.locator('.character-card-skeleton').first()
@@ -74,6 +105,26 @@ for (const width of CARD_WIDTHS) {
 
     expect(skeleton).not.toBeNull()
     expect(await card.boundingBox()).toEqual(skeleton)
+  })
+}
+
+for (const width of PROFILE_WIDTHS) {
+  test(`profile rows take exactly their skeleton's place at ${String(width)} px`, async ({
+    page,
+  }) => {
+    const release = await holdResponses(page, UNCACHED_CHARACTER_URL)
+    await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
+    await openPage(page, '/favorites')
+    await expect(page.locator('#favorites [data-state="empty"]')).toBeVisible()
+
+    await navigateInApp(page, UNCACHED_CHARACTER_PATH)
+    await expect(page.locator('#profile [data-state="loading"]')).toBeVisible()
+    const skeleton = await cellBoxes(page.locator('.character-profile-skeleton__facts'))
+    release()
+    await expect(page.locator('#profile [data-state="ready"]')).toBeVisible()
+
+    expect(skeleton).toHaveLength(12)
+    expect(await cellBoxes(page.locator('.character-profile__facts'))).toEqual(skeleton)
   })
 }
 

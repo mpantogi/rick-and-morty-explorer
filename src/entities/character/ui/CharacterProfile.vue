@@ -34,7 +34,8 @@ defineSlots<{ actions?: () => unknown }>()
       </div>
       <dl class="character-profile__facts grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2">
         <dt class="character-profile__term text-muted">Status</dt>
-        <dd class="character-profile__value">
+        <!-- A flex row keeps the badge out of the text line, which would otherwise grow by 1 px. -->
+        <dd class="character-profile__value character-profile__value--status flex items-center">
           <StatusBadge :status="character.status" class="character-profile__status" />
         </dd>
         <dt class="character-profile__term text-muted">Species</dt>
