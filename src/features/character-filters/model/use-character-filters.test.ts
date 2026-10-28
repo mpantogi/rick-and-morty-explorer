@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { nextTick } from 'vue'
 
 import { renderComposable } from '../../../../test/render'
 import { useCharacterFilters } from './use-character-filters'
@@ -102,6 +103,39 @@ describe('useCharacterFilters', () => {
     await vi.waitFor(() => {
       expect(controller.draft).toMatchObject({ name: 'rick', gender: '' })
     })
+  })
+
+  it('keeps the spaces the visitor typed after the trimmed text reaches the URL', async () => {
+    const { controller, query } = await setup()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+
+    controller.update('name', 'rick ')
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS)
+    await vi.waitFor(() => {
+      expect(query()).toEqual({ name: 'rick' })
+    })
+    await nextTick()
+    expect(controller.draft.name).toBe('rick ')
+
+    controller.update('name', 'rick san')
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS)
+
+    await vi.waitFor(() => {
+      expect(query()).toEqual({ name: 'rick san' })
+    })
+  })
+
+  it('keeps pending text as typed when an option applies it at once', async () => {
+    const { controller, query } = await setup()
+
+    controller.update('species', ' alien ')
+    controller.update('status', 'alive')
+
+    await vi.waitFor(() => {
+      expect(query()).toEqual({ species: 'alien', status: 'alive' })
+    })
+    await nextTick()
+    expect(controller.draft.species).toBe(' alien ')
   })
 
   it('keeps text the visitor is still typing when the URL changes', async () => {

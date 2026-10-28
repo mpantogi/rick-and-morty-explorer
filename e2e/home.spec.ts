@@ -78,6 +78,20 @@ test.describe('character list', { tag: '@journey' }, () => {
     expect(searched).toEqual(['rick'])
   })
 
+  test('keeps the space between words when the visitor pauses mid-name', async ({ page }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    const name = page.getByRole('searchbox', { name: 'Name' })
+
+    await name.pressSequentially('Rick ')
+    await expect(page).toHaveURL('/?name=Rick')
+    await name.pressSequentially('Sanchez')
+
+    await expect(page).toHaveURL('/?name=Rick+Sanchez')
+    await expect(name).toHaveValue('Rick Sanchez')
+    await expect(summary(page)).toHaveText('Showing 1 of 1 character')
+  })
+
   for (const { filter, apply, url, total } of [
     {
       filter: 'status',

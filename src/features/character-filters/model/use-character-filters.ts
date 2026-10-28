@@ -6,6 +6,7 @@ import {
   type CharacterFilters,
   countActiveFilters,
   EMPTY_FILTERS,
+  FILTER_FIELDS,
   normalizeFilters,
 } from '@/entities/character'
 
@@ -25,6 +26,10 @@ export interface CharacterFiltersController {
 const TEXT_INPUT_DEBOUNCE_MS = 300
 // Choosing an option is one deliberate act, so it applies at once; text waits for a typing pause.
 const IMMEDIATE_FIELDS: ReadonlySet<keyof CharacterFilters> = new Set(['status', 'gender'])
+
+function sameFilters(a: CharacterFilters, b: CharacterFilters): boolean {
+  return FILTER_FIELDS.every((field) => a[field] === b[field])
+}
 
 // The URL is the source of truth: the form edits a draft, and applying writes the URL.
 export function useCharacterFilters(): CharacterFiltersController {
@@ -46,8 +51,10 @@ export function useCharacterFilters(): CharacterFiltersController {
     apply()
   }
 
+  // Syncs back/forward, never the echo of the draft's own trimmed apply (that would eat typed spaces).
   watch(filters, (applied) => {
-    if (!applyDebounced.isPending.value) Object.assign(draft, applied)
+    if (applyDebounced.isPending.value || sameFilters(applied, normalizeFilters(draft))) return
+    Object.assign(draft, applied)
   })
 
   // Cleans hand-edited URLs (`page=0`, `status=al`); the router ignores a replace to the same URL.
