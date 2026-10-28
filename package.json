@@ -6,5 +6,27 @@
   "packageManager": "yarn@4.18.1",
   "engines": {
     "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite-ssg build",
+    "typecheck": "vue-tsc --build"
+  },
+  "dependencies": {
+    "@unhead/vue": "2.1.17",
+    "vite-ssg": "28.3.0",
+    "vue": "3.5.44",
+    "vue-router": "5.4.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "@tsconfig/node24": "24.0.5",
+    "@types/node": "24.19.2",
+    "@vitejs/plugin-vue": "6.0.10",
+    "@vue/tsconfig": "0.9.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.5",
+    "vue-tsc": "3.3.13"
   }
 }
