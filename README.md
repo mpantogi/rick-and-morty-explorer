@@ -48,20 +48,21 @@ yarn dev
 
 ## Scripts
 
-| Command              | What it does                                                      |
-| -------------------- | ----------------------------------------------------------------- |
-| `yarn dev`           | Start the Vite dev server                                         |
-| `yarn build`         | Prerender the site into `dist/` with vite-ssg                     |
-| `yarn preview`       | Serve `dist/` with Netlify-style routing (real 404s) on port 4173 |
-| `yarn test`          | Run the unit and integration tests once                           |
-| `yarn test:watch`    | Run the tests in watch mode                                       |
-| `yarn test:coverage` | Run the tests with coverage thresholds                            |
-| `yarn test:e2e`      | Run the Playwright suite against the built `dist/` (build first)  |
-| `yarn lint`          | ESLint with zero warnings allowed                                 |
-| `yarn lint:fix`      | ESLint with autofix                                               |
-| `yarn typecheck`     | Type-check every project with `vue-tsc --build`                   |
-| `yarn format`        | Format the repo with Prettier                                     |
-| `yarn format:check`  | Check formatting without writing                                  |
+| Command               | What it does                                                      |
+| --------------------- | ----------------------------------------------------------------- |
+| `yarn dev`            | Start the Vite dev server                                         |
+| `yarn build`          | Prerender the site into `dist/` with vite-ssg                     |
+| `yarn preview`        | Serve `dist/` with Netlify-style routing (real 404s) on port 4173 |
+| `yarn test`           | Run the unit and integration tests once                           |
+| `yarn test:watch`     | Run the tests in watch mode                                       |
+| `yarn test:coverage`  | Run the tests with coverage thresholds                            |
+| `yarn test:e2e`       | Run the Playwright suite against the built `dist/` (build first)  |
+| `yarn record:fixture` | Re-record the E2E API fixture from the live API (two requests)    |
+| `yarn lint`           | ESLint with zero warnings allowed                                 |
+| `yarn lint:fix`       | ESLint with autofix                                               |
+| `yarn typecheck`      | Type-check every project with `vue-tsc --build`                   |
+| `yarn format`         | Format the repo with Prettier                                     |
+| `yarn format:check`   | Check formatting without writing                                  |
 
 The end-to-end tests need a build and a browser:
 
@@ -70,6 +71,10 @@ yarn build
 yarn playwright install chromium
 yarn test:e2e --project=chromium
 ```
+
+The E2E suite never calls the live API: every request to it is answered from
+`e2e/support/api-fixture.json`, a recording of characters 1–60 and their episodes. Refresh it with
+`yarn record:fixture` and commit the result.
 
 ## Configuration
 

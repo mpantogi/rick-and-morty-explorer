@@ -15,6 +15,7 @@ leaves the machine's global Yarn untouched. Use Node 24.
 | `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing on port 4173       |
 | `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches) |
 | `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                        |
+| `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API  |
 | `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier         |
 
 Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverage`, `build` and
@@ -28,6 +29,11 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
 - Every test runs under an automatic console guard that fails on `console.error`, uncaught errors
   and CSP violations. A test that causes a 4xx/5xx on purpose declares the narrowest URL pattern
   with `consoleGuard.allowHttpErrors(pattern)`.
+- An automatic fixture (`e2e/support/api-mock.ts`) answers every API request from
+  `e2e/support/api-fixture.json` with the same semantics as the MSW handlers
+  (`test/api-semantics.ts`), and avatars with an inline SVG. An endpoint the mock does not serve
+  answers 501, which the console guard turns into a failure. A test that needs a different answer
+  registers its own `page.route` after the fixture's.
 
 ## Architecture: Feature-Sliced Design
 

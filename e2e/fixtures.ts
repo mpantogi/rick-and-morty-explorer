@@ -2,6 +2,7 @@ import { AxeBuilder } from '@axe-core/playwright'
 import { test as base, type ConsoleMessage, expect, type Page } from '@playwright/test'
 
 import { STORAGE_KEYS } from '../src/shared/config/storage-keys.ts'
+import { mockApi } from './support/api-mock.ts'
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
@@ -19,6 +20,7 @@ export interface ConsoleGuard {
 }
 
 interface Fixtures {
+  apiMock: undefined
   consoleGuard: ConsoleGuard
   makeAxeBuilder: () => AxeBuilder
 }
@@ -30,6 +32,14 @@ function isAllowedHttpError(message: ConsoleMessage, allowed: readonly RegExp[])
 }
 
 export const test = base.extend<Fixtures>({
+  // Every API call is answered from the recorded fixture, so no test depends on the live API.
+  apiMock: [
+    async ({ page }, use) => {
+      await mockApi(page)
+      await use(undefined)
+    },
+    { auto: true },
+  ],
   consoleGuard: [
     async ({ page }, use) => {
       const problems: string[] = []
