@@ -74,9 +74,11 @@ least 4.5:1 in both themes.
 - No `console.*` in `src` outside `reportError`.
 - Zod runs jitless so the CSP never needs `'unsafe-eval'`: `src/app/zod-config.ts` must stay the
   first import in `src/app/main.ts`, ahead of any module that builds or parses a schema.
-- Tests: Vitest with Testing Library; `test/render.ts` (`renderWithApp`) mounts with the router,
-  Pinia, Vue Query and the head manager; MSW handlers live in `test/msw`. Write the test first for
-  logic and components.
+- Tests: Vitest with Testing Library; `test/render.ts` mounts a component (`renderWithApp`) or a
+  composable (`renderComposable`) with the router, Pinia, Vue Query and the head manager. MSW
+  handlers in `test/msw` serve `test/fixtures` (25 real API characters) through
+  `test/api-semantics.ts`, which reproduces the API's filtering, 20-item pages and 404-on-empty.
+  Assert the fixture totals, never the live API's. Write the test first for logic and components.
 
 ## Security
 

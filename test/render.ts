@@ -3,7 +3,7 @@ import { render } from '@testing-library/vue'
 import { userEvent } from '@testing-library/user-event'
 import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
-import type { Component } from 'vue'
+import { type Component, defineComponent } from 'vue'
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
 
 import { routes as appRoutes } from '@/app/router/routes'
@@ -34,4 +34,22 @@ export async function renderWithApp(
     },
   })
   return { router, queryClient, user, ...result }
+}
+
+// Runs a composable inside a mounted component, so inject(), lifecycle hooks and watchers work.
+export async function renderComposable<T>(
+  composable: () => T,
+  options: Omit<RenderWithAppOptions, 'props' | 'slots'> = {},
+) {
+  const box: { captured?: { value: T } } = {}
+  const Host = defineComponent({
+    setup() {
+      box.captured = { value: composable() }
+      return () => null
+    },
+  })
+  const rendered = await renderWithApp(Host, options)
+  const { captured } = box
+  if (!captured) throw new Error('The composable did not run during setup')
+  return { result: captured.value, ...rendered }
 }
