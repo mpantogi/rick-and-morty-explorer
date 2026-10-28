@@ -3,9 +3,14 @@ import { ArrowLeft } from '@lucide/vue'
 import { useRouter } from 'vue-router'
 
 import BaseLink from './link/BaseLink.vue'
+import { useBemMix } from './use-bem-mix'
 
+defineOptions({ inheritAttrs: false })
 const { to } = defineProps<{ to: string }>()
 defineSlots<{ default: () => unknown }>()
+
+const { mix, rest } = useBemMix()
+const classes = () => ['back-link', mix(), 'inline-flex min-h-11 items-center gap-2 self-start']
 
 const router = useRouter()
 const { back } = router.options.history.state
@@ -21,16 +26,11 @@ function goBack(event: MouseEvent): void {
 </script>
 
 <template>
-  <BaseLink
-    v-if="backHref"
-    :href="backHref"
-    class="back-link inline-flex min-h-11 items-center gap-2 self-start"
-    @click="goBack"
-  >
+  <BaseLink v-if="backHref" :href="backHref" v-bind="rest()" :class="classes()" @click="goBack">
     <ArrowLeft aria-hidden="true" class="back-link__icon size-4" />
     <slot />
   </BaseLink>
-  <BaseLink v-else :to class="back-link inline-flex min-h-11 items-center gap-2 self-start">
+  <BaseLink v-else :to v-bind="rest()" :class="classes()">
     <ArrowLeft aria-hidden="true" class="back-link__icon size-4" />
     <slot />
   </BaseLink>

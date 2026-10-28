@@ -9,7 +9,7 @@ import BackLink from './BackLink.vue'
 const Blank: FunctionalComponent = () => null
 Blank.displayName = 'Blank'
 
-function renderBackLink(back: string | null) {
+function renderBackLink(back: string | null, attrs: Record<string, unknown> = {}) {
   const state = back
     ? { back, current: '/characters/1', forward: null, position: 1, replaced: false, scroll: null }
     : null
@@ -21,6 +21,7 @@ function renderBackLink(back: string | null) {
   const user = userEvent.setup()
   render(BackLink, {
     props: { to: '/' },
+    attrs,
     slots: { default: 'Back to characters' },
     global: { plugins: [router] },
   })
@@ -61,5 +62,14 @@ describe('BackLink', () => {
     const { link } = renderBackLink(null)
 
     expect(link).toHaveAttribute('href', '/')
+  })
+
+  it.each([
+    ['history', '/?name=rick'],
+    ['fallback', null],
+  ])('puts a parent mix right after its BEM classes on the %s link', (_, back) => {
+    const { link } = renderBackLink(back, { class: 'page__back' })
+
+    expect([...link.classList].slice(0, 3)).toEqual(['link', 'back-link', 'page__back'])
   })
 })

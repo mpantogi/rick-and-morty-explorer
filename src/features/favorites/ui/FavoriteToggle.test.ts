@@ -54,6 +54,18 @@ describe('FavoriteToggle', () => {
     )
   })
 
+  it('puts the pressed modifier right after the icon class, ahead of the utilities', async () => {
+    localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(['api:1']))
+
+    await renderToggle()
+
+    const icon = screen.getByRole('button', { name: 'Favorite Rick Sanchez' }).querySelector('svg')
+    const classes = [...(icon?.classList ?? [])]
+    expect(classes.indexOf('favorite-toggle__icon--on')).toBe(
+      classes.indexOf('favorite-toggle__icon') + 1,
+    )
+  })
+
   it('explains the limit with a toast and stays off when favorites are full', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
     const full = Array.from({ length: MAX_FAVORITES }, (_, index) => `api:${String(index + 2)}`)

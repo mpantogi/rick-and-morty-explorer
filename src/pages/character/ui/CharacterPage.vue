@@ -52,11 +52,7 @@ function retryEpisodes(): void {
   <div class="character-page flex flex-col gap-8">
     <div v-if="state.kind !== 'error'" class="character-page__trail flex flex-col gap-2">
       <BackLink :to="paths.home" class="character-page__back">Back to characters</BackLink>
-      <BreadcrumbTrail
-        :parent="CHARACTERS_CRUMB"
-        :current="character?.name"
-        class="character-page__breadcrumbs"
-      />
+      <BreadcrumbTrail :parent="CHARACTERS_CRUMB" :current="character?.name" />
     </div>
 
     <div id="profile" class="character-page__profile">

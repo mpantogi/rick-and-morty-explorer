@@ -25,7 +25,7 @@ const VARIANTS = {
 const favorites = useFavoritesStore()
 const isFavorite = computed(() => favorites.isFavorite(characterKey))
 const iconClasses = computed(() =>
-  isFavorite.value ? 'favorite-toggle__icon--on fill-current text-accent' : '',
+  isFavorite.value ? 'favorite-toggle__icon--on size-5 fill-current text-accent' : 'size-5',
 )
 
 function toggle(): void {
@@ -51,7 +51,7 @@ function toggle(): void {
     :class="VARIANTS[variant].classes"
     @click="toggle"
   >
-    <Heart aria-hidden="true" class="favorite-toggle__icon size-5" :class="iconClasses" />
+    <Heart aria-hidden="true" class="favorite-toggle__icon" :class="iconClasses" />
     <template v-if="variant === 'labelled'">Favorite</template>
   </BaseButton>
 </template>

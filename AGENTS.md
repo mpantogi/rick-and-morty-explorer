@@ -73,6 +73,7 @@ least 4.5:1 in both themes.
 - Pass a parent's BEM mix (`<BaseButton class="filters__submit">`) only to a component whose root
   is a `Base*` primitive. Primitives turn off attribute inheritance and place the mix right after
   their own BEM classes (`useBemMix`); on any other component Vue appends it after the utilities.
+  A wrapper that adds utilities to its primitive (`BackLink`) forwards the mix with `useBemMix` too.
 - Every data-backed region renders exactly one of loading, ready, empty or error through a single
   `v-if` chain. Skeletons mirror the final geometry, empty never shows before data arrives, and
   errors show a toast (raised centrally by the query client) plus an in-place state with retry.
