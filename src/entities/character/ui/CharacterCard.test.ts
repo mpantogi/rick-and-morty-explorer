@@ -23,6 +23,12 @@ function view(overrides: Partial<CharacterView> = {}): CharacterView {
   }
 }
 
+function avatarOf(container: Element): HTMLImageElement {
+  const image = container.querySelector('img')
+  if (!image) throw new Error('The card rendered no avatar image')
+  return image
+}
+
 async function renderCard(character: CharacterView, flags: Record<string, boolean> = {}) {
   const rendered = await renderWithApp(CharacterCard, { props: { character, ...flags } })
   return { ...rendered, card: within(screen.getByRole('article')) }
@@ -65,7 +71,7 @@ describe('CharacterCard', () => {
 
   it('treats the avatar as decoration, lazy-loaded at its intrinsic size', async () => {
     const { container } = await renderCard(view())
-    const image = container.querySelector('img')
+    const image = avatarOf(container)
 
     expect(image).toHaveAttribute('alt', '')
     expect(image).toHaveAttribute('width', '300')
@@ -76,7 +82,7 @@ describe('CharacterCard', () => {
 
   it('loads the avatar at once, with high priority, when asked', async () => {
     const { container } = await renderCard(view(), { eager: true, priority: true })
-    const image = container.querySelector('img')
+    const image = avatarOf(container)
 
     expect(image).toHaveAttribute('loading', 'eager')
     expect(image).toHaveAttribute('fetchpriority', 'high')
@@ -85,7 +91,7 @@ describe('CharacterCard', () => {
   it('swaps an avatar that fails to load for a placeholder of the same size', async () => {
     const { container } = await renderCard(view())
 
-    await fireEvent.error(container.querySelector('img') as HTMLImageElement)
+    await fireEvent.error(avatarOf(container))
 
     expect(container.querySelector('img')).not.toBeInTheDocument()
     expect(container.querySelector('.avatar--fallback')).toHaveAttribute('aria-hidden', 'true')

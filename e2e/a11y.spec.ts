@@ -1,10 +1,12 @@
 import { expect, openPage, type Theme, test, useStoredTheme } from './fixtures'
+import { failWith, LIST_URL } from './support/api-mock'
 import { ROUTES } from './support/routes'
 
 const THEMES: readonly Theme[] = ['light', 'dark']
+const SERVER_ERROR = 500
 
-for (const route of ROUTES) {
-  for (const theme of THEMES) {
+for (const theme of THEMES) {
+  for (const route of ROUTES) {
     test(`${route.name} page has no WCAG 2.2 AA violations in the ${theme} theme`, async ({
       page,
       consoleGuard,
@@ -14,10 +16,26 @@ for (const route of ROUTES) {
       await useStoredTheme(page, theme)
 
       await openPage(page, route.path)
-      await expect(page.locator('#page-title')).toBeVisible()
+      await expect(page.locator(route.settled)).toBeVisible()
 
       const { violations } = await makeAxeBuilder().analyze()
       expect(violations).toEqual([])
     })
   }
+
+  test(`home error state has no WCAG 2.2 AA violations in the ${theme} theme`, async ({
+    page,
+    consoleGuard,
+    makeAxeBuilder,
+  }) => {
+    consoleGuard.allowHttpErrors(LIST_URL)
+    await useStoredTheme(page, theme)
+    await page.route(LIST_URL, failWith(SERVER_ERROR))
+
+    await openPage(page, '/')
+    await expect(page.locator('#results [data-state="error"]')).toBeVisible()
+
+    const { violations } = await makeAxeBuilder().analyze()
+    expect(violations).toEqual([])
+  })
 }

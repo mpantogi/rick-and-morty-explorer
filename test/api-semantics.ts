@@ -8,7 +8,7 @@ const NOT_FOUND = { error: 'There is nothing here' }
 
 type Filterable = Pick<ApiCharacter, 'name' | 'status' | 'species' | 'type' | 'gender'>
 
-export interface ApiReply {
+interface ApiReply {
   status: number
   body: Record<string, unknown>
 }

@@ -15,13 +15,12 @@ export type ListState =
   | { kind: 'empty'; reason: 'no-match' | 'out-of-range'; totalPages: number }
   | { kind: 'ready'; page: ListPage; isUpdating: boolean }
 
-export interface CharacterList {
+interface CharacterList {
   state: ComputedRef<ListState>
   retry: () => Promise<void>
 }
 
 const LOADING: ListState = { kind: 'loading' }
-const NO_LOCAL_MATCHES: readonly CharacterView[] = []
 
 // Empty is never derived from placeholder data, so stale results never flash "no match".
 function toListState(listPage: ListPage, isPlaceholder: boolean): ListState {
@@ -38,7 +37,7 @@ export function useCharacterList(
   page: Readonly<Ref<number>>,
 ): CharacterList {
   const queryClient = useQueryClient()
-  const localMatches = NO_LOCAL_MATCHES
+  const localMatches: readonly CharacterView[] = []
   const params = computed(() => toApiParams(filters.value))
   const windowQuery = (uiPage: number) =>
     characterQueries.window(params.value, uiPage, localMatches.length, queryClient)

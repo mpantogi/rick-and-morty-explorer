@@ -9,7 +9,7 @@ import {
   normalizeFilters,
 } from '@/entities/character'
 
-import { parseListQuery, toListQuery } from './list-query'
+import { FIRST_PAGE, parseListQuery, toListQuery } from './list-query'
 
 export interface CharacterFiltersController {
   readonly filters: Readonly<Ref<CharacterFilters>>
@@ -23,7 +23,6 @@ export interface CharacterFiltersController {
 }
 
 const TEXT_INPUT_DEBOUNCE_MS = 300
-const FIRST_PAGE = 1
 // Choosing an option is one deliberate act, so it applies at once; text waits for a typing pause.
 const IMMEDIATE_FIELDS: ReadonlySet<keyof CharacterFilters> = new Set(['status', 'gender'])
 

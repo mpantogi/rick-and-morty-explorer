@@ -6,7 +6,7 @@ import { z } from 'zod'
 import { apiCharacterSchema } from '../../src/entities/character/api/schemas.ts'
 import { listCharacters } from '../../test/api-semantics.ts'
 
-export const API_ROUTES = 'https://rickandmortyapi.com/api/**'
+const API_ROUTES = 'https://rickandmortyapi.com/api/**'
 export const LIST_URL = /\/api\/character(\?|$)/
 
 const AVATAR_PATH = /^\/api\/character\/avatar\/\d+\.jpeg$/
@@ -39,6 +39,11 @@ async function answer(route: Route): Promise<void> {
     json: { error: `The E2E API mock does not serve ${url.pathname}` },
     headers: CORS,
   })
+}
+
+// Answers with an error the way the API would, for tests that exercise failure states.
+export function failWith(status: number) {
+  return (route: Route) => route.fulfill({ status, json: { error: 'Failure' }, headers: CORS })
 }
 
 export async function mockApi(page: Page): Promise<void> {

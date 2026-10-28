@@ -1,4 +1,4 @@
-export type PageItem = number | 'ellipsis-start' | 'ellipsis-end'
+type PageItem = number | 'ellipsis-start' | 'ellipsis-end'
 
 // First, last, current and two gaps; the siblings flank the current page.
 const FIXED_SLOTS = 5

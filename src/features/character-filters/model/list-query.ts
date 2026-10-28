@@ -2,12 +2,12 @@ import type { LocationQuery } from 'vue-router'
 
 import { type CharacterFilters, FILTER_FIELDS, normalizeFilters } from '@/entities/character'
 
-export interface ListQuery {
+interface ListQuery {
   filters: CharacterFilters
   page: number
 }
 
-const FIRST_PAGE = 1
+export const FIRST_PAGE = 1
 // Positive integers without leading zeros: `2.5` would ask the API for a shifted window.
 const PAGE_PATTERN = /^[1-9]\d{0,4}$/
 

@@ -34,6 +34,9 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
   (`test/api-semantics.ts`), and avatars with an inline SVG. An endpoint the mock does not serve
   answers 501, which the console guard turns into a failure. A test that needs a different answer
   registers its own `page.route` after the fixture's.
+- `e2e/support/routes.ts` lists the routes the a11y and responsive specs visit, each with the
+  selector that marks it settled. `e2e/support/state-probe.ts` records every data region's
+  `data-state` from the first byte of HTML and flags any moment with two branches on screen.
 
 ## Architecture: Feature-Sliced Design
 

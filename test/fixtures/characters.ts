@@ -7,6 +7,6 @@ import records from './characters.json'
 
 const recordSchema = apiCharacterSchema.extend({ url: z.url(), created: z.iso.datetime() })
 
-export type ApiCharacterRecord = z.infer<typeof recordSchema>
+type ApiCharacterRecord = z.infer<typeof recordSchema>
 
 export const CHARACTERS: readonly ApiCharacterRecord[] = z.array(recordSchema).parse(records)

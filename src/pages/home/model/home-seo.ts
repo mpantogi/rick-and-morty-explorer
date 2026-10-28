@@ -1,6 +1,6 @@
 import { paths } from '@/shared/config'
 
-export interface HomeSeo {
+interface HomeSeo {
   title: string
   path: string
   robots: 'index' | 'noindex'

@@ -1,6 +1,6 @@
 import type { CharacterView } from './types'
 
-export interface Range {
+interface Range {
   readonly start: number
   readonly end: number
 }
