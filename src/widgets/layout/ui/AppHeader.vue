@@ -28,8 +28,9 @@ const NAV_LINKS = [
           <li v-for="link in NAV_LINKS" :key="link.to" class="site-nav__item">
             <RouterLink
               :to="link.to"
-              exact-active-class="site-nav__link--active text-accent underline decoration-2 underline-offset-8"
-              class="site-nav__link flex h-11 items-center justify-center rounded-lg px-2 text-sm font-semibold whitespace-nowrap text-fg transition-colors duration-150 hover:text-accent motion-reduce:transition-none sm:px-3"
+              active-class=""
+              exact-active-class=""
+              class="site-nav__link flex h-11 items-center justify-center rounded-lg px-2 text-sm font-semibold whitespace-nowrap text-fg decoration-2 underline-offset-8 transition-colors duration-150 hover:text-accent aria-[current=page]:underline motion-reduce:transition-none sm:px-3"
             >
               {{ link.label }}
             </RouterLink>
