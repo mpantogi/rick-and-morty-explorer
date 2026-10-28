@@ -20,6 +20,12 @@ test.describe('theme', { tag: '@journey' }, () => {
       .toBe(DARK_CANVAS)
   })
 
+  test('shows the hand cursor on the toggle like any enabled button', async ({ page }) => {
+    await openPage(page, '/')
+
+    await expect(page.getByRole('button', { name: 'Dark theme' })).toHaveCSS('cursor', 'pointer')
+  })
+
   test('keeps the dark theme after a reload', async ({ page }) => {
     await openPage(page, '/')
     await page.getByRole('button', { name: 'Dark theme' }).click()

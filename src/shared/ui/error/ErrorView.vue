@@ -5,7 +5,8 @@ import { useRouter } from 'vue-router'
 import type { ErrorCase } from '@/shared/api'
 import { paths } from '@/shared/config'
 
-import { buttonClasses } from '../button/button-classes'
+import BaseButton from '../button/BaseButton.vue'
+import BaseLink from '../link/BaseLink.vue'
 import { ERROR_CASES } from './error-cases'
 
 const {
@@ -51,24 +52,17 @@ const recovery = computed(() => {
       {{ description || copy.body }}
     </p>
     <div class="error-view__actions flex flex-wrap gap-3">
-      <button
-        v-if="recovery"
-        type="button"
-        :class="['error-view__action', buttonClasses('secondary')]"
-        @click="recovery.run"
-      >
+      <BaseButton v-if="recovery" class="error-view__action" @click="recovery.run">
         {{ recovery.label }}
-      </button>
-      <RouterLink :to="paths.home" :class="['error-view__action', buttonClasses('primary')]">
+      </BaseButton>
+      <BaseButton :to="paths.home" variant="primary" class="error-view__action">
         Browse characters
-      </RouterLink>
+      </BaseButton>
     </div>
     <p v-if="copy.support" class="error-view__support text-sm text-muted">
       If it keeps happening, check the status of
-      <a
-        href="https://rickandmortyapi.com"
-        class="error-view__link text-fg underline underline-offset-2 hover:text-accent"
-        >rickandmortyapi.com</a
+      <BaseLink href="https://rickandmortyapi.com" class="error-view__link"
+        >rickandmortyapi.com</BaseLink
       >.
     </p>
   </section>

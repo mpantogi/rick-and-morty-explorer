@@ -83,4 +83,10 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+
+  /* Tailwind 4's preflight resets buttons to the default cursor; restore the web convention. */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
 }

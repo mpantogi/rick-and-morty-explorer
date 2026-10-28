@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import type { ErrorCase } from '@/shared/api'
 
-import { buttonClasses } from '../button/button-classes'
+import BaseButton from '../button/BaseButton.vue'
 
 const { errorCase, subject } = defineProps<{ errorCase: ErrorCase; subject: string }>()
 const emit = defineEmits<{ retry: [] }>()
@@ -21,12 +21,6 @@ const reason = computed(() =>
   >
     <p class="region-error__title text-base font-semibold">Couldn't load {{ subject }}.</p>
     <p class="region-error__reason text-sm text-muted">{{ reason }}</p>
-    <button
-      type="button"
-      :class="['region-error__retry', buttonClasses('secondary')]"
-      @click="emit('retry')"
-    >
-      Try again
-    </button>
+    <BaseButton class="region-error__retry" @click="emit('retry')">Try again</BaseButton>
   </div>
 </template>

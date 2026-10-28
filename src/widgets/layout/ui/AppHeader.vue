@@ -36,7 +36,7 @@ const NAV_LINKS = [
           </li>
         </ul>
       </nav>
-      <ThemeToggle class="col-start-2 row-start-1 justify-self-end" />
+      <ThemeToggle class="site-header__toggle col-start-2 row-start-1 justify-self-end" />
     </div>
   </header>
 </template>
