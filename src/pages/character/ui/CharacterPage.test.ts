@@ -151,7 +151,7 @@ describe('CharacterPage', () => {
     expect(screen.queryByRole('navigation', { name: 'Breadcrumb' })).not.toBeInTheDocument()
   })
 
-  it('offers Try again when the API fails, and loads the character on retry', async () => {
+  it('offers Try again when the API fails, then loads the character with focus on its title', async () => {
     server.use(
       http.get(`${API}/character/:ids`, () => apiJson({ error: 'boom' }, 500), { once: true }),
     )
@@ -166,8 +166,38 @@ describe('CharacterPage', () => {
     await user.click(region('#profile').getByRole('button', { name: 'Try again' }))
 
     await vi.waitFor(() => {
+      expect(screen.getByRole('heading', { level: 1, name: 'Aqua Rick' })).toHaveFocus()
+    })
+  })
+
+  it('leaves focus where the visitor moved it while the retry loaded', async () => {
+    let release: () => void = () => undefined
+    const gate = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    server.use(
+      http.get(`${API}/character/:ids`, () => apiJson({ error: 'boom' }, 500), { once: true }),
+      http.get(`${API}/character/:ids`, async () => {
+        await gate
+      }),
+    )
+    const { user, region } = await renderPage(
+      AQUA_RICK,
+      seed(AQUA_RICK, { detail: false, episodes: true }),
+    )
+    await vi.waitFor(() => {
+      expect(region('#profile').getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    })
+
+    await user.click(region('#profile').getByRole('button', { name: 'Try again' }))
+    const backLink = screen.getByRole('link', { name: 'Back to characters' })
+    backLink.focus()
+    release()
+
+    await vi.waitFor(() => {
       expect(screen.getByRole('heading', { level: 1, name: 'Aqua Rick' })).toBeInTheDocument()
     })
+    expect(backLink).toHaveFocus()
   })
 
   it('keeps the profile when only the episodes fail, and retries them in place', async () => {

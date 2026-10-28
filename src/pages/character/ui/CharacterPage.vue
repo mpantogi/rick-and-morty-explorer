@@ -36,10 +36,19 @@ const appearances = computed(() => {
   return `Appears in ${count} ${count === 1 ? 'episode' : 'episodes'}`
 })
 
-// Try again removes itself; the loading heading takes focus so it is not lost to the page body.
-function retryProfile(): void {
-  void retry()
-  void nextTick(() => document.getElementById('page-title')?.focus())
+function focusTitle(): void {
+  document.getElementById('page-title')?.focus()
+}
+
+// Try again removes itself and each state renders its own h1, so the title takes focus while loading
+// and again once settled, unless the visitor has moved focus elsewhere meanwhile.
+async function retryProfile(): Promise<void> {
+  const settled = retry()
+  await nextTick()
+  focusTitle()
+  await settled
+  await nextTick()
+  if (document.activeElement === document.body) focusTitle()
 }
 
 function retryEpisodes(): void {
