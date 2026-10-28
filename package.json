@@ -20,7 +20,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@tanstack/vue-query": "5.105.0",
     "@unhead/vue": "2.1.17",
+    "@vue/devtools-api": "8.2.1",
+    "pinia": "4.1.0",
     "vite-ssg": "28.3.0",
     "vue": "3.5.44",
     "vue-router": "5.4.0",
