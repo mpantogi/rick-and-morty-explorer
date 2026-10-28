@@ -33,8 +33,9 @@ function cardNames(): string[] {
 
 describe('FavoritesList', () => {
   it('invites the visitor to browse when nothing is saved, with no count', async () => {
-    const { region, status } = await setup()
+    const { region, status, container } = await setup()
 
+    expect(container.querySelectorAll('#favorites [data-state]')).toHaveLength(1)
     expect(region().getByText('No favorites yet.')).toBeInTheDocument()
     expect(
       region().getByText('Use the heart on any character to save it here.'),
@@ -70,11 +71,12 @@ describe('FavoritesList', () => {
 
   it('lists the saved characters newest first under level-2 headings, with the count', async () => {
     saveFavorites(['api:4', 'api:1'])
-    const { status } = await setup()
+    const { status, container } = await setup()
 
     await vi.waitFor(() => {
       expect(cardNames()).toEqual(['Beth Smith', 'Rick Sanchez'])
     })
+    expect(container.querySelectorAll('#favorites [data-state]')).toHaveLength(1)
     expect(status()).toHaveTextContent('2 favorites')
   })
 
@@ -106,6 +108,7 @@ describe('FavoritesList', () => {
       expect(region().getByText("Couldn't load favorites.")).toBeInTheDocument()
     })
     expect(container.querySelector('[data-state="loading"]')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('#favorites [data-state]')).toHaveLength(1)
     expect(status()).toHaveTextContent('')
 
     await user.click(region().getByRole('button', { name: 'Try again' }))
