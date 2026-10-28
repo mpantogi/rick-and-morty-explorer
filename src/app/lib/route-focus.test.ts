@@ -6,17 +6,18 @@ import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 import { routes } from '../router/routes'
 import { installRouteFocus } from './route-focus'
 
-async function mountApp() {
-  const router = createRouter({ history: createMemoryHistory(), routes })
+async function mountApp(initialPath = '/') {
+  const history = createMemoryHistory()
+  history.replace(initialPath)
+  const router = createRouter({ history, routes })
   installRouteFocus(router)
   const host = document.createElement('div')
   document.body.append(host)
   const app = createApp(() => h(RouterView))
     .use(router)
     .use(createHead())
-  await router.push('/')
-  await router.isReady()
   app.mount(host)
+  await router.isReady()
   return {
     router,
     unmount: () => {
@@ -34,10 +35,11 @@ describe('installRouteFocus', () => {
   })
 
   it('leaves focus alone on the initial navigation', async () => {
-    const { unmount } = await mountApp()
+    const { unmount } = await mountApp('/nope')
     cleanup = unmount
     await nextTick()
 
+    expect(document.getElementById('page-title')).toBeInTheDocument()
     expect(document.activeElement).toBe(document.body)
   })
 
