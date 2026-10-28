@@ -7,6 +7,7 @@ import { installStateProbe, readStateProbe, statesOf } from './support/state-pro
 // API avatar URLs, which the API mock serves; the broken one is answered with a 404 below.
 const IMAGE = 'https://rickandmortyapi.com/api/character/avatar/7.jpeg'
 const BROKEN_IMAGE = 'https://images.example.com/missing.png'
+const INSECURE_IMAGE = 'http://example.com/pete.png'
 const NOT_FOUND = 404
 const SECURE_URL_ERROR = 'Enter a secure image URL starting with https://.'
 const UNKNOWN_HERO_PATH = '/heroes/0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
@@ -52,14 +53,21 @@ test.describe('create hero', { tag: '@journey' }, () => {
   test('refuses an image address that is not a secure web address', async ({ page }) => {
     await openPage(page, '/heroes/new')
     const fields = form(page)
+    const preview = page.getByRole('figure', { name: 'Preview' })
 
-    for (const address of ['javascript:alert(1)', 'http://example.com/pete.png']) {
+    for (const address of ['javascript:alert(1)', INSECURE_IMAGE]) {
       await fields.image.fill(address)
       await fields.submit.click()
 
       await expect(fields.image).toHaveAccessibleErrorMessage(SECURE_URL_ERROR)
     }
-    await expect(page.getByRole('figure', { name: 'Preview' }).locator('img')).toHaveCount(0)
+
+    // Only the schema brings the empty state back over a shown image; a failed load shows a fallback.
+    await fields.image.fill(IMAGE)
+    await expect(preview.locator('img')).toHaveAttribute('src', IMAGE)
+    await fields.image.fill(INSECURE_IMAGE)
+    await expect(preview.getByText('Your image will appear here.')).toBeVisible()
+    await expect(preview.locator('img')).toHaveCount(0)
   })
 
   test('creates a hero that leads the character list, even after a reload', async ({ page }) => {
