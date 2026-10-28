@@ -18,6 +18,7 @@ const NAV_LINKS = [
       <RouterLink
         :to="paths.home"
         aria-label="Rick and Morty Explorer, home"
+        aria-current="false"
         class="site-header__logo inline-flex h-11 items-center gap-2 justify-self-start rounded-lg font-bold whitespace-nowrap text-fg hover:text-accent"
       >
         <AppLogo />
@@ -28,8 +29,6 @@ const NAV_LINKS = [
           <li v-for="link in NAV_LINKS" :key="link.to" class="site-nav__item">
             <RouterLink
               :to="link.to"
-              active-class=""
-              exact-active-class=""
               class="site-nav__link flex h-11 items-center justify-center rounded-lg px-2 text-sm font-semibold whitespace-nowrap text-fg decoration-2 underline-offset-8 transition-colors duration-150 hover:text-accent aria-[current=page]:underline motion-reduce:transition-none sm:px-3"
             >
               {{ link.label }}

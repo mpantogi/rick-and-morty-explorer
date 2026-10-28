@@ -54,10 +54,9 @@ describe('App', () => {
     await renderWithApp(App, { route: '/' })
 
     const banner = within(screen.getByRole('banner'))
-    expect(banner.getByRole('link', { name: 'Rick and Morty Explorer, home' })).toHaveAttribute(
-      'href',
-      '/',
-    )
+    const logo = banner.getByRole('link', { name: 'Rick and Morty Explorer, home' })
+    expect(logo).toHaveAttribute('href', '/')
+    expect(logo).not.toHaveAttribute('aria-current', 'page')
     expect(banner.getByRole('button', { name: 'Dark theme' })).toBeInTheDocument()
     expect(
       within(screen.getByRole('contentinfo')).getByRole('link', { name: 'The Rick and Morty API' }),

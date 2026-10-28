@@ -15,8 +15,9 @@ const PRERENDERED_PATHS = ['/', '/404']
 
 export const createApp = ViteSSG(
   App,
+  // Empty link state classes keep the BEM class first; links style the current page via aria-current.
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- stable API; replacement is experimental in vue-router 5.4
-  { routes, scrollBehavior },
+  { routes, scrollBehavior, linkActiveClass: '', linkExactActiveClass: '' },
   ({ app, router }) => {
     app.use(createPinia())
     app.use(VueQueryPlugin, { queryClient: createQueryClient() })
