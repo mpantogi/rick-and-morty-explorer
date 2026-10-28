@@ -1,3 +1,4 @@
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { createHead } from '@unhead/vue/client'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, h, nextTick } from 'vue'
@@ -16,6 +17,9 @@ async function mountApp(initialPath = '/') {
   const app = createApp(() => h(RouterView))
     .use(router)
     .use(createHead())
+    .use(VueQueryPlugin, {
+      queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }),
+    })
   app.mount(host)
   await router.isReady()
   return {
@@ -54,11 +58,12 @@ describe('installRouteFocus', () => {
     expect(document.activeElement).toHaveTextContent("We couldn't find this page.")
   })
 
+  // Paging is excluded: the character list moves focus to its own results heading.
   it('keeps focus when only the query changes on the same path', async () => {
     const { router, unmount } = await mountApp()
     cleanup = unmount
 
-    await router.push('/?page=2')
+    await router.push('/?name=rick')
     await nextTick()
 
     expect(document.activeElement).toBe(document.body)

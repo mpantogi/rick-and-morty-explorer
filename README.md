@@ -9,8 +9,10 @@ Live site: https://rickverse-explorer.netlify.app (deploying soon).
 
 ## Project status
 
-In progress. The app shell, theme, error pages and the `Base*` design system are in place; the
-character list, detail pages, favorites and hero creation come next.
+In progress. In place: the app shell, theme, error pages, the `Base*` design system and the
+character list (12 characters per page over the API's 20-item pages, URL-synced filters,
+pagination, and loading, empty and error states). Detail pages, favorites and hero creation come
+next.
 
 ## Tech stack
 

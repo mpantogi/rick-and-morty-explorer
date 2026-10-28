@@ -23,18 +23,36 @@ defineSlots<{ default?: () => unknown }>()
 const BASE_CLASSES =
   'inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-colors duration-150 motion-reduce:transition-none'
 
-const VARIANT_CLASSES = {
-  primary: 'button--primary bg-accent text-accent-fg hover:bg-accent/90',
-  secondary: 'button--secondary border border-line-strong bg-surface text-fg hover:border-accent',
-  ghost: 'button--ghost text-fg hover:text-accent',
+const VARIANT_MODIFIERS = {
+  primary: 'button--primary',
+  secondary: 'button--secondary',
+  ghost: 'button--ghost',
 } as const satisfies Record<ButtonVariant, string>
 
-const SIZE_CLASSES = {
-  md: 'button--md h-11 rounded-lg px-4',
-  icon: 'button--icon size-11 shrink-0 rounded-full',
+const SIZE_MODIFIERS = {
+  md: 'button--md',
+  icon: 'button--icon',
 } as const satisfies Record<ButtonSize, string>
 
-const classes = computed(() => [VARIANT_CLASSES[variant], SIZE_CLASSES[size], BASE_CLASSES])
+const VARIANT_UTILITIES = {
+  primary: 'bg-accent text-accent-fg hover:bg-accent/90',
+  secondary: 'border border-line-strong bg-surface text-fg hover:border-accent',
+  ghost: 'text-fg hover:text-accent',
+} as const satisfies Record<ButtonVariant, string>
+
+const SIZE_UTILITIES = {
+  md: 'h-11 rounded-lg px-4',
+  icon: 'size-11 shrink-0 rounded-full',
+} as const satisfies Record<ButtonSize, string>
+
+// BEM block and modifiers first, utilities after (the project's class-order convention).
+const classes = computed(() => [
+  VARIANT_MODIFIERS[variant],
+  SIZE_MODIFIERS[size],
+  VARIANT_UTILITIES[variant],
+  SIZE_UTILITIES[size],
+  BASE_CLASSES,
+])
 </script>
 
 <template>

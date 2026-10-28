@@ -62,6 +62,8 @@ least 4.5:1 in both themes.
 - Every data-backed region renders exactly one of loading, ready, empty or error through a single
   `v-if` chain. Skeletons mirror the final geometry, empty never shows before data arrives, and
   errors show a toast (raised centrally by the query client) plus an in-place state with retry.
+  Each branch root carries `data-state="loading|ready|empty|error"` and the region container
+  carries none, so tests can prove only one branch is ever on screen.
 - Semantic HTML and WCAG 2.2 AA: labelled controls, visible focus, one `h1` per page.
 - Code must be SSR-safe: no `window`, `document` or `localStorage` at module scope or during the
   server render.

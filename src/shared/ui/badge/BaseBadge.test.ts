@@ -10,8 +10,7 @@ describe('BaseBadge', () => {
       render(BaseBadge, { props: { tone }, slots: { default: 'Alive' } })
       const badge = screen.getByText('Alive')
 
-      expect(badge.classList[0]).toBe('badge')
-      expect(badge).toHaveClass(`badge--${tone}`)
+      expect([...badge.classList].slice(0, 2)).toEqual(['badge', `badge--${tone}`])
     },
   )
 

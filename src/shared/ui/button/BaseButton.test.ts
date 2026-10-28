@@ -7,6 +7,24 @@ import { renderWithApp } from '../../../../test/render'
 import BaseButton from './BaseButton.vue'
 
 describe('BaseButton', () => {
+  it.each([
+    ['primary', 'md'],
+    ['ghost', 'icon'],
+  ] as const)(
+    'puts the block and its %s and %s modifiers before any utility',
+    async (variant, size) => {
+      await renderWithApp(BaseButton, {
+        props: { variant, size, 'aria-label': 'Control' },
+      })
+
+      expect([...screen.getByRole('button', { name: 'Control' }).classList].slice(0, 3)).toEqual([
+        'button',
+        `button--${variant}`,
+        `button--${size}`,
+      ])
+    },
+  )
+
   it('renders a button that never submits a form by default', async () => {
     await renderWithApp(BaseButton, { slots: { default: 'Try again' } })
 
