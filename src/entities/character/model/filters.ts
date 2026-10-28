@@ -68,6 +68,10 @@ export function matchesFilters(
   return FILTER_FIELDS.every((field) => matchesField(field, subject[field], filters[field]))
 }
 
+export function sameFilters(a: CharacterFilters, b: CharacterFilters): boolean {
+  return FILTER_FIELDS.every((field) => a[field] === b[field])
+}
+
 export function countActiveFilters(filters: CharacterFilters): number {
   return FILTER_FIELDS.filter((field) => filters[field].trim() !== '').length
 }

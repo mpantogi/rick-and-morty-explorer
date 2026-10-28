@@ -5,6 +5,7 @@ import {
   EMPTY_FILTERS,
   matchesFilters,
   normalizeFilters,
+  sameFilters,
   toApiParams,
 } from './filters'
 import type { CharacterFilters } from './types'
@@ -104,5 +105,13 @@ describe('countActiveFilters', () => {
   it('counts the filters that are set', () => {
     expect(countActiveFilters(EMPTY_FILTERS)).toBe(0)
     expect(countActiveFilters(filters({ name: 'rick', status: 'alive', type: '  ' }))).toBe(2)
+  })
+})
+
+describe('sameFilters', () => {
+  it('compares every field exactly', () => {
+    expect(sameFilters(filters({ name: 'rick' }), filters({ name: 'rick' }))).toBe(true)
+    expect(sameFilters(filters({ name: 'rick' }), filters({ name: 'Rick' }))).toBe(false)
+    expect(sameFilters(filters({ gender: 'male' }), EMPTY_FILTERS)).toBe(false)
   })
 })

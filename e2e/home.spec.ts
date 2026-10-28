@@ -111,12 +111,20 @@ test.describe('character list', { tag: '@journey' }, () => {
     expect(await countChangedPixels(page, unfocused, focused)).toBeGreaterThan(VISIBLE_RING_PIXELS)
   })
 
-  test('opens at the top of the page', async ({ page }) => {
-    await openPage(page, '/')
-    await expect(cards(page)).toHaveCount(12)
+  for (const { path, canonical } of [
+    { path: '/', canonical: '/' },
+    { path: '/?page=1', canonical: '/' },
+    // The router reads `%20` and `+` alike, so the mount-time rewrite keeps this URL as typed.
+    { path: '/?name=Rick%20Sanchez', canonical: '/?name=Rick%20Sanchez' },
+  ]) {
+    test(`opens ${path} at the top of the page`, async ({ page }) => {
+      await openPage(page, path)
+      await expect(page).toHaveURL(canonical)
+      await expect(page.locator('#results [data-state="ready"]')).toBeVisible()
 
-    expect(await page.evaluate(() => window.scrollY)).toBe(0)
-  })
+      expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    })
+  }
 
   for (const { filter, apply, url, total } of [
     {

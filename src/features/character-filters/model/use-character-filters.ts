@@ -6,8 +6,8 @@ import {
   type CharacterFilters,
   countActiveFilters,
   EMPTY_FILTERS,
-  FILTER_FIELDS,
   normalizeFilters,
+  sameFilters,
 } from '@/entities/character'
 
 import { FIRST_PAGE, parseListQuery, toListQuery } from './list-query'
@@ -27,10 +27,6 @@ const TEXT_INPUT_DEBOUNCE_MS = 300
 // Choosing an option is one deliberate act, so it applies at once; text waits for a typing pause.
 const IMMEDIATE_FIELDS: ReadonlySet<keyof CharacterFilters> = new Set(['status', 'gender'])
 
-function sameFilters(a: CharacterFilters, b: CharacterFilters): boolean {
-  return FILTER_FIELDS.every((field) => a[field] === b[field])
-}
-
 // The URL is the source of truth: the form edits a draft, and applying writes the URL.
 export function useCharacterFilters(): CharacterFiltersController {
   const route = useRoute()
@@ -40,10 +36,8 @@ export function useCharacterFilters(): CharacterFiltersController {
   const page = computed(() => listQuery.value.page)
   const draft = reactive<CharacterFilters>({ ...filters.value })
 
-  // Replacing the current URL still runs scrollBehavior (a duplicated navigation), so skip no-ops.
   function replaceQuery(query: LocationQueryRaw): void {
-    const target = router.resolve({ query })
-    if (target.fullPath !== route.fullPath) void router.replace(target)
+    void router.replace({ query })
   }
 
   // Filter changes replace history and start again from page 1; only pagination pushes.

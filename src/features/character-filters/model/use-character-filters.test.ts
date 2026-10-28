@@ -93,16 +93,6 @@ describe('useCharacterFilters', () => {
     })
   })
 
-  it('does not navigate when applying leaves the URL as it is', async () => {
-    const { controller, replace } = await setup('/?name=rick')
-
-    controller.update('name', 'rick ')
-    controller.applyNow()
-    await nextTick()
-
-    expect(replace).not.toHaveBeenCalled()
-  })
-
   it('copies the URL back into the draft on back navigation', async () => {
     const { controller, router } = await setup('/?name=rick')
     await router.push('/?name=morty&gender=male')

@@ -45,6 +45,20 @@ describe('scrollBehavior', () => {
     expect(await scrollFor('/?name=rick', '/')).toBe(false)
   })
 
+  it.each([
+    ['/', '/?page=1'],
+    ['/', '/?page=0'],
+    ['/?name=rick&status=alive', '/?status=alive&name=rick'],
+    ['/?name=Rick+Sanchez', '/?name=Rick%20Sanchez'],
+    ['/?name=rick', '/?name=%20rick%20&foo=bar'],
+  ])('keeps the scroll position when %s canonicalises %s', async (to, from) => {
+    expect(await scrollFor(to, from)).toBe(false)
+  })
+
+  it('keeps the scroll position when a replace leaves the list where it is', async () => {
+    expect(await scrollFor('/?name=rick&page=2', '/?name=rick&page=2')).toBe(false)
+  })
+
   it('scrolls to the top for any other navigation', async () => {
     expect(await scrollFor('/nope', '/')).toEqual({ top: 0 })
     expect(await scrollFor('/', '/nope')).toEqual({ top: 0 })

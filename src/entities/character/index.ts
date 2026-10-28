@@ -4,6 +4,7 @@ export {
   FILTER_FIELDS,
   FILTER_MAX_LENGTH,
   normalizeFilters,
+  sameFilters,
 } from './model/filters'
 export { genderLabel, statusLabel } from './model/labels'
 export { UI_PAGE_SIZE } from './model/pagination'
