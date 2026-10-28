@@ -13,7 +13,12 @@
   --line-strong: var(--color-gray-500);
   --accent: var(--color-orange-700);
   --accent-fg: var(--color-white);
+  --accent-subtle: var(--color-orange-50);
   --danger: var(--color-red-700);
+  --danger-subtle: var(--color-red-50);
+  --success: var(--color-green-700);
+  --success-subtle: var(--color-green-50);
+  --neutral-subtle: var(--color-gray-100);
   --alive: var(--color-green-600);
   --dead: var(--color-red-600);
   --unknown: var(--color-gray-500);
@@ -31,7 +36,12 @@
   --line-strong: var(--color-gray-400);
   --accent: var(--color-orange-400);
   --accent-fg: var(--color-gray-950);
+  --accent-subtle: var(--color-orange-950);
   --danger: var(--color-red-400);
+  --danger-subtle: var(--color-red-950);
+  --success: var(--color-green-400);
+  --success-subtle: var(--color-green-950);
+  --neutral-subtle: var(--color-gray-700);
   --alive: var(--color-green-400);
   --dead: var(--color-red-400);
   --unknown: var(--color-gray-400);
@@ -48,7 +58,12 @@
   --color-line-strong: var(--line-strong);
   --color-accent: var(--accent);
   --color-accent-fg: var(--accent-fg);
+  --color-accent-subtle: var(--accent-subtle);
   --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-neutral-subtle: var(--neutral-subtle);
   --color-status-alive: var(--alive);
   --color-status-dead: var(--dead);
   --color-status-unknown: var(--unknown);
