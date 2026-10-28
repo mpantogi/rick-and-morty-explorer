@@ -1,3 +1,4 @@
+export { fetchCharacterPage, fetchCharactersByIds } from './api/characters-api'
 export { characterQueries } from './api/queries'
 export type { ApiCharacter } from './api/schemas'
 export { type CharacterKey, characterKeySchema, parseCharacterKey } from './model/character-key'

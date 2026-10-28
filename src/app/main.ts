@@ -1,6 +1,6 @@
 import './zod-config'
 
-import { VueQueryPlugin } from '@tanstack/vue-query'
+import { dehydrate, type DehydratedState, hydrate, VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { ViteSSG } from 'vite-ssg'
 import 'vue-sonner/style.css'
@@ -13,23 +13,34 @@ import { routes } from './router/routes'
 import { scrollBehavior } from './router/scroll-behavior'
 import './styles/main.css'
 
-const PRERENDERED_PATHS = ['/', '/404']
-
 export const createApp = ViteSSG(
   App,
   // Empty link state classes keep the BEM class first; links style the current page via aria-current.
   // eslint-disable-next-line @typescript-eslint/no-deprecated -- stable API; replacement is experimental in vue-router 5.4
   { routes, scrollBehavior, linkActiveClass: '', linkExactActiveClass: '' },
-  ({ app, router }) => {
+  async ({ app, router, initialState, onSSRAppRendered, routePath }) => {
     app.use(createPinia())
-    app.use(VueQueryPlugin, { queryClient: createQueryClient() })
-    if (import.meta.env.SSR) return
+    const queryClient = createQueryClient()
+    app.use(VueQueryPlugin, { queryClient })
+    // The SSR-only imports keep the catalogue (and its build-time requests) out of the client bundle.
+    if (import.meta.env.SSR) {
+      const { seedRoute } = await import('./ssg/seed-route')
+      await seedRoute(queryClient, routePath)
+      onSSRAppRendered(() => {
+        const state = dehydrate(queryClient)
+        if (state.queries.length > 0) initialState.vueQuery = state
+      })
+      return
+    }
+    if (initialState.vueQuery) hydrate(queryClient, initialState.vueQuery as DehydratedState)
     installChunkReload(router)
     installRouteFocus(router)
   },
   { registerComponents: false },
 )
 
-export function includedRoutes(): string[] {
-  return PRERENDERED_PATHS
+export async function includedRoutes(paths: string[]): Promise<string[]> {
+  if (!import.meta.env.SSR) return paths
+  const { prerenderRoutes } = await import('./ssg/prerender-routes')
+  return prerenderRoutes()
 }

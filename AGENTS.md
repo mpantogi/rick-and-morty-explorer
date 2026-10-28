@@ -7,16 +7,16 @@ Instructions for AI coding agents working in this repository. Humans start with 
 Run Yarn through Corepack, `corepack yarn <command>`. It works without `corepack enable` and
 leaves the machine's global Yarn untouched. Use Node 24.
 
-| Command                                             | Purpose                                                     |
-| --------------------------------------------------- | ----------------------------------------------------------- |
-| `corepack yarn install`                             | Install dependencies and the git pre-commit hook            |
-| `corepack yarn dev`                                 | Vite dev server                                             |
-| `corepack yarn build`                               | Prerender the site into `dist/` (vite-ssg)                  |
-| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing on port 4173       |
-| `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches) |
-| `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                        |
-| `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API  |
-| `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier         |
+| Command                                             | Purpose                                                               |
+| --------------------------------------------------- | --------------------------------------------------------------------- |
+| `corepack yarn install`                             | Install dependencies and the git pre-commit hook                      |
+| `corepack yarn dev`                                 | Vite dev server                                                       |
+| `corepack yarn build`                               | Prerender every page into `dist/` (vite-ssg, three live API requests) |
+| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing on port 4173                 |
+| `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches)           |
+| `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                  |
+| `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API            |
+| `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier                   |
 
 Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverage`, `build` and
 `test:e2e --project=chromium`, in that order.
@@ -79,6 +79,10 @@ least 4.5:1 in both themes.
 - Semantic HTML and WCAG 2.2 AA: labelled controls, visible focus, one `h1` per page.
 - Code must be SSR-safe: no `window`, `document` or `localStorage` at module scope or during the
   server render.
+- Prerendering (`src/app/ssg`) loads the whole catalogue in three bulk requests at build time and
+  seeds each character route's queries with the same `queryOptions` keys the page reads, so the
+  page renders from the dehydrated state without a request. Keep those keys shared; data that only
+  this browser holds (favorites, heroes) renders a skeleton in the prerendered HTML.
 - Comments explain only a non-obvious why, and never run longer than two lines.
 - Zero ESLint warnings. Complexity ≤ 10, cognitive complexity ≤ 15, nesting depth ≤ 3, ≤ 4
   parameters, ≤ 3 nested callbacks, functions ≤ 60 lines, files ≤ 300 lines (tests are exempt from

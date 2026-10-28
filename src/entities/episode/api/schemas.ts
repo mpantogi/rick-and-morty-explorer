@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// z.object strips characters/url/created, which keeps the query cache and the prerendered state small.
+// z.object strips characters/url/created, keeping the query cache and prerendered state small.
 export const apiEpisodeSchema = z.object({
   id: z.int().positive(),
   name: z.string(),
