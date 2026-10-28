@@ -5,7 +5,7 @@ import { nextTick, watch } from 'vue'
 import { STORAGE_KEYS } from '@/shared/config'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { recordRequests, server } from '../../../../test/msw/server'
 import { renderComposable } from '../../../../test/render'
 import { useFavoritesStore } from './favorites-store'
 import { type ListLikeState, useFavoriteCharacters } from './use-favorite-characters'
@@ -14,16 +14,6 @@ const HERO_KEY = 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
 
 function saveFavorites(keys: readonly string[]): void {
   localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(keys))
-}
-
-function trackByIdsRequests(): string[] {
-  const paths: string[] = []
-  server.use(
-    http.get(`${API}/character/:ids`, ({ request }) => {
-      paths.push(decodeURIComponent(new URL(request.url).pathname))
-    }),
-  )
-  return paths
 }
 
 async function setup() {
@@ -47,7 +37,7 @@ describe('useFavoriteCharacters', () => {
   })
 
   it('is empty at once, without a request, when nothing is saved', async () => {
-    const paths = trackByIdsRequests()
+    const paths = recordRequests('character/:ids')
     const { state, favorites } = await setup()
 
     expect(state.value).toEqual({ kind: 'empty' })
@@ -58,7 +48,7 @@ describe('useFavoriteCharacters', () => {
 
   it('loads every saved character in one request and keeps the saved order', async () => {
     saveFavorites(['api:3', 'api:1', 'api:2'])
-    const paths = trackByIdsRequests()
+    const paths = recordRequests('character/:ids')
     const { state, favorites } = await setup()
 
     expect(state.value).toEqual({ kind: 'loading' })
@@ -83,7 +73,7 @@ describe('useFavoriteCharacters', () => {
 
   it('needs no request when only heroes are saved', async () => {
     saveFavorites([HERO_KEY])
-    const paths = trackByIdsRequests()
+    const paths = recordRequests('character/:ids')
     const { state } = await setup()
 
     await nextTick()
@@ -160,7 +150,7 @@ describe('useFavoriteCharacters', () => {
   it('stays loading without a request while prerendering', async () => {
     vi.stubEnv('SSR', true)
     saveFavorites(['api:1'])
-    const paths = trackByIdsRequests()
+    const paths = recordRequests('character/:ids')
     const { state } = await setup()
 
     await nextTick()

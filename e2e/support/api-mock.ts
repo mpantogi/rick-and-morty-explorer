@@ -4,16 +4,19 @@ import type { Page, Route } from '@playwright/test'
 import { z } from 'zod'
 
 import { apiCharacterSchema } from '../../src/entities/character/api/schemas.ts'
-import { listCharacters } from '../../test/api-semantics.ts'
+import { apiEpisodeSchema } from '../../src/entities/episode/api/schemas.ts'
+import { type ApiReply, findByIds, listCharacters } from '../../test/api-semantics.ts'
 
 const API_ORIGIN = 'https://rickandmortyapi.com'
 const API_ROUTES = `${API_ORIGIN}/api/**`
 export const LIST_URL = /\/api\/character(\?|$)/
 export const FIRST_LIST_PAGE_URL = /\/api\/character\?page=1$/
 export const NO_MATCH_URL = /\/api\/character\?name=zzzz&page=1$/
+export const EPISODES_URL = /\/api\/episode\//
 
 const AVATAR_PATH = /^\/api\/character\/avatar\/\d+\.jpeg$/
 const LIST_PATH = '/api/character'
+const BY_IDS_PATH = /^\/api\/(character|episode)\/([^/]+)$/
 const NOT_IMPLEMENTED = 501
 const AVATAR_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300">' +
@@ -22,8 +25,23 @@ const AVATAR_SVG =
 const CORS = { 'access-control-allow-origin': '*' }
 
 const fixture = z
-  .object({ characters: z.array(apiCharacterSchema.loose()) })
+  .object({
+    characters: z.array(apiCharacterSchema.loose()),
+    episodes: z.array(apiEpisodeSchema.loose()),
+  })
   .parse(JSON.parse(readFileSync(new URL('api-fixture.json', import.meta.url), 'utf8')))
+
+function replyFor(url: URL): ApiReply {
+  if (url.pathname === LIST_PATH) return listCharacters(fixture.characters, url)
+  const [, resource, segment = ''] = BY_IDS_PATH.exec(url.pathname) ?? []
+  if (resource === 'character') return findByIds(fixture.characters, segment, 'Character')
+  if (resource === 'episode') return findByIds(fixture.episodes, segment, 'Episode')
+  // Unmocked endpoints fail loudly instead of reaching the live API.
+  return {
+    status: NOT_IMPLEMENTED,
+    body: { error: `The E2E API mock does not serve ${url.pathname}` },
+  }
+}
 
 async function answer(route: Route): Promise<void> {
   const url = new URL(route.request().url())
@@ -31,17 +49,8 @@ async function answer(route: Route): Promise<void> {
     await route.fulfill({ contentType: 'image/svg+xml', body: AVATAR_SVG, headers: CORS })
     return
   }
-  if (url.pathname === LIST_PATH) {
-    const { status, body } = listCharacters(fixture.characters, url)
-    await route.fulfill({ status, json: body, headers: CORS })
-    return
-  }
-  // Unmocked endpoints fail loudly instead of reaching the live API.
-  await route.fulfill({
-    status: NOT_IMPLEMENTED,
-    json: { error: `The E2E API mock does not serve ${url.pathname}` },
-    headers: CORS,
-  })
+  const { status, body } = replyFor(url)
+  await route.fulfill({ status, json: body, headers: CORS })
 }
 
 // Answers with an error the way the API would, for tests that exercise failure states.

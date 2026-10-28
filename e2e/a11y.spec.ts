@@ -1,4 +1,4 @@
-import { expect, openPage, type Theme, test, useStoredTheme } from './fixtures'
+import { expect, openPage, type Theme, test, useStoredFavorites, useStoredTheme } from './fixtures'
 import { FIRST_LIST_PAGE_URL, failWith, LIST_URL } from './support/api-mock'
 import { ROUTES } from './support/routes'
 
@@ -14,6 +14,7 @@ for (const theme of THEMES) {
     }) => {
       consoleGuard.allowHttpErrors(...route.expectedHttpErrors)
       await useStoredTheme(page, theme)
+      await useStoredFavorites(page, route.favorites ?? [])
 
       await openPage(page, route.path)
       await expect(page.locator(route.settled)).toBeVisible()

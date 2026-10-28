@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, openPage, test } from './fixtures'
+import { expect, openPage, test, useStoredFavorites } from './fixtures'
 import { LIST_URL } from './support/api-mock'
 import { ROUTES } from './support/routes'
 
@@ -22,6 +22,7 @@ for (const route of ROUTES) {
     }) => {
       consoleGuard.allowHttpErrors(...route.expectedHttpErrors)
       await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
+      await useStoredFavorites(page, route.favorites ?? [])
 
       await openPage(page, route.path)
       await expect(page.locator(route.settled)).toBeVisible()

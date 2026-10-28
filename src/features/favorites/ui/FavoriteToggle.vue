@@ -8,12 +8,19 @@ import { BaseButton } from '@/shared/ui'
 
 import { useFavoritesStore } from '../model/favorites-store'
 
+type ToggleVariant = 'icon' | 'labelled'
+
 const {
   characterKey,
   name,
   variant = 'icon',
-} = defineProps<{ characterKey: CharacterKey; name: string; variant?: 'icon' | 'labelled' }>()
+} = defineProps<{ characterKey: CharacterKey; name: string; variant?: ToggleVariant }>()
 const emit = defineEmits<{ change: [isFavorite: boolean] }>()
+
+const VARIANTS = {
+  icon: { button: 'ghost', size: 'icon', classes: 'favorite-toggle--icon bg-surface/90' },
+  labelled: { button: 'secondary', size: 'md', classes: 'favorite-toggle--labelled' },
+} as const satisfies Record<ToggleVariant, object>
 
 const favorites = useFavoritesStore()
 const isFavorite = computed(() => favorites.isFavorite(characterKey))
@@ -36,23 +43,15 @@ function toggle(): void {
 <!-- Only aria-pressed and the fill change, so the button keeps its size in every state. -->
 <template>
   <BaseButton
-    v-if="variant === 'icon'"
-    variant="ghost"
-    size="icon"
+    :variant="VARIANTS[variant].button"
+    :size="VARIANTS[variant].size"
     :aria-pressed="isFavorite"
-    :aria-label="`Favorite ${name}`"
-    class="favorite-toggle favorite-toggle--icon bg-surface/90"
+    :aria-label="variant === 'icon' ? `Favorite ${name}` : undefined"
+    class="favorite-toggle"
+    :class="VARIANTS[variant].classes"
     @click="toggle"
   >
     <Heart aria-hidden="true" class="favorite-toggle__icon size-5" :class="iconClasses" />
-  </BaseButton>
-  <BaseButton
-    v-else
-    :aria-pressed="isFavorite"
-    class="favorite-toggle favorite-toggle--labelled"
-    @click="toggle"
-  >
-    <Heart aria-hidden="true" class="favorite-toggle__icon size-5" :class="iconClasses" />
-    Favorite
+    <template v-if="variant === 'labelled'">Favorite</template>
   </BaseButton>
 </template>

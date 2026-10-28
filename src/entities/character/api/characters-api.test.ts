@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/shared/api'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { recordRequests, server } from '../../../../test/msw/server'
 import { fetchCharacter, fetchCharacterPage, fetchCharactersByIds } from './characters-api'
 
 function captureListUrls(): string[] {
@@ -56,16 +56,11 @@ describe('fetchCharacterPage', () => {
 
 describe('fetchCharactersByIds', () => {
   it('asks for the ids in the bracket form and gets a list even for one id', async () => {
-    const urls: string[] = []
-    server.use(
-      http.get(`${API}/character/:ids`, ({ request }) => {
-        urls.push(decodeURIComponent(request.url))
-      }),
-    )
+    const paths = recordRequests('character/:ids')
 
     const characters = await fetchCharactersByIds([3])
 
-    expect(urls).toEqual([`${API}/character/[3]`])
+    expect(paths).toEqual(['/api/character/[3]'])
     expect(characters.map((character) => character.name)).toEqual(['Summer Smith'])
   })
 

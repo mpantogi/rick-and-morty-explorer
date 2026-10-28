@@ -3,20 +3,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, ref } from 'vue'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
-import { renderComposable } from '../../../../test/render'
+import { recordRequests, server } from '../../../../test/msw/server'
+import { createTestQueryClient, renderComposable } from '../../../../test/render'
 import { episodeQueries } from '../api/queries'
 import { useEpisodes } from './use-episodes'
-
-function trackEpisodeRequests(): string[] {
-  const paths: string[] = []
-  server.use(
-    http.get(`${API}/episode/:ids`, ({ request }) => {
-      paths.push(decodeURIComponent(new URL(request.url).pathname))
-    }),
-  )
-  return paths
-}
 
 async function setup(ids: readonly number[]) {
   const rendered = await renderComposable(() => useEpisodes(ref(ids)))
@@ -29,7 +19,7 @@ describe('useEpisodes', () => {
   })
 
   it('loads the episodes in one request, sorted by id, as view models', async () => {
-    const paths = trackEpisodeRequests()
+    const paths = recordRequests('episode/:ids')
     const { state } = await setup([22, 10])
 
     expect(state.value).toEqual({ kind: 'loading' })
@@ -60,7 +50,7 @@ describe('useEpisodes', () => {
   })
 
   it('is ready with no episodes, without a request, when there are no ids', async () => {
-    const paths = trackEpisodeRequests()
+    const paths = recordRequests('episode/:ids')
     const { state } = await setup([])
 
     await nextTick()
@@ -70,15 +60,15 @@ describe('useEpisodes', () => {
   })
 
   it('uses episodes already in the cache without a request', async () => {
-    const paths = trackEpisodeRequests()
-    const rendered = await renderComposable(() => useEpisodes(ref([3])))
-    rendered.queryClient.setQueryData(episodeQueries.byIds([3]).queryKey, [
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(episodeQueries.byIds([3]).queryKey, [
       { id: 3, name: 'Anatomy Park', air_date: 'December 16, 2013', episode: 'S01E03' },
     ])
+    const paths = recordRequests('episode/:ids')
 
-    await vi.waitFor(() => {
-      expect(rendered.result.state.value).toMatchObject({ kind: 'ready', data: [{ id: 3 }] })
-    })
+    const { result } = await renderComposable(() => useEpisodes(ref([3])), { queryClient })
+
+    expect(result.state.value).toMatchObject({ kind: 'ready', data: [{ id: 3 }] })
     expect(paths).toEqual([])
   })
 
@@ -109,7 +99,7 @@ describe('useEpisodes', () => {
 
   it('stays loading without a request while prerendering an uncached list', async () => {
     vi.stubEnv('SSR', true)
-    const paths = trackEpisodeRequests()
+    const paths = recordRequests('episode/:ids')
     const { state } = await setup([1])
 
     await nextTick()

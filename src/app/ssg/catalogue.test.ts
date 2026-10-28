@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { listCharacters } from '../../../test/api-semantics'
 import { CHARACTERS } from '../../../test/fixtures/characters'
 import { API, apiJson } from '../../../test/msw/handlers'
-import { server } from '../../../test/msw/server'
+import { recordRequests, server } from '../../../test/msw/server'
 
 // Fixture ids run 1–24 and then jump to 266; the first 24 form a contiguous catalogue.
 const CONTIGUOUS = CHARACTERS.slice(0, 24)
@@ -16,17 +16,6 @@ function serveContiguousList(): void {
       return apiJson(body, status)
     }),
   )
-}
-
-function trackRequests(): string[] {
-  const paths: string[] = []
-  server.use(
-    http.get(`${API}/*`, ({ request }) => {
-      const url = new URL(request.url)
-      paths.push(decodeURIComponent(`${url.pathname}${url.search}`))
-    }),
-  )
-  return paths
 }
 
 // The catalogue is memoised per module, so each test loads a fresh copy.
@@ -41,7 +30,7 @@ describe('loadCatalogue', () => {
   })
 
   it('loads every character and every episode they reference in three requests', async () => {
-    const paths = trackRequests()
+    const paths = recordRequests()
     const { loadCatalogue } = await freshCatalogue()
 
     const { characters, episodes } = await loadCatalogue()
@@ -58,7 +47,7 @@ describe('loadCatalogue', () => {
   })
 
   it('answers every later call from the first load', async () => {
-    const paths = trackRequests()
+    const paths = recordRequests()
     const { loadCatalogue } = await freshCatalogue()
 
     const [first, second] = await Promise.all([loadCatalogue(), loadCatalogue()])

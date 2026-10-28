@@ -3,7 +3,7 @@ import type { QueryClient } from '@tanstack/vue-query'
 import { characterKeys } from '../api/query-keys'
 import type { ApiCharacter, ApiCharacterPage } from '../api/schemas'
 
-// The list and favorites already hold full characters, so a detail page opened from them is instant.
+// The list and favorites hold full characters, so a detail page opened from them is instant.
 export function findCachedCharacter(
   queryClient: QueryClient,
   id: number,

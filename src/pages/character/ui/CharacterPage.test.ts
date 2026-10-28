@@ -8,22 +8,12 @@ import { episodeQueries } from '@/entities/episode'
 import { CHARACTERS } from '../../../../test/fixtures/characters'
 import { EPISODES } from '../../../../test/fixtures/episodes'
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { recordRequests, server } from '../../../../test/msw/server'
 import { createTestQueryClient, renderWithApp } from '../../../../test/render'
 import CharacterPage from './CharacterPage.vue'
 
 // Aqua Rick appears in episodes 10, 22 and 28, all three in the episode fixture.
 const AQUA_RICK = 22
-
-function trackApiRequests(): string[] {
-  const paths: string[] = []
-  server.use(
-    http.get(`${API}/*`, ({ request }) => {
-      paths.push(decodeURIComponent(new URL(request.url).pathname))
-    }),
-  )
-  return paths
-}
 
 function character(id: number) {
   const found = CHARACTERS.find((record) => record.id === id)
@@ -68,7 +58,7 @@ function episodeNames(container: Element): string[] {
 
 describe('CharacterPage', () => {
   it('renders a prerendered character and its episodes without any request', async () => {
-    const paths = trackApiRequests()
+    const paths = recordRequests()
 
     const { container } = await renderPage(AQUA_RICK, seededClient(AQUA_RICK))
 

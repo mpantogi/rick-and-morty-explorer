@@ -70,6 +70,6 @@ export function findByIds(
   if (decoded.startsWith('[') || decoded.includes(',')) return { status: 200, body: found }
   const [record] = found
   return record
-    ? { status: 200, body: { ...record } }
+    ? { status: 200, body: record }
     : { status: 404, body: { error: `${resource} not found` } }
 }

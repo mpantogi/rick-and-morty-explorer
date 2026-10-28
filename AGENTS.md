@@ -35,8 +35,10 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
   answers 501, which the console guard turns into a failure. A test that needs a different answer
   registers its own `page.route` after the fixture's.
 - `e2e/support/routes.ts` lists the routes the a11y and responsive specs visit, each with the
-  selector that marks it settled. `e2e/support/state-probe.ts` records every data region's
-  `data-state` from the first byte of HTML and flags any moment with two branches on screen.
+  selector that marks it settled and, where it matters, the favorites the browser holds.
+  `e2e/support/state-probe.ts` records every data region's `data-state` (`#results`, `#profile`,
+  `#episodes`, `#favorites`) from the first byte of HTML and flags any moment with two branches on
+  screen. `trackApiCalls` (in `api-mock.ts`) counts the app's JSON API requests, not avatars.
 
 ## Architecture: Feature-Sliced Design
 

@@ -8,7 +8,7 @@ import { useEpisodes } from '@/entities/episode'
 import { listCharacters } from '../../../test/api-semantics'
 import { CHARACTERS } from '../../../test/fixtures/characters'
 import { API, apiJson } from '../../../test/msw/handlers'
-import { server } from '../../../test/msw/server'
+import { recordRequests, server } from '../../../test/msw/server'
 import { createTestQueryClient, renderComposable } from '../../../test/render'
 
 const AQUA_RICK = 22
@@ -34,12 +34,7 @@ describe('seedRoute', () => {
     await seedRoute(queryClient, `/characters/${String(AQUA_RICK)}`)
     const record = CHARACTERS.find((character) => character.id === AQUA_RICK)
     if (!record) throw new Error('Aqua Rick is missing from the fixture')
-    const paths: string[] = []
-    server.use(
-      http.get(`${API}/*`, ({ request }) => {
-        paths.push(new URL(request.url).pathname)
-      }),
-    )
+    const paths = recordRequests()
 
     const { result } = await renderComposable(
       () => ({

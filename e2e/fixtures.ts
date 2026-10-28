@@ -93,3 +93,13 @@ export async function useStoredTheme(page: Page, theme: Theme): Promise<void> {
     [STORAGE_KEYS.theme, theme] as const,
   )
 }
+
+// Seeds this browser's favorites (newest first) before any page script runs.
+export async function useStoredFavorites(page: Page, keys: readonly string[]): Promise<void> {
+  await page.addInitScript(
+    ([key, value]) => {
+      localStorage.setItem(key, value)
+    },
+    [STORAGE_KEYS.favorites, JSON.stringify(keys)] as const,
+  )
+}

@@ -5,7 +5,7 @@ import { parseListQuery } from '@/features/character-filters'
 
 const RESULTS = { el: '#results', top: 0 }
 
-// Compares the list each URL shows, so a canonical rewrite (`?page=1` → `/`) never moves the page.
+// Compares the list each URL shows, so a canonical rewrite (`?page=1` → `/`) keeps the position.
 function homeScroll(to: LocationQuery, from: LocationQuery): typeof RESULTS | false {
   const next = parseListQuery(to)
   const previous = parseListQuery(from)

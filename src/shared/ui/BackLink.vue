@@ -9,8 +9,9 @@ defineSlots<{ default: () => unknown }>()
 
 const router = useRouter()
 const { back } = router.options.history.state
+const previous = typeof back === 'string' ? router.resolve(back) : null
 // Coming from the list, going back restores it as left (filters, page, scroll position).
-const backHref = typeof back === 'string' && router.resolve(back).path === to ? back : ''
+const backHref = previous?.path === to ? previous.href : ''
 
 function goBack(event: MouseEvent): void {
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
@@ -22,7 +23,7 @@ function goBack(event: MouseEvent): void {
 <template>
   <BaseLink
     v-if="backHref"
-    :href="router.resolve(backHref).href"
+    :href="backHref"
     class="back-link inline-flex min-h-11 items-center gap-2 self-start"
     @click="goBack"
   >

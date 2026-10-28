@@ -4,21 +4,11 @@ import { nextTick, ref } from 'vue'
 
 import { CHARACTERS } from '../../../../test/fixtures/characters'
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { recordRequests, server } from '../../../../test/msw/server'
 import { createTestQueryClient, renderComposable } from '../../../../test/render'
 import { fetchCharacterPage } from '../api/characters-api'
 import { characterKeys } from '../api/query-keys'
 import { useCharacter } from './use-character'
-
-function trackDetailRequests(): string[] {
-  const paths: string[] = []
-  server.use(
-    http.get(`${API}/character/:ids`, ({ request }) => {
-      paths.push(decodeURIComponent(new URL(request.url).pathname))
-    }),
-  )
-  return paths
-}
 
 async function setup(id: number, queryClient = createTestQueryClient()) {
   const rendered = await renderComposable(() => useCharacter(ref(id)), { queryClient })
@@ -31,7 +21,7 @@ describe('useCharacter', () => {
   })
 
   it('loads the character and maps it to the view model', async () => {
-    const paths = trackDetailRequests()
+    const paths = recordRequests('character/:ids')
     const { state } = await setup(2)
 
     expect(state.value).toEqual({ kind: 'loading' })
@@ -49,7 +39,7 @@ describe('useCharacter', () => {
   it('starts ready from a cached list page, without a request', async () => {
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(characterKeys.apiPage({}, 1), await fetchCharacterPage({}, 1))
-    const paths = trackDetailRequests()
+    const paths = recordRequests('character/:ids')
 
     const { state } = await setup(5, queryClient)
 
@@ -63,7 +53,7 @@ describe('useCharacter', () => {
       characterKeys.byIds([4, 266]),
       CHARACTERS.filter((character) => [4, 266].includes(character.id)),
     )
-    const paths = trackDetailRequests()
+    const paths = recordRequests('character/:ids')
 
     const { state } = await setup(266, queryClient)
 
@@ -97,7 +87,7 @@ describe('useCharacter', () => {
 
   it('stays loading without a request while prerendering an uncached character', async () => {
     vi.stubEnv('SSR', true)
-    const paths = trackDetailRequests()
+    const paths = recordRequests('character/:ids')
     const { state } = await setup(1)
 
     await nextTick()

@@ -22,7 +22,7 @@ export const createApp = ViteSSG(
     app.use(createPinia())
     const queryClient = createQueryClient()
     app.use(VueQueryPlugin, { queryClient })
-    // The SSR-only imports keep the catalogue (and its build-time requests) out of the client bundle.
+    // SSR-only imports keep the catalogue and its build-time requests out of the client bundle.
     if (import.meta.env.SSR) {
       const { seedRoute } = await import('./ssg/seed-route')
       await seedRoute(queryClient, routePath)
