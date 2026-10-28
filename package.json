@@ -23,7 +23,8 @@
     "@unhead/vue": "2.1.17",
     "vite-ssg": "28.3.0",
     "vue": "3.5.44",
-    "vue-router": "5.4.0"
+    "vue-router": "5.4.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",

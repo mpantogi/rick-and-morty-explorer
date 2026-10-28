@@ -3,7 +3,7 @@
   "include": ["src/**/*.test.ts", "test/**/*", "env.d.ts"],
   "exclude": [],
   "compilerOptions": {
-    "lib": [],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["node", "jsdom"],
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vitest.tsbuildinfo"
   }
