@@ -21,13 +21,15 @@ async function fetchWindow(
   const loadPage = (page: number) =>
     queryClient.query({ ...apiPageQuery(params, page), staleTime: 'static' })
   // Page 1 also answers "how many match" when local heroes fill the whole UI page.
-  const pages = plan.apiPages.length > 0 ? plan.apiPages : [1]
-  const results = await Promise.all(pages.map(loadPage))
-  const counted =
-    results.find((result) => result !== null) ?? (pages.includes(1) ? null : await loadPage(1))
+  const [firstPage = 1, ...laterPages] = plan.apiPages
+  const first = await loadPage(firstPage)
+  // The first page says how many exist, so the window never requests one past the last (a 404).
+  const later = first === null ? [] : laterPages.filter((page) => page <= first.info.pages)
+  const results = [first, ...(await Promise.all(later.map(loadPage)))]
+  const counted = first ?? (firstPage === 1 ? null : await loadPage(1))
   const characters = sliceApiWindow(
     plan,
-    pages,
+    [firstPage, ...later],
     results.map((result) => result?.results ?? null),
   )
   return { items: characters.map(toCharacterView), apiCount: counted?.info.count ?? 0 }

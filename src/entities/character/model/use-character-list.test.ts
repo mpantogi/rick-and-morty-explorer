@@ -105,6 +105,17 @@ describe('useCharacterList', () => {
     expect(new Set(urls.map((url) => url.searchParams.get('page')))).toEqual(new Set(['1', '2']))
   })
 
+  it('never asks the API for a page past the last one', async () => {
+    const urls = trackListRequests()
+    // 19 male characters fit on one API page, yet UI page 2 spans API pages 1 and 2.
+    const { state } = await setup({ filters: { gender: 'male' }, page: 2 })
+
+    await vi.waitFor(() => {
+      expect(state.value).toMatchObject({ ...READY, page: { rangeStart: 13, rangeEnd: 19 } })
+    })
+    expect(urls.map((url) => url.searchParams.get('page'))).toEqual(['1'])
+  })
+
   it('reports no match when the filters find nothing', async () => {
     const { state } = await setup({ filters: { name: 'zzzz' } })
 
