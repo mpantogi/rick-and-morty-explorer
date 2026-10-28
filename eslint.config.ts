@@ -79,6 +79,7 @@ export default withVueTs(
       'vue/no-useless-v-bind': 'error',
       'vue/no-useless-mustaches': 'error',
       'vue/prefer-true-attribute-shorthand': 'error',
+      'vue/no-duplicate-attributes': ['error', { allowCoexistClass: false }],
       'vuejs-accessibility/label-has-for': ['error', { required: { some: ['nesting', 'id'] } }],
     },
   },

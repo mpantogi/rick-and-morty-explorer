@@ -9,8 +9,7 @@ const { mix, rest } = useBemMix()
 <template>
   <span
     v-bind="rest()"
-    class="skeleton"
-    :class="[mix(), 'block rounded-md bg-skeleton motion-safe:animate-pulse']"
+    :class="['skeleton', mix(), 'block rounded-md bg-skeleton motion-safe:animate-pulse']"
     aria-hidden="true"
   />
 </template>

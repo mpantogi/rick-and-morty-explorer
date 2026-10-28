@@ -9,12 +9,10 @@ defineSlots<{ default: () => unknown }>()
 
 const { mix, rest } = useBemMix()
 
-const UTILITIES = 'text-accent underline underline-offset-4 hover:decoration-2'
+const classes = () => ['link', mix(), 'text-accent underline underline-offset-4 hover:decoration-2']
 </script>
 
 <template>
-  <RouterLink v-if="to" :to v-bind="rest()" class="link" :class="[mix(), UTILITIES]">
-    <slot />
-  </RouterLink>
-  <a v-else :href v-bind="rest()" class="link" :class="[mix(), UTILITIES]"><slot /></a>
+  <RouterLink v-if="to" :to v-bind="rest()" :class="classes()"><slot /></RouterLink>
+  <a v-else :href v-bind="rest()" :class="classes()"><slot /></a>
 </template>

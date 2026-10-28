@@ -20,7 +20,7 @@ const MODIFIERS = {
 </script>
 
 <template>
-  <BaseBadge :tone="TONES[status]" dot class="status-badge" :class="MODIFIERS[status]">
+  <BaseBadge :tone="TONES[status]" dot :class="['status-badge', MODIFIERS[status]]">
     {{ statusLabel(status) }}
   </BaseBadge>
 </template>

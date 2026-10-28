@@ -47,11 +47,10 @@ function toggle(): void {
     :size="VARIANTS[variant].size"
     :aria-pressed="isFavorite"
     :aria-label="variant === 'icon' ? `Favorite ${name}` : undefined"
-    class="favorite-toggle"
-    :class="VARIANTS[variant].classes"
+    :class="['favorite-toggle', VARIANTS[variant].classes]"
     @click="toggle"
   >
-    <Heart aria-hidden="true" class="favorite-toggle__icon" :class="iconClasses" />
+    <Heart aria-hidden="true" :class="['favorite-toggle__icon', iconClasses]" />
     <template v-if="variant === 'labelled'">Favorite</template>
   </BaseButton>
 </template>

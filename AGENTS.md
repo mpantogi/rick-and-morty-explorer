@@ -70,6 +70,9 @@ least 4.5:1 in both themes.
 - Every template element carries a BEM class first (`block`, `block__element`, `block--modifier`),
   then Tailwind utilities. No `<style>` blocks, no inline styles, no interpolated class names
   (variants use static class maps), Tailwind's default scale and the project tokens only.
+- Never combine `class` with `:class` on one element: on a plain element the prerendered HTML lists
+  the dynamic classes first. Use one ordered `:class` array that starts with the BEM classes;
+  ESLint (`vue/no-duplicate-attributes`) rejects the mix.
 - Pass a parent's BEM mix (`<BaseButton class="filters__submit">`) only to a component whose root
   is a `Base*` primitive. Primitives turn off attribute inheritance and place the mix right after
   their own BEM classes (`useBemMix`); on any other component Vue appends it after the utilities.

@@ -30,8 +30,7 @@ const BASE_UTILITIES =
 <template>
   <span
     v-bind="rest()"
-    class="badge"
-    :class="[TONE_MODIFIERS[tone], mix(), BASE_UTILITIES, TONE_UTILITIES[tone]]"
+    :class="['badge', TONE_MODIFIERS[tone], mix(), BASE_UTILITIES, TONE_UTILITIES[tone]]"
   >
     <span
       v-if="dot"

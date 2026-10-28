@@ -88,8 +88,7 @@ defineExpose({ focusName })
 
     <div
       :id="PANEL_ID"
-      class="filters__panel gap-4 md:grid md:grid-cols-4"
-      :class="isPanelOpen ? 'grid' : 'hidden'"
+      :class="['filters__panel', isPanelOpen ? 'grid' : 'hidden', 'gap-4 md:grid md:grid-cols-4']"
     >
       <BaseField v-slot="{ id }" label="Status" class="filters__field">
         <BaseSelect

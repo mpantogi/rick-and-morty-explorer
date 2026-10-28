@@ -33,7 +33,7 @@ const describedBy = computed(() => {
 </script>
 
 <template>
-  <div v-bind="rest()" class="field" :class="[mix(), 'flex flex-col gap-1.5']">
+  <div v-bind="rest()" :class="['field', mix(), 'flex flex-col gap-1.5']">
     <label :for="id" class="field__label text-sm font-semibold">{{ label }}</label>
     <slot :id :described-by="describedBy" :invalid="Boolean(error)" :error-id="errorId" />
     <p v-if="hint" :id="hintId" class="field__hint text-sm text-muted">{{ hint }}</p>

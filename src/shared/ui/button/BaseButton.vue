@@ -51,6 +51,7 @@ const SIZE_UTILITIES = {
 
 // BEM block, modifiers and the parent's mix first, utilities after (the project's class order).
 const classes = () => [
+  'button',
   VARIANT_MODIFIERS[variant],
   SIZE_MODIFIERS[size],
   mix(),
@@ -61,9 +62,7 @@ const classes = () => [
 </script>
 
 <template>
-  <RouterLink v-if="to" :to v-bind="rest()" class="button" :class="classes()">
-    <slot />
-  </RouterLink>
-  <a v-else-if="href" :href v-bind="rest()" class="button" :class="classes()"><slot /></a>
-  <button v-else :type v-bind="rest()" class="button" :class="classes()"><slot /></button>
+  <RouterLink v-if="to" :to v-bind="rest()" :class="classes()"><slot /></RouterLink>
+  <a v-else-if="href" :href v-bind="rest()" :class="classes()"><slot /></a>
+  <button v-else :type v-bind="rest()" :class="classes()"><slot /></button>
 </template>
