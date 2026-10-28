@@ -6,7 +6,8 @@ import { z } from 'zod'
 import { apiCharacterSchema } from '../../src/entities/character/api/schemas.ts'
 import { listCharacters } from '../../test/api-semantics.ts'
 
-const API_ROUTES = 'https://rickandmortyapi.com/api/**'
+const API_ORIGIN = 'https://rickandmortyapi.com'
+const API_ROUTES = `${API_ORIGIN}/api/**`
 export const LIST_URL = /\/api\/character(\?|$)/
 export const FIRST_LIST_PAGE_URL = /\/api\/character\?page=1$/
 export const NO_MATCH_URL = /\/api\/character\?name=zzzz&page=1$/
@@ -46,6 +47,17 @@ async function answer(route: Route): Promise<void> {
 // Answers with an error the way the API would, for tests that exercise failure states.
 export function failWith(status: number) {
   return (route: Route) => route.fulfill({ status, json: { error: 'Failure' }, headers: CORS })
+}
+
+// Records the app's JSON requests to the API; avatars are images, not data, so they never count.
+export function trackApiCalls(page: Page): string[] {
+  const calls: string[] = []
+  page.on('request', (request) => {
+    const url = new URL(request.url())
+    if (url.origin !== API_ORIGIN || AVATAR_PATH.test(url.pathname)) return
+    calls.push(`${url.pathname}${url.search}`)
+  })
+  return calls
 }
 
 export async function mockApi(page: Page): Promise<void> {

@@ -1,4 +1,5 @@
 import { expect, openPage, test } from './fixtures'
+import { trackApiCalls } from './support/api-mock'
 
 test.describe('not found', { tag: '@journey' }, () => {
   test('answers an unknown path with HTTP 404 and the not-found view', async ({
@@ -26,5 +27,21 @@ test.describe('not found', { tag: '@journey' }, () => {
     await expect(
       page.getByRole('heading', { level: 1, name: 'Rick and Morty characters' }),
     ).toBeFocused()
+  })
+
+  test('answers a malformed character id as not found without asking the API', async ({
+    page,
+    consoleGuard,
+  }) => {
+    consoleGuard.allowHttpErrors(/\/characters\/abc$/)
+    const apiCalls = trackApiCalls(page)
+
+    const response = await openPage(page, '/characters/abc')
+
+    expect(response?.status()).toBe(404)
+    await expect(
+      page.getByRole('heading', { level: 1, name: "Wrong dimension. We couldn't find this page." }),
+    ).toBeVisible()
+    expect(apiCalls).toEqual([])
   })
 })
