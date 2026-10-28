@@ -13,7 +13,7 @@ export {
 export { HERO_NAME_MAX, heroInputSchema } from './model/hero-schema'
 export { useHeroesStore } from './model/heroes-store'
 export { displayValue, genderLabel, statusLabel } from './model/labels'
-export { toCharacterView } from './model/mappers'
+export { heroToView, toCharacterView } from './model/mappers'
 export { UI_PAGE_SIZE } from './model/pagination'
 export {
   AVATAR_SIZE,

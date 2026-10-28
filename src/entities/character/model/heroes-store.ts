@@ -25,7 +25,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     return hero
   }
 
-  return { heroes, views, add }
+  function getById(id: string): Hero | undefined {
+    return heroes.value.find((hero) => hero.id === id)
+  }
+
+  return { heroes, views, add, getById }
 })
 
 if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(useHeroesStore, import.meta.hot))

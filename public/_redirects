@@ -1,0 +1,2 @@
+/heroes/new  /heroes/new.html    200
+/heroes/:id  /heroes/shell.html  200

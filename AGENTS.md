@@ -89,6 +89,9 @@ least 4.5:1 in both themes.
   seeds each character route's queries with the same `queryOptions` keys the page reads, so the
   page renders from the dehydrated state without a request. Keep those keys shared; data that only
   this browser holds (favorites, heroes) renders a skeleton in the prerendered HTML.
+- Created heroes exist only in the browser that made them, so one prerendered shell
+  (`/heroes/shell`) serves every `/heroes/:id` through the rewrites in `public/_redirects`, which
+  `scripts/serve-dist.ts` applies too. The page validates the id and shows not-found itself.
 - Comments explain only a non-obvious why, and never run longer than two lines.
 - Zero ESLint warnings. Complexity ≤ 10, cognitive complexity ≤ 15, nesting depth ≤ 3, ≤ 4
   parameters, ≤ 3 nested callbacks, functions ≤ 60 lines, files ≤ 300 lines (tests are exempt from

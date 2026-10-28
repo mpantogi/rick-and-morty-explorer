@@ -79,6 +79,14 @@ describe('useHeroesStore', () => {
     ])
   })
 
+  it('finds a hero by its id', () => {
+    const heroes = freshStore()
+    const pete = heroes.add(PETE)
+
+    expect(heroes.getById(String(pete?.id))).toEqual(pete)
+    expect(heroes.getById(crypto.randomUUID())).toBeUndefined()
+  })
+
   it('reads saved heroes back in a new session', async () => {
     const hero = freshStore().add(PETE)
     await nextTick()
