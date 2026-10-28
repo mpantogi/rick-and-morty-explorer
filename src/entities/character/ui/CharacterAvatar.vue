@@ -2,6 +2,8 @@
 import { ImageOff } from '@lucide/vue'
 import { ref } from 'vue'
 
+import { AVATAR_SIZE } from '../model/types'
+
 const { src, alt, eager, priority, external } = defineProps<{
   src: string
   alt: string
@@ -11,8 +13,6 @@ const { src, alt, eager, priority, external } = defineProps<{
   external?: boolean
 }>()
 
-// API avatars are 300×300; the intrinsic size lets the browser reserve the box before load.
-const AVATAR_SIZE = 300
 const hasFailed = ref(false)
 </script>
 

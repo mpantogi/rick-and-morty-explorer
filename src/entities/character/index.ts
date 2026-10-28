@@ -14,6 +14,7 @@ export { displayValue, genderLabel, statusLabel } from './model/labels'
 export { toCharacterView } from './model/mappers'
 export { UI_PAGE_SIZE } from './model/pagination'
 export {
+  AVATAR_SIZE,
   type CharacterFilters,
   type CharacterView,
   GENDERS,

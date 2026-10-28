@@ -6,7 +6,7 @@ import { env, SITE } from '@/shared/config'
 import { formatTitle } from './format-title'
 import { truncate } from './truncate'
 
-const DESCRIPTION_MAX = 155
+export const DESCRIPTION_MAX = 155
 const OG_IMAGE_WIDTH = 1200
 const OG_IMAGE_HEIGHT = 630
 

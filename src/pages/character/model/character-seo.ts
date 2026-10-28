@@ -1,9 +1,7 @@
-import { type CharacterView, displayValue, statusLabel } from '@/entities/character'
+import { AVATAR_SIZE, type CharacterView, displayValue, statusLabel } from '@/entities/character'
 import { env, paths, SITE } from '@/shared/config'
-import { type AsyncState, type SeoImage, truncate } from '@/shared/lib'
+import { type AsyncState, DESCRIPTION_MAX, type SeoImage, truncate } from '@/shared/lib'
 
-const DESCRIPTION_MAX = 155
-const AVATAR_SIZE = 300
 const PERSON_DESCRIPTION = 'Fictional character from the animated series Rick and Morty.'
 
 export interface CharacterPageSeo {

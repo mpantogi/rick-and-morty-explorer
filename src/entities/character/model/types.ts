@@ -15,6 +15,9 @@ export const KNOWN_SPECIES = [
   'unknown',
 ] as const
 
+// API avatars are 300×300; the intrinsic size lets the browser reserve the box before load.
+export const AVATAR_SIZE = 300
+
 export type CharacterStatus = (typeof STATUSES)[number]
 export type CharacterGender = (typeof GENDERS)[number]
 
