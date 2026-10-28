@@ -29,8 +29,12 @@ function avatarOf(container: Element): HTMLImageElement {
   return image
 }
 
-async function renderCard(character: CharacterView, flags: Record<string, boolean> = {}) {
-  const rendered = await renderWithApp(CharacterCard, { props: { character, ...flags } })
+async function renderCard(
+  character: CharacterView,
+  flags: Record<string, boolean> = {},
+  props: Record<string, unknown> = {},
+) {
+  const rendered = await renderWithApp(CharacterCard, { props: { character, ...flags, ...props } })
   return { ...rendered, card: within(screen.getByRole('article')) }
 }
 
@@ -43,10 +47,29 @@ describe('CharacterCard', () => {
     expect(card.queryAllByRole('button')).toEqual([])
   })
 
+  it('keeps an injected action next to the link, never inside it', async () => {
+    await renderWithApp(CharacterCard, {
+      props: { character: view() },
+      slots: { actions: '<button type="button">Favorite Morty Smith</button>' },
+    })
+    const card = within(screen.getByRole('article'))
+
+    expect(card.getAllByRole('link')).toHaveLength(1)
+    expect(card.getAllByRole('button')).toHaveLength(1)
+    expect(card.getByRole('link').contains(card.getByRole('button'))).toBe(false)
+    expect(card.getByRole('button').closest('a')).toBeNull()
+  })
+
   it('heads the card with a level-3 heading under the results heading', async () => {
     const { card } = await renderCard(view())
 
     expect(card.getByRole('heading', { level: 3, name: 'Morty Smith' })).toBeInTheDocument()
+  })
+
+  it('takes a level-2 heading where no section heading sits above the grid', async () => {
+    const { card } = await renderCard(view(), {}, { headingLevel: 2 })
+
+    expect(card.getByRole('heading', { level: 2, name: 'Morty Smith' })).toBeInTheDocument()
   })
 
   it('names the status in text next to the species', async () => {

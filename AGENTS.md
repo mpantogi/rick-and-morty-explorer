@@ -112,6 +112,10 @@ invalid entries. Bump the version when the stored shape changes incompatibly; ne
 data. The theme key `rme:theme` is also read by the inline script in `index.html`, so change both
 together.
 
+Stored lists are capped (`src/shared/config/limits.ts`): the store refuses an addition at the cap
+and returns `false`, and the calling component shows the limit toast. A failed write (storage full
+or blocked) is reported through `reportError` plus a toast, and the in-memory state carries on.
+
 ## Dependencies
 
 Pin exact versions: `corepack yarn add -E <pkg>@<version>` (`-D -E` for dev dependencies). Yarn's

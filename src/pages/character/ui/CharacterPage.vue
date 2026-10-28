@@ -3,6 +3,7 @@ import { computed, nextTick, toRef, useTemplateRef } from 'vue'
 
 import { CharacterProfile, CharacterProfileSkeleton, useCharacter } from '@/entities/character'
 import { EpisodeList, EpisodeListSkeleton, useEpisodes } from '@/entities/episode'
+import { FavoriteToggle } from '@/features/favorites'
 import { paths } from '@/shared/config'
 import { usePageSeo } from '@/shared/lib'
 import { BackLink, BreadcrumbTrail, ErrorView, RegionError } from '@/shared/ui'
@@ -71,7 +72,15 @@ function retryEpisodes(): void {
         v-else-if="state.kind === 'ready'"
         data-state="ready"
         :character="state.data"
-      />
+      >
+        <template #actions>
+          <FavoriteToggle
+            :character-key="state.data.key"
+            :name="state.data.name"
+            variant="labelled"
+          />
+        </template>
+      </CharacterProfile>
       <CharacterProfileSkeleton v-else data-state="loading" />
     </div>
 

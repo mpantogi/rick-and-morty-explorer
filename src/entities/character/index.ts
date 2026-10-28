@@ -1,4 +1,5 @@
 export { characterQueries } from './api/queries'
+export { type CharacterKey, characterKeySchema, parseCharacterKey } from './model/character-key'
 export {
   countActiveFilters,
   EMPTY_FILTERS,

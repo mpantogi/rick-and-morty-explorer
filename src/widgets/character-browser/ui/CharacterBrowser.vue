@@ -8,6 +8,7 @@ import {
   useCharacterList,
 } from '@/entities/character'
 import { CharacterFiltersForm, useCharacterFilters } from '@/features/character-filters'
+import { FavoriteToggle } from '@/features/favorites'
 import { BaseButton, BaseSkeleton, EmptyState, PaginationNav, RegionError } from '@/shared/ui'
 
 import { resultsSummary } from '../model/results-summary'
@@ -89,7 +90,11 @@ function retryInPlace(): void {
         data-state="ready"
         class="character-browser__page flex flex-col gap-6"
       >
-        <CharacterGrid :characters="state.page.items" />
+        <CharacterGrid :characters="state.page.items">
+          <template #actions="{ character }">
+            <FavoriteToggle :character-key="character.key" :name="character.name" />
+          </template>
+        </CharacterGrid>
         <PaginationNav
           v-if="state.page.totalPages > 1"
           :current="controller.page.value"

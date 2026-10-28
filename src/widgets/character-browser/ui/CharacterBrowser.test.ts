@@ -66,6 +66,19 @@ describe('CharacterBrowser', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Showing 1–12 of 25 characters')
   })
 
+  it('lets the visitor favorite a character straight from its card', async () => {
+    const { user } = await setup()
+    await vi.waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(12)
+    })
+    const toggle = screen.getByRole('button', { name: 'Favorite Morty Smith' })
+
+    await user.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getAllByRole('button', { name: /^Favorite / })).toHaveLength(12)
+  })
+
   it('links the next page and focuses the results heading after paging', async () => {
     const { user, router, summary } = await setup()
     await vi.waitFor(() => {

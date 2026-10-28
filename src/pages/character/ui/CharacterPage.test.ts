@@ -83,6 +83,16 @@ describe('CharacterPage', () => {
     expect(paths).toEqual([])
   })
 
+  it('saves the character as a favorite with the labelled toggle', async () => {
+    const { user } = await renderPage(AQUA_RICK, seededClient(AQUA_RICK))
+    const toggle = screen.getByRole('button', { name: 'Favorite' })
+
+    await user.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    expect(JSON.parse(localStorage.getItem('rme:favorites:v1') ?? '[]')).toEqual(['api:22'])
+  })
+
   it('leads back to the list through the back link and the breadcrumb trail', async () => {
     await renderPage(AQUA_RICK, seededClient(AQUA_RICK))
 
