@@ -1,6 +1,8 @@
+import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
 import { render } from '@testing-library/vue'
 import { userEvent } from '@testing-library/user-event'
 import { createHead } from '@unhead/vue/client'
+import { createPinia } from 'pinia'
 import type { Component } from 'vue'
 import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-router'
 
@@ -17,9 +19,17 @@ export async function renderWithApp(
   { route = '/', props, routes = appRoutes }: RenderWithAppOptions = {},
 ) {
   const router = createRouter({ history: createMemoryHistory(), routes })
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  })
   await router.push(route)
   await router.isReady()
   const user = userEvent.setup()
-  const result = render(component, { props, global: { plugins: [router, createHead()] } })
-  return { router, user, ...result }
+  const result = render(component, {
+    props,
+    global: {
+      plugins: [router, createPinia(), [VueQueryPlugin, { queryClient }], createHead()],
+    },
+  })
+  return { router, queryClient, user, ...result }
 }
