@@ -8,9 +8,9 @@ const NOT_FOUND = { error: 'There is nothing here' }
 
 type Filterable = Pick<ApiCharacter, 'name' | 'status' | 'species' | 'type' | 'gender'>
 
-interface ApiReply {
+export interface ApiReply {
   status: number
-  body: Record<string, unknown>
+  body: Record<string, unknown> | unknown[]
 }
 
 // Invalid page values fall back to page 1, as on the real API.
@@ -53,4 +53,23 @@ export function listCharacters(characters: readonly Filterable[], url: URL): Api
       results,
     },
   }
+}
+
+const BRACKETS = /^\[|\]$/g
+
+// `/x/[1,2]` and `/x/1,2` answer a list sorted by id, deduplicated and without missing ids;
+// `/x/1` answers the record itself, or a 404 when it does not exist.
+export function findByIds(
+  records: readonly { id: number }[],
+  segment: string,
+  resource: string,
+): ApiReply {
+  const decoded = decodeURIComponent(segment)
+  const ids = new Set(decoded.replace(BRACKETS, '').split(',').map(Number))
+  const found = records.filter((record) => ids.has(record.id)).toSorted((a, b) => a.id - b.id)
+  if (decoded.startsWith('[') || decoded.includes(',')) return { status: 200, body: found }
+  const [record] = found
+  return record
+    ? { status: 200, body: { ...record } }
+    : { status: 404, body: { error: `${resource} not found` } }
 }
