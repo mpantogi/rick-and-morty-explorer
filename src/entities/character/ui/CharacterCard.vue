@@ -27,7 +27,7 @@ const { character, eager, priority } = defineProps<{
       />
     </div>
     <div class="character-card__body flex min-w-0 flex-1 flex-col gap-1 p-3">
-      <h3 class="character-card__name line-clamp-2 text-base font-semibold sm:text-lg">
+      <h3 class="character-card__name line-clamp-2 shrink-0 text-base font-semibold sm:text-lg">
         <RouterLink
           :to="character.href"
           class="character-card__link after:absolute after:inset-0 after:rounded-xl hover:text-accent focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent"
@@ -35,11 +35,11 @@ const { character, eager, priority } = defineProps<{
           {{ character.name }}
         </RouterLink>
       </h3>
-      <p class="character-card__meta truncate text-sm">
+      <p class="character-card__meta shrink-0 truncate text-sm">
         <StatusBadge :status="character.status" class="character-card__status" />
         – {{ displayValue(character.species) }}
       </p>
-      <p class="character-card__location mt-auto min-w-0">
+      <p class="character-card__location mt-auto min-w-0 shrink-0">
         <span class="character-card__location-label block text-xs text-muted">
           Last known location
         </span>
