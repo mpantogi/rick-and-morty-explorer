@@ -11,12 +11,13 @@ import { routes as appRoutes } from '@/app/router/routes'
 interface RenderWithAppOptions {
   route?: string
   props?: Record<string, unknown>
+  slots?: Record<string, string>
   routes?: RouteRecordRaw[]
 }
 
 export async function renderWithApp(
   component: Component,
-  { route = '/', props, routes = appRoutes }: RenderWithAppOptions = {},
+  { route = '/', props, slots, routes = appRoutes }: RenderWithAppOptions = {},
 ) {
   const router = createRouter({ history: createMemoryHistory(), routes })
   const queryClient = new QueryClient({
@@ -27,6 +28,7 @@ export async function renderWithApp(
   const user = userEvent.setup()
   const result = render(component, {
     props,
+    slots,
     global: {
       plugins: [router, createPinia(), [VueQueryPlugin, { queryClient }], createHead()],
     },

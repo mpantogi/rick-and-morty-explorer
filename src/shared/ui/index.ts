@@ -1,5 +1,7 @@
 export { default as AppLogo } from './brand/AppLogo.vue'
+export { default as BaseButton } from './button/BaseButton.vue'
 export { buttonClasses } from './button/button-classes'
 export { default as EmptyState } from './EmptyState.vue'
 export { default as ErrorView } from './error/ErrorView.vue'
 export { default as RegionError } from './error/RegionError.vue'
+export { default as BaseLink } from './link/BaseLink.vue'
