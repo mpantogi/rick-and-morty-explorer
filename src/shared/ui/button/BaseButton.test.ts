@@ -97,4 +97,18 @@ describe('BaseButton', () => {
       'button--md',
     )
   })
+
+  it("puts a parent's BEM mix right after its own BEM classes, before any utility", async () => {
+    await renderWithApp(BaseButton, {
+      props: { class: 'pagination__step' },
+      slots: { default: 'Next' },
+    })
+
+    expect([...screen.getByRole('button', { name: 'Next' }).classList].slice(0, 4)).toEqual([
+      'button',
+      'button--secondary',
+      'button--md',
+      'pagination__step',
+    ])
+  })
 })

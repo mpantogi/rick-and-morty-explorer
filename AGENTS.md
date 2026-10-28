@@ -68,6 +68,9 @@ least 4.5:1 in both themes.
 - Every template element carries a BEM class first (`block`, `block__element`, `block--modifier`),
   then Tailwind utilities. No `<style>` blocks, no inline styles, no interpolated class names
   (variants use static class maps), Tailwind's default scale and the project tokens only.
+- Pass a parent's BEM mix (`<BaseButton class="filters__submit">`) only to a component whose root
+  is a `Base*` primitive. Primitives turn off attribute inheritance and place the mix right after
+  their own BEM classes (`useBemMix`); on any other component Vue appends it after the utilities.
 - Every data-backed region renders exactly one of loading, ready, empty or error through a single
   `v-if` chain. Skeletons mirror the final geometry, empty never shows before data arrives, and
   errors show a toast (raised centrally by the query client) plus an in-place state with retry.

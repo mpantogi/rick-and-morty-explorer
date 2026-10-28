@@ -43,4 +43,14 @@ describe('BaseLink', () => {
     expect(link.classList[0]).toBe('link')
     expect(link).toHaveClass('underline')
   })
+
+  it("puts a parent's BEM mix right after its own block, before any utility", async () => {
+    await renderWithApp(BaseLink, {
+      props: { href: 'https://rickandmortyapi.com', class: 'site-footer__link' },
+      slots: { default: 'The Rick and Morty API' },
+    })
+    const link = screen.getByRole('link', { name: 'The Rick and Morty API' })
+
+    expect([...link.classList].slice(0, 2)).toEqual(['link', 'site-footer__link'])
+  })
 })

@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
+
+import { useBemMix } from '../use-bem-mix'
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost'
 type ButtonSize = 'md' | 'icon'
 
+defineOptions({ inheritAttrs: false })
 const {
   variant = 'secondary',
   size = 'md',
@@ -20,7 +22,9 @@ const {
 }>()
 defineSlots<{ default?: () => unknown }>()
 
-const BASE_CLASSES =
+const { mix, rest } = useBemMix()
+
+const BASE_UTILITIES =
   'inline-flex items-center justify-center gap-2 font-semibold whitespace-nowrap transition-colors duration-150 motion-reduce:transition-none'
 
 const VARIANT_MODIFIERS = {
@@ -45,18 +49,21 @@ const SIZE_UTILITIES = {
   icon: 'size-11 shrink-0 rounded-full',
 } as const satisfies Record<ButtonSize, string>
 
-// BEM block and modifiers first, utilities after (the project's class-order convention).
-const classes = computed(() => [
+// BEM block, modifiers and the parent's mix first, utilities after (the project's class order).
+const classes = () => [
   VARIANT_MODIFIERS[variant],
   SIZE_MODIFIERS[size],
+  mix(),
   VARIANT_UTILITIES[variant],
   SIZE_UTILITIES[size],
-  BASE_CLASSES,
-])
+  BASE_UTILITIES,
+]
 </script>
 
 <template>
-  <RouterLink v-if="to" :to class="button" :class="classes"><slot /></RouterLink>
-  <a v-else-if="href" :href class="button" :class="classes"><slot /></a>
-  <button v-else :type class="button" :class="classes"><slot /></button>
+  <RouterLink v-if="to" :to v-bind="rest()" class="button" :class="classes()">
+    <slot />
+  </RouterLink>
+  <a v-else-if="href" :href v-bind="rest()" class="button" :class="classes()"><slot /></a>
+  <button v-else :type v-bind="rest()" class="button" :class="classes()"><slot /></button>
 </template>

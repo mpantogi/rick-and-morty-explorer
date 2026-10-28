@@ -32,4 +32,19 @@ describe('BaseBadge', () => {
 
     expect(container.querySelector('.badge__dot')).toBeNull()
   })
+
+  it("puts a parent's BEM mix right after its own BEM classes, before any utility", () => {
+    render(BaseBadge, {
+      props: { tone: 'success' },
+      attrs: { class: 'status-badge status-badge--alive' },
+      slots: { default: 'Alive' },
+    })
+
+    expect([...screen.getByText('Alive').classList].slice(0, 4)).toEqual([
+      'badge',
+      'badge--success',
+      'status-badge',
+      'status-badge--alive',
+    ])
+  })
 })

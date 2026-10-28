@@ -50,7 +50,7 @@ function retryInPlace(): void {
 
 <template>
   <section aria-labelledby="results-heading" class="character-browser flex flex-col gap-6">
-    <CharacterFiltersForm ref="filters" :controller class="character-browser__filters" />
+    <CharacterFiltersForm ref="filters" :controller />
 
     <div
       class="character-browser__header flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
@@ -79,13 +79,12 @@ function retryInPlace(): void {
         data-state="ready"
         class="character-browser__page flex flex-col gap-6"
       >
-        <CharacterGrid :characters="state.page.items" class="character-browser__grid" />
+        <CharacterGrid :characters="state.page.items" />
         <PaginationNav
           v-if="state.page.totalPages > 1"
           :current="controller.page.value"
           :total="state.page.totalPages"
           :to="controller.pageLink"
-          class="character-browser__pagination"
         />
       </div>
       <EmptyState
@@ -93,7 +92,6 @@ function retryInPlace(): void {
         data-state="empty"
         title="No characters match these filters."
         description="Try a shorter name or fewer filters."
-        class="character-browser__empty"
       >
         <template #action>
           <BaseButton class="character-browser__reset" @click="resetFromEmpty">
@@ -106,7 +104,6 @@ function retryInPlace(): void {
         data-state="empty"
         :title="`There's no page ${controller.page.value}.`"
         :description="pagesLine(state.totalPages)"
-        class="character-browser__empty"
       >
         <template #action>
           <BaseButton :to="controller.pageLink(1)" class="character-browser__first-page">
@@ -119,11 +116,10 @@ function retryInPlace(): void {
         data-state="error"
         :error-case="state.errorCase"
         subject="characters"
-        class="character-browser__error"
         @retry="retryInPlace"
       />
       <div v-else data-state="loading" class="character-browser__loading flex flex-col gap-6">
-        <CharacterGridSkeleton :count="UI_PAGE_SIZE" class="character-browser__skeleton" />
+        <CharacterGridSkeleton :count="UI_PAGE_SIZE" />
         <BaseSkeleton class="character-browser__pagination-skeleton h-11 w-full" />
       </div>
     </div>

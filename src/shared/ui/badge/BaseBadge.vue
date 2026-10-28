@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { useBemMix } from '../use-bem-mix'
+
 type BadgeTone = 'neutral' | 'success' | 'danger' | 'accent'
 
+defineOptions({ inheritAttrs: false })
 defineProps<{ tone: BadgeTone; dot?: boolean }>()
 defineSlots<{ default: () => unknown }>()
+
+const { mix, rest } = useBemMix()
 
 const TONE_MODIFIERS = {
   neutral: 'badge--neutral',
@@ -23,7 +28,11 @@ const BASE_UTILITIES =
 </script>
 
 <template>
-  <span class="badge" :class="[TONE_MODIFIERS[tone], BASE_UTILITIES, TONE_UTILITIES[tone]]">
+  <span
+    v-bind="rest()"
+    class="badge"
+    :class="[TONE_MODIFIERS[tone], mix(), BASE_UTILITIES, TONE_UTILITIES[tone]]"
+  >
     <span
       v-if="dot"
       class="badge__dot size-1.5 shrink-0 rounded-full bg-current"

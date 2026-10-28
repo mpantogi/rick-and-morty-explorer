@@ -64,4 +64,14 @@ describe('BaseField', () => {
 
     expect(screen.getByRole('textbox', { name: 'Name' })).not.toHaveAttribute('aria-describedby')
   })
+
+  it("puts a parent's BEM mix right after its own block, before any utility", () => {
+    const { container } = render(BaseField, {
+      props: { label: 'Name' },
+      attrs: { class: 'filters__field' },
+    })
+    const field = container.firstElementChild
+
+    expect([...(field?.classList ?? [])].slice(0, 2)).toEqual(['field', 'filters__field'])
+  })
 })

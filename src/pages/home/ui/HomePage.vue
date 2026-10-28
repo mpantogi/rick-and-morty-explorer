@@ -56,6 +56,6 @@ usePageSeo({
         </p>
       </noscript>
     </div>
-    <CharacterBrowser class="home-page__browser" />
+    <CharacterBrowser />
   </div>
 </template>
