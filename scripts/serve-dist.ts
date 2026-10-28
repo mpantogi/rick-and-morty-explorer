@@ -1,3 +1,5 @@
+// Serves dist/ the way Netlify does (_redirects rewrites, real 404 status) for `yarn preview` and E2E;
+// `vite preview` answers every unknown URL with index.html and 200, so it would test different routing.
 import { createReadStream } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
