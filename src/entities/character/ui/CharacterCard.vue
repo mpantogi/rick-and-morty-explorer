@@ -18,7 +18,13 @@ const { character, eager, priority } = defineProps<{
     class="character-card relative flex h-36 overflow-hidden rounded-xl border border-line bg-surface sm:h-40"
   >
     <div class="character-card__media h-full w-28 shrink-0 sm:w-36">
-      <CharacterAvatar :src="character.image" alt="" :eager :priority />
+      <CharacterAvatar
+        :src="character.image"
+        alt=""
+        :eager
+        :priority
+        :external="character.source === 'hero'"
+      />
     </div>
     <div class="character-card__body flex min-w-0 flex-1 flex-col gap-1 p-3">
       <h3 class="character-card__name line-clamp-2 shrink-0 text-base font-semibold sm:text-lg">

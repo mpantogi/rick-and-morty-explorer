@@ -1,5 +1,7 @@
+export { default as BackLink } from './BackLink.vue'
 export { default as BaseBadge } from './badge/BaseBadge.vue'
 export { default as AppLogo } from './brand/AppLogo.vue'
+export { default as BreadcrumbTrail } from './BreadcrumbTrail.vue'
 export { default as BaseButton } from './button/BaseButton.vue'
 export { default as EmptyState } from './EmptyState.vue'
 export { default as ErrorView } from './error/ErrorView.vue'

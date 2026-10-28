@@ -80,6 +80,17 @@ describe('CharacterCard', () => {
     expect(image).toHaveAttribute('fetchpriority', 'auto')
   })
 
+  it('sends a referrer to the API avatars but none to a hero image host', async () => {
+    const api = await renderCard(view())
+    expect(avatarOf(api.container)).not.toHaveAttribute('referrerpolicy')
+    api.unmount()
+
+    const hero = await renderCard(
+      view({ key: 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d', source: 'hero' }),
+    )
+    expect(avatarOf(hero.container)).toHaveAttribute('referrerpolicy', 'no-referrer')
+  })
+
   it('loads the avatar at once, with high priority, when asked', async () => {
     const { container } = await renderCard(view(), { eager: true, priority: true })
     const image = avatarOf(container)

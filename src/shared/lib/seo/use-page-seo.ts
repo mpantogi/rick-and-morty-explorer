@@ -21,7 +21,8 @@ export interface SeoImage {
 export interface PageSeoInput {
   title: MaybeRefOrGetter<string>
   description: MaybeRefOrGetter<string>
-  path?: MaybeRefOrGetter<string>
+  // null: the page has no canonical URL (e.g. it turned out not to exist)
+  path?: MaybeRefOrGetter<string | null>
   robots?: MaybeRefOrGetter<'index' | 'noindex'>
   ogType?: 'website' | 'profile'
   image?: MaybeRefOrGetter<SeoImage | null>
@@ -43,7 +44,7 @@ export function usePageSeo(input: PageSeoInput): void {
     const title = formatTitle(toValue(input.title))
     const description = truncate(toValue(input.description), DESCRIPTION_MAX)
     const path = toValue(input.path)
-    const url = path === undefined ? undefined : `${env.siteUrl}${path}`
+    const url = path ? `${env.siteUrl}${path}` : undefined
     const image = toValue(input.image) ?? defaultImage()
     const jsonLd = toValue(input.jsonLd)
 

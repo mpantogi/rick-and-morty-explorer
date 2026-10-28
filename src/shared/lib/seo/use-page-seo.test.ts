@@ -67,6 +67,18 @@ describe('usePageSeo', () => {
     expect(doc.querySelector('meta[property="og:url"]')).toBeNull()
   })
 
+  it('drops the canonical when a reactive path has none (a page that turned out missing)', async () => {
+    const doc = parse(
+      await renderHeadTags({
+        title: 'Page not found',
+        description: 'Missing.',
+        path: () => null,
+      }),
+    )
+
+    expect(doc.querySelector('link[rel="canonical"]')).toBeNull()
+  })
+
   it('uses a page-specific image and profile type when given', async () => {
     const doc = parse(
       await renderHeadTags({

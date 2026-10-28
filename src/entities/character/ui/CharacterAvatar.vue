@@ -2,11 +2,13 @@
 import { ImageOff } from '@lucide/vue'
 import { ref } from 'vue'
 
-const { src, alt, eager, priority } = defineProps<{
+const { src, alt, eager, priority, external } = defineProps<{
   src: string
   alt: string
   eager?: boolean
   priority?: boolean
+  // A visitor-supplied image on someone else's host: send no referrer to it.
+  external?: boolean
 }>()
 
 // API avatars are 300×300; the intrinsic size lets the browser reserve the box before load.
@@ -31,6 +33,7 @@ const hasFailed = ref(false)
     :loading="eager ? 'eager' : 'lazy'"
     :fetchpriority="priority ? 'high' : 'auto'"
     decoding="async"
+    :referrerpolicy="external ? 'no-referrer' : undefined"
     class="avatar size-full object-cover"
     @error="hasFailed = true"
   />

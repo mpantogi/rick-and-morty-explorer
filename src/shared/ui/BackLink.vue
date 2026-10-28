@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { ArrowLeft } from '@lucide/vue'
+import { useRouter } from 'vue-router'
+
+import BaseLink from './link/BaseLink.vue'
+
+const { to } = defineProps<{ to: string }>()
+defineSlots<{ default: () => unknown }>()
+
+const router = useRouter()
+const { back } = router.options.history.state
+// Coming from the list, going back restores it as left (filters, page, scroll position).
+const backHref = typeof back === 'string' && router.resolve(back).path === to ? back : ''
+
+function goBack(event: MouseEvent): void {
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return
+  event.preventDefault()
+  router.back()
+}
+</script>
+
+<template>
+  <BaseLink
+    v-if="backHref"
+    :href="router.resolve(backHref).href"
+    class="back-link inline-flex min-h-11 items-center gap-2 self-start"
+    @click="goBack"
+  >
+    <ArrowLeft aria-hidden="true" class="back-link__icon size-4" />
+    <slot />
+  </BaseLink>
+  <BaseLink v-else :to class="back-link inline-flex min-h-11 items-center gap-2 self-start">
+    <ArrowLeft aria-hidden="true" class="back-link__icon size-4" />
+    <slot />
+  </BaseLink>
+</template>
