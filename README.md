@@ -18,7 +18,9 @@ character list, follow its filters and have a page of their own. The build write
 `robots.txt` and `llms.txt`, and the brand mark ships as a favicon set, web manifest icons and a
 social card. Every page carries a Content Security Policy with build-time hashes of its inline
 scripts, and `public/_headers` adds the security and caching headers. `netlify.toml` holds the
-Netlify build settings. Next: CI and the deployed site.
+Netlify build settings. A budget check keeps the JavaScript and CSS the home page loads up front
+under 150 KiB and 30 KiB gzipped, and the character page's code loads while the browser is idle.
+Next: CI and the deployed site.
 
 ## Tech stack
 
@@ -65,6 +67,8 @@ yarn dev
 | `yarn test:coverage`  | Run the tests with coverage thresholds                               |
 | `yarn test:e2e`       | Run the Playwright suite against the built `dist/` (build first)     |
 | `yarn icons`          | Regenerate the favicon set, manifest and social card in `public/`    |
+| `yarn check:budget`   | Gzip budget for the home page's initial JS and CSS (build first)     |
+| `yarn verify`         | Format, lint, typecheck, coverage, build and budget, in that order   |
 | `yarn record:fixture` | Re-record the E2E API fixture from the live API (two requests)       |
 | `yarn lint`           | ESLint with zero warnings allowed                                    |
 | `yarn lint:fix`       | ESLint with autofix                                                  |

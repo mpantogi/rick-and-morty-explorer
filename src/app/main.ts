@@ -8,6 +8,7 @@ import 'vue-sonner/style.css'
 import App from './App.vue'
 import { installChunkReload } from './lib/chunk-reload'
 import { installRouteFocus } from './lib/route-focus'
+import { scheduleRoutePrefetch } from './lib/route-prefetch'
 import { createQueryClient } from './providers/query-client'
 import { routes } from './router/routes'
 import { scrollBehavior } from './router/scroll-behavior'
@@ -35,6 +36,7 @@ export const createApp = ViteSSG(
     if (initialState.vueQuery) hydrate(queryClient, initialState.vueQuery as DehydratedState)
     installChunkReload(router)
     installRouteFocus(router)
+    scheduleRoutePrefetch(router)
   },
   { registerComponents: false },
 )

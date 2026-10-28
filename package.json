@@ -20,8 +20,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "check:budget": "node scripts/check-budget.ts",
     "icons": "node scripts/generate-icons.ts",
     "record:fixture": "node scripts/record-e2e-fixture.ts",
+    "verify": "yarn format:check && yarn lint && yarn typecheck && yarn test:coverage && yarn build && yarn check:budget",
     "postinstall": "simple-git-hooks"
   },
   "dependencies": {

@@ -17,10 +17,12 @@ leaves the machine's global Yarn untouched. Use Node 24.
 | `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                  |
 | `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API            |
 | `corepack yarn icons`                               | Regenerate the brand assets in `public/` from the logo mark           |
+| `corepack yarn check:budget`                        | Gzip budget of the home page's initial JS (150 KiB) and CSS (30 KiB)  |
+| `corepack yarn verify`                              | `format:check`, `lint`, `typecheck`, `test:coverage`, `build`, budget |
 | `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier                   |
 
-Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverage`, `build` and
-`test:e2e --project=chromium`, in that order.
+Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `test:coverage`,
+`build`, `check:budget`), then `test:e2e --project=chromium`.
 
 ### End-to-end tests
 
