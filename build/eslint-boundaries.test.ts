@@ -56,6 +56,48 @@ describe('FSD boundaries gate', { timeout: LINT_TIMEOUT_MS }, () => {
     expect(messages).toEqual([])
   })
 
+  it('rejects an entity importing a feature', async () => {
+    const messages = await boundaryMessages(
+      'src/entities/character/model/mappers.ts',
+      "import { useFavoritesStore } from '@/features/favorites'\nexport const probe = useFavoritesStore\n",
+    )
+
+    expect(messages).toEqual([
+      expect.stringMatching(/from elements of type "entities".* to elements of type "features"/),
+    ])
+  })
+
+  it('rejects a feature importing another feature', async () => {
+    const messages = await boundaryMessages(
+      'src/features/theme/model/use-theme.ts',
+      "import { useFavoritesStore } from '@/features/favorites'\nexport const probe = useFavoritesStore\n",
+    )
+
+    expect(messages).toEqual([
+      expect.stringMatching(
+        /type "features" and captured values: slice="theme" to elements of type "features" and captured values: slice="favorites"/,
+      ),
+    ])
+  })
+
+  it('rejects a page reaching into an entity segment', async () => {
+    const messages = await boundaryMessages(
+      'src/pages/character/model/character-seo.ts',
+      "import { normalizeFilters } from '@/entities/character/model/filters'\nexport const probe = normalizeFilters\n",
+    )
+
+    expect(messages).toEqual(['Import character through its index.ts'])
+  })
+
+  it('allows a feature to import an entity through its public API', async () => {
+    const messages = await boundaryMessages(
+      'src/features/favorites/model/favorites-store.ts',
+      "import { apiKey } from '@/entities/character'\nexport const probe = apiKey\n",
+    )
+
+    expect(messages).toEqual([])
+  })
+
   it('allows any layer to import external packages', async () => {
     const messages = await boundaryMessages(
       'src/shared/config/paths.ts',
