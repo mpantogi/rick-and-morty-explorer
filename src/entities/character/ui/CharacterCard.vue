@@ -11,8 +11,8 @@ const { character, eager, priority } = defineProps<{
 }>()
 </script>
 
-<!-- Fixed card heights with clamped and truncated text keep every card, and its skeleton,
-     the same size at each width. The stretched link makes the whole card clickable. -->
+<!-- Fixed heights with clamped text keep each card the size of its skeleton. The stretched link
+     makes the whole card clickable; its ring sits inside, as the card clips anything outside. -->
 <template>
   <article
     class="character-card relative flex h-36 overflow-hidden rounded-xl border border-line bg-surface sm:h-40"
@@ -30,7 +30,7 @@ const { character, eager, priority } = defineProps<{
       <h3 class="character-card__name line-clamp-2 shrink-0 text-base font-semibold sm:text-lg">
         <RouterLink
           :to="character.href"
-          class="character-card__link after:absolute after:inset-0 after:rounded-xl hover:text-accent focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-accent"
+          class="character-card__link after:absolute after:inset-0 after:rounded-xl hover:text-accent focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:-outline-offset-2 focus-visible:after:outline-accent"
         >
           {{ character.name }}
         </RouterLink>

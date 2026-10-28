@@ -2,9 +2,12 @@ import type { Page } from '@playwright/test'
 
 import { expect, openPage, test } from './fixtures'
 import { failWith, LIST_URL } from './support/api-mock'
+import { captureAround, countChangedPixels } from './support/pixels'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 const SERVER_ERROR = 500
+// A 2 px ring around a card repaints over a thousand pixels; a clipped one repaints none.
+const VISIBLE_RING_PIXELS = 500
 
 function results(page: Page) {
   return page.getByRole('region', { name: 'Results' })
@@ -90,6 +93,20 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(page).toHaveURL('/?name=Rick+Sanchez')
     await expect(name).toHaveValue('Rick Sanchez')
     await expect(summary(page)).toHaveText('Showing 1 of 1 character')
+  })
+
+  test('rings the card a keyboard user tabs to', async ({ page }) => {
+    await openPage(page, '/')
+    const card = cards(page).first()
+    await expect(card.locator('img')).toHaveJSProperty('complete', true)
+    await page.getByRole('heading', { level: 2, name: 'Results' }).focus()
+    const unfocused = await captureAround(card)
+
+    await page.keyboard.press('Tab')
+
+    await expect(card.getByRole('link')).toBeFocused()
+    const focused = await captureAround(card)
+    expect(await countChangedPixels(page, unfocused, focused)).toBeGreaterThan(VISIBLE_RING_PIXELS)
   })
 
   test('opens at the top of the page', async ({ page }) => {
