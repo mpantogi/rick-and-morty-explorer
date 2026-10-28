@@ -59,6 +59,8 @@ test.describe('create hero', { tag: '@journey' }, () => {
       await fields.image.fill(address)
       await fields.submit.click()
 
+      // A settled submit focuses the first invalid field; a later fill must not race that focus.
+      await expect(fields.name).toBeFocused()
       await expect(fields.image).toHaveAccessibleErrorMessage(SECURE_URL_ERROR)
     }
 
