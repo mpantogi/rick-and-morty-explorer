@@ -16,6 +16,7 @@ leaves the machine's global Yarn untouched. Use Node 24.
 | `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches)           |
 | `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                  |
 | `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API            |
+| `corepack yarn icons`                               | Regenerate the brand assets in `public/` from the logo mark           |
 | `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier                   |
 
 Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverage`, `build` and
@@ -60,6 +61,11 @@ Reusable UI is built once in `src/shared/ui` as `Base*` components: `BaseButton`
 `BaseField`, `BaseInput`, `BaseSelect`, `BaseBadge`, `BaseSkeleton`. Use them for every button,
 link, form control, badge and skeleton; never hand-roll those styles again. Add a primitive or a
 variant only when it has at least two real call sites, with no speculative props.
+
+The brand mark is defined once in `src/shared/ui/brand/logo-mark.ts`: `AppLogo` renders it, and
+`scripts/generate-icons.ts` (Chromium through Playwright) renders it into `public/` as
+`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, the manifest icons, `site.webmanifest` and
+`og-image.png`. Never edit those files by hand; change the mark, run `icons` and commit the output.
 
 Colours come from the semantic tokens in `src/app/styles/main.css` (light values on `:root`, dark
 on `.dark`, exposed through `@theme inline`). A new text colour pair needs a computed contrast of at

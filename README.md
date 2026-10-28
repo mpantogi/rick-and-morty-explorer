@@ -15,7 +15,8 @@ pagination, and loading, empty and error states), character detail pages (profil
 list), favorites (saved in this browser, listed on their own page) and the create-hero form (name,
 gender and an https image URL with a live preview, saved in this browser). Created heroes lead the
 character list, follow its filters and have a page of their own. The build writes `sitemap.xml`,
-`robots.txt` and `llms.txt`. Next: brand assets, security headers and deployment.
+`robots.txt` and `llms.txt`, and the brand mark ships as a favicon set, web manifest icons and a
+social card. Next: security headers and deployment.
 
 ## Tech stack
 
@@ -61,6 +62,7 @@ yarn dev
 | `yarn test:watch`     | Run the tests in watch mode                                          |
 | `yarn test:coverage`  | Run the tests with coverage thresholds                               |
 | `yarn test:e2e`       | Run the Playwright suite against the built `dist/` (build first)     |
+| `yarn icons`          | Regenerate the favicon set, manifest and social card in `public/`    |
 | `yarn record:fixture` | Re-record the E2E API fixture from the live API (two requests)       |
 | `yarn lint`           | ESLint with zero warnings allowed                                    |
 | `yarn lint:fix`       | ESLint with autofix                                                  |
