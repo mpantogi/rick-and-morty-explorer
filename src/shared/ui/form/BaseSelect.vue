@@ -1,6 +1,6 @@
-<script setup lang="ts">
-defineProps<{ id: string; options: readonly { value: string; label: string }[] }>()
-const model = defineModel<string>({ required: true })
+<script setup lang="ts" generic="T extends string">
+defineProps<{ id: string; options: readonly { value: T; label: string }[] }>()
+const model = defineModel<T>({ required: true })
 </script>
 
 <template>

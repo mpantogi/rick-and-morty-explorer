@@ -1,0 +1,127 @@
+import { screen, within } from '@testing-library/vue'
+import { describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
+
+import { renderWithApp } from '../../../../test/render'
+import { useCharacterFilters } from '../model/use-character-filters'
+import CharacterFiltersForm from './CharacterFiltersForm.vue'
+
+// Mounts the form with a real controller, the way the character browser does.
+const Host = defineComponent({
+  setup() {
+    const controller = useCharacterFilters()
+    return () => h(CharacterFiltersForm, { controller })
+  },
+})
+
+async function setup(route = '/') {
+  const rendered = await renderWithApp(Host, { route })
+  const query = () => rendered.router.currentRoute.value.query
+  return { ...rendered, query }
+}
+
+describe('CharacterFiltersForm', () => {
+  it('is a labelled search landmark with a labelled control for every filter', async () => {
+    await setup()
+
+    const form = screen.getByRole('search', { name: 'Filter characters' })
+    expect(within(form).getByRole('searchbox', { name: 'Name' })).toHaveAttribute(
+      'maxlength',
+      '100',
+    )
+    expect(within(form).getByRole('combobox', { name: 'Status' })).toBeInTheDocument()
+    expect(within(form).getByRole('combobox', { name: 'Species' })).toBeInTheDocument()
+    expect(within(form).getByRole('textbox', { name: 'Type' })).toBeInTheDocument()
+    expect(within(form).getByRole('combobox', { name: 'Gender' })).toBeInTheDocument()
+  })
+
+  it('offers every status and gender with an "any" option first', async () => {
+    await setup()
+
+    const optionsOf = (name: string) =>
+      within(screen.getByRole('combobox', { name }))
+        .getAllByRole('option')
+        .map((option) => option.textContent.trim())
+    expect(optionsOf('Status')).toEqual(['Any status', 'Alive', 'Dead', 'Unknown'])
+    expect(optionsOf('Gender')).toEqual(['Any gender', 'Female', 'Male', 'Genderless', 'Unknown'])
+  })
+
+  it('suggests the known species', async () => {
+    const { container } = await setup()
+
+    const species = screen.getByRole('combobox', { name: 'Species' })
+    const list = container.querySelector(`datalist#${species.getAttribute('list') ?? ''}`)
+    expect([...(list?.querySelectorAll('option') ?? [])].map((option) => option.value)).toContain(
+      'Mythological Creature',
+    )
+  })
+
+  it('shows the applied filters in the controls', async () => {
+    await setup('/?name=rick&status=dead&gender=male')
+
+    expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveValue('rick')
+    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveValue('dead')
+    expect(screen.getByRole('combobox', { name: 'Gender' })).toHaveValue('male')
+  })
+
+  it('opens and closes the filter panel from its toggle', async () => {
+    const { user } = await setup()
+    const toggle = screen.getByRole('button', { name: 'Filters' })
+    const panel = document.getElementById(toggle.getAttribute('aria-controls') ?? '')
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(panel).toHaveClass('hidden')
+
+    await user.click(toggle)
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(panel).not.toHaveClass('hidden')
+  })
+
+  it('names how many filters are active on the toggle', async () => {
+    await setup('/?name=rick&status=dead')
+
+    expect(screen.getByRole('button', { name: 'Filters 2 active' })).toBeInTheDocument()
+  })
+
+  it('applies a status at once', async () => {
+    const { user, query } = await setup()
+
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'Alive')
+
+    await vi.waitFor(() => {
+      expect(query()).toEqual({ status: 'alive' })
+    })
+  })
+
+  it('applies typed text on submit', async () => {
+    const { user, query } = await setup()
+
+    await user.type(screen.getByRole('searchbox', { name: 'Name' }), 'morty')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+
+    await vi.waitFor(() => {
+      expect(query()).toEqual({ name: 'morty' })
+    })
+  })
+
+  it('offers Reset filters only while a filter is applied', async () => {
+    const { user, query } = await setup('/?name=rick')
+
+    await user.click(screen.getByRole('button', { name: 'Reset filters' }))
+
+    await vi.waitFor(() => {
+      expect(query()).toEqual({})
+    })
+    expect(screen.queryByRole('button', { name: 'Reset filters' })).not.toBeInTheDocument()
+    expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveValue('')
+  })
+
+  it('moves focus to the name search when Reset filters disappears', async () => {
+    const { user } = await setup('/?species=alien')
+
+    await user.click(screen.getByRole('button', { name: 'Reset filters' }))
+
+    expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveFocus()
+  })
+})

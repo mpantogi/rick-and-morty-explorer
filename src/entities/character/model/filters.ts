@@ -6,7 +6,7 @@ type FilterField = keyof CharacterFilters
 // Real values are short (the longest name has 46 characters); the API fails on very long URLs.
 export const FILTER_MAX_LENGTH = 100
 
-const FILTER_FIELDS = [
+export const FILTER_FIELDS = [
   'name',
   'status',
   'species',
