@@ -107,15 +107,23 @@ describe('central query error policy', () => {
     expect(toastError).not.toHaveBeenCalled()
   })
 
-  it('stays silent for aborted and cancelled requests', async () => {
+  it('stays silent for an aborted request', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+
     await failQuery(new DOMException('aborted', 'AbortError'))
 
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('stays silent for a cancelled query', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
     const client = createQueryClient()
     const pending = client
       .query({ queryKey: ['slow'], queryFn: () => new Promise<never>(() => undefined) })
       .catch(() => undefined)
-    await client.cancelQueries({ queryKey: ['slow'] })
+
+    // The default revert: true rethrows before QueryCache.onError; only revert: false reaches it.
+    await client.cancelQueries({ queryKey: ['slow'] }, { revert: false })
     await pending
 
     expect(toastError).not.toHaveBeenCalled()
