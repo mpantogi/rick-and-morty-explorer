@@ -18,6 +18,10 @@ export function apiKey(id: number): CharacterKey {
   return `api:${id}`
 }
 
+export function heroKey(id: string): CharacterKey {
+  return `hero:${id}`
+}
+
 export function parseCharacterKey(key: CharacterKey): ParsedKey {
   const id = key.slice(key.indexOf(SEPARATOR) + SEPARATOR.length)
   return key.startsWith('api:') ? { source: 'api', id: Number(id) } : { source: 'hero', id }

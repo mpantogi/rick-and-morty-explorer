@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { apiKey, characterKeySchema, isCharacterKey, parseCharacterKey } from './character-key'
+import {
+  apiKey,
+  characterKeySchema,
+  heroKey,
+  isCharacterKey,
+  parseCharacterKey,
+} from './character-key'
 
 const HERO_KEY = 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
 
@@ -8,6 +14,15 @@ describe('apiKey', () => {
   it('prefixes API ids so they can never collide with created heroes', () => {
     expect(apiKey(1)).toBe('api:1')
     expect(apiKey(826)).toBe('api:826')
+  })
+})
+
+describe('heroKey', () => {
+  it('prefixes a created hero uuid into a valid key', () => {
+    const key = heroKey('0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d')
+
+    expect(key).toBe(HERO_KEY)
+    expect(isCharacterKey(key)).toBe(true)
   })
 })
 
@@ -35,7 +50,7 @@ describe('parseCharacterKey', () => {
   })
 
   it('splits a hero key into its uuid', () => {
-    expect(parseCharacterKey(HERO_KEY)).toEqual({
+    expect(parseCharacterKey(heroKey('0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'))).toEqual({
       source: 'hero',
       id: '0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d',
     })

@@ -1,5 +1,5 @@
 export { env } from './env'
-export { MAX_FAVORITES } from './limits'
+export { MAX_FAVORITES, MAX_HEROES } from './limits'
 export { paths } from './paths'
 export { SITE } from './site'
 export { STORAGE_KEYS } from './storage-keys'

@@ -1,7 +1,8 @@
 import { paths } from '@/shared/config'
 
 import type { ApiCharacter } from '../api/schemas'
-import { apiKey } from './character-key'
+import { apiKey, heroKey } from './character-key'
+import type { Hero } from './hero-schema'
 import type { CharacterGender, CharacterStatus, CharacterView } from './types'
 
 const STATUS_BY_API = {
@@ -36,5 +37,23 @@ export function toCharacterView(character: ApiCharacter): CharacterView {
     location: character.location.name,
     episodeIds: character.episode.map(toEpisodeId),
     href: paths.character(character.id),
+  }
+}
+
+// The form asks only for name, gender and image; the rest is unknown, as the API itself says.
+export function heroToView(hero: Hero): CharacterView {
+  return {
+    key: heroKey(hero.id),
+    source: 'hero',
+    name: hero.name,
+    status: 'unknown',
+    species: 'unknown',
+    type: '',
+    gender: hero.gender,
+    image: hero.image,
+    origin: 'unknown',
+    location: 'unknown',
+    episodeIds: [],
+    href: paths.hero(hero.id),
   }
 }

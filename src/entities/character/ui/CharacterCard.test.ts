@@ -86,6 +86,18 @@ describe('CharacterCard', () => {
     expect(card.getAllByText(/Unknown/)).toHaveLength(2)
   })
 
+  it('tags a created hero as yours, and only a created hero', async () => {
+    const api = await renderCard(view())
+    expect(api.card.queryByText('Your hero')).not.toBeInTheDocument()
+    api.unmount()
+
+    const hero = await renderCard(
+      view({ key: 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d', source: 'hero' }),
+    )
+    expect(hero.card.getByText('Your hero')).toHaveClass('badge', 'character-card__tag')
+    expect(hero.card.getAllByRole('link')).toHaveLength(1)
+  })
+
   it('leaves the subspecies to the detail page', async () => {
     const { card } = await renderCard(view({ type: 'Parasite' }))
 

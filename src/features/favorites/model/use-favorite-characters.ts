@@ -9,6 +9,7 @@ import {
   characterQueries,
   parseCharacterKey,
   toCharacterView,
+  useHeroesStore,
 } from '@/entities/character'
 import { type ErrorCase, toErrorCase } from '@/shared/api'
 
@@ -38,12 +39,14 @@ function apiIdsOf(keys: readonly CharacterKey[]): number[] {
 }
 
 // The API answers sorted by id; the saved order (newest first) is rebuilt here. Keys the API
-// dropped, and heroes this browser does not hold, disappear without an error.
+// dropped, and heroes this browser does not hold, disappear from view but stay saved.
 function inSavedOrder(
   keys: readonly CharacterKey[],
   characters: readonly ApiCharacter[],
+  heroes: readonly CharacterView[],
 ): CharacterView[] {
-  const views = new Map(characters.map(toCharacterView).map((view) => [view.key, view] as const))
+  const known = [...characters.map(toCharacterView), ...heroes]
+  const views = new Map(known.map((view) => [view.key, view] as const))
   return keys.flatMap((key) => views.get(key) ?? [])
 }
 
@@ -55,6 +58,7 @@ function toListLikeState(items: CharacterView[], isPlaceholder: boolean): ListLi
 
 export function useFavoriteCharacters(): FavoriteCharacters {
   const { keys } = storeToRefs(useFavoritesStore())
+  const { views: heroes } = storeToRefs(useHeroesStore())
   const apiIds = computed(() => apiIdsOf(keys.value))
   const query = useQuery(() => ({
     ...characterQueries.byIds(apiIds.value),
@@ -64,13 +68,18 @@ export function useFavoriteCharacters(): FavoriteCharacters {
 
   const state = computed<ListLikeState>(() => {
     if (import.meta.env.SSR) return LOADING
-    if (apiIds.value.length === 0) return EMPTY
+    // Created heroes live in this browser, so a list of heroes alone needs no request.
+    if (apiIds.value.length === 0)
+      return toListLikeState(inSavedOrder(keys.value, [], heroes.value), false)
     if (query.status.value === 'error') {
       return { kind: 'error', errorCase: toErrorCase(query.error.value) }
     }
     const data = query.data.value
     if (data === undefined) return LOADING
-    return toListLikeState(inSavedOrder(keys.value, data), query.isPlaceholderData.value)
+    return toListLikeState(
+      inSavedOrder(keys.value, data, heroes.value),
+      query.isPlaceholderData.value,
+    )
   })
 
   return {

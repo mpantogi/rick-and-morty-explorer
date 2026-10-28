@@ -1,19 +1,10 @@
 import { useLocalStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed } from 'vue'
-import { toast } from 'vue-sonner'
 
 import { type CharacterKey, characterKeySchema } from '@/entities/character'
 import { MAX_FAVORITES, STORAGE_KEYS } from '@/shared/config'
-import { createZodSerializer, reportError } from '@/shared/lib'
-
-function reportStorageError(error: unknown): void {
-  reportError(error, 'storage')
-  toast.error("Couldn't save in this browser", {
-    id: 'storage-error',
-    description: 'Storage is full or blocked.',
-  })
-}
+import { createZodSerializer, reportStorageError } from '@/shared/lib'
 
 // Newest first. The serializer validates every read, including changes made in another tab.
 export const useFavoritesStore = defineStore('favorites', () => {

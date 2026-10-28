@@ -126,8 +126,13 @@ data. The theme key `rme:theme` is also read by the inline script in `index.html
 together.
 
 Stored lists are capped (`src/shared/config/limits.ts`): the store refuses an addition at the cap
-and returns `false`, and the calling component shows the limit toast. A failed write (storage full
-or blocked) is reported through `reportError` plus a toast, and the in-memory state carries on.
+(favorites `toggle` returns `false`, heroes `add` returns `null`), and the calling component shows
+the limit toast. A failed write (storage full or blocked) goes to `reportStorageError`
+(`reportError` plus a toast), and the in-memory state carries on.
+
+Favorites hold API characters (`api:<id>`) and created heroes (`hero:<uuid>`). The favorites list
+resolves heroes through the heroes store; a key whose character is missing is hidden, never
+removed from storage.
 
 ## Dependencies
 

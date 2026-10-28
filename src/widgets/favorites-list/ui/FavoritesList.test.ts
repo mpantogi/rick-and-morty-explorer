@@ -80,6 +80,30 @@ describe('FavoritesList', () => {
     expect(status()).toHaveTextContent('2 favorites')
   })
 
+  it('lists a favorited created hero, tagged as yours, beside API characters', async () => {
+    const hero = {
+      id: '6c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f',
+      name: 'Portal Pete',
+      gender: 'male',
+      image: 'https://example.com/pete.png',
+      createdAt: '2026-10-28T12:00:00.000Z',
+    }
+    localStorage.setItem(STORAGE_KEYS.heroes, JSON.stringify([hero]))
+    saveFavorites([`hero:${hero.id}`, 'api:1'])
+    const { status } = await setup()
+
+    await vi.waitFor(() => {
+      expect(cardNames()).toEqual(['Portal Pete', 'Rick Sanchez'])
+    })
+    const heroCard = within(screen.getAllByRole('article')[0] ?? document.body)
+    expect(heroCard.getByText('Your hero')).toBeInTheDocument()
+    expect(heroCard.getByRole('link', { name: 'Portal Pete' })).toHaveAttribute(
+      'href',
+      `/heroes/${hero.id}`,
+    )
+    expect(status()).toHaveTextContent('2 favorites')
+  })
+
   it('removes a card in place, updates the count and moves focus to the page title', async () => {
     saveFavorites(['api:4', 'api:1'])
     const { user, status, container } = await setup()

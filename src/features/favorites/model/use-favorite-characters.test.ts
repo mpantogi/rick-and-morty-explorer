@@ -11,9 +11,21 @@ import { useFavoritesStore } from './favorites-store'
 import { type ListLikeState, useFavoriteCharacters } from './use-favorite-characters'
 
 const HERO_KEY = 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
+const PETE = {
+  id: '6c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f',
+  name: 'Portal Pete',
+  gender: 'male',
+  image: 'https://example.com/pete.png',
+  createdAt: '2026-10-28T12:00:00.000Z',
+}
+const PETE_KEY = `hero:${PETE.id}`
 
 function saveFavorites(keys: readonly string[]): void {
   localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify(keys))
+}
+
+function saveHeroes(heroes: readonly object[]): void {
+  localStorage.setItem(STORAGE_KEYS.heroes, JSON.stringify(heroes))
 }
 
 async function setup() {
@@ -80,6 +92,47 @@ describe('useFavoriteCharacters', () => {
 
     expect(state.value).toEqual({ kind: 'empty' })
     expect(paths).toEqual([])
+  })
+
+  it('lists a favorited created hero at once, without a request', async () => {
+    saveHeroes([PETE])
+    saveFavorites([PETE_KEY])
+    const paths = recordRequests('character/:ids')
+    const { state } = await setup()
+
+    expect(state.value).toMatchObject({
+      kind: 'ready',
+      isUpdating: false,
+      items: [{ source: 'hero', name: 'Portal Pete' }],
+    })
+    await nextTick()
+    expect(paths).toEqual([])
+  })
+
+  it('keeps created heroes and API characters in the saved order', async () => {
+    saveHeroes([PETE])
+    saveFavorites(['api:2', PETE_KEY, 'api:1'])
+    const { state } = await setup()
+
+    await vi.waitFor(() => {
+      expect(state.value.kind).toBe('ready')
+    })
+    expect(names(state.value)).toEqual(['Morty Smith', 'Portal Pete', 'Rick Sanchez'])
+  })
+
+  it('never drops a favorited hero from storage', async () => {
+    saveHeroes([PETE])
+    saveFavorites([PETE_KEY, HERO_KEY])
+    const { store } = await setup()
+
+    store.toggle('api:1')
+    await nextTick()
+
+    expect(JSON.parse(localStorage.getItem(STORAGE_KEYS.favorites) ?? '[]')).toEqual([
+      'api:1',
+      PETE_KEY,
+      HERO_KEY,
+    ])
   })
 
   it('removes a favorite at once, never falling back to the skeleton', async () => {

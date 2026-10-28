@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ApiCharacter } from '../api/schemas'
+import type { Hero } from './hero-schema'
 import { displayValue } from './labels'
-import { toCharacterView } from './mappers'
+import { heroToView, toCharacterView } from './mappers'
 
 const EPISODE = 'https://rickandmortyapi.com/api/episode'
 
@@ -63,6 +64,33 @@ describe('toCharacterView', () => {
     const view = toCharacterView(apiCharacter({ episode: [`${EPISODE}/7`, `${EPISODE}/51`] }))
 
     expect(view.episodeIds).toEqual([7, 51])
+  })
+})
+
+describe('heroToView', () => {
+  const hero: Hero = {
+    id: '0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d',
+    name: 'Portal Pete',
+    gender: 'genderless',
+    image: 'https://example.com/pete.png',
+    createdAt: '2026-10-28T12:00:00.000Z',
+  }
+
+  it('shows a created hero like a character, with unknown for what the form never asked', () => {
+    expect(heroToView(hero)).toEqual({
+      key: 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d',
+      source: 'hero',
+      name: 'Portal Pete',
+      status: 'unknown',
+      species: 'unknown',
+      type: '',
+      gender: 'genderless',
+      image: 'https://example.com/pete.png',
+      origin: 'unknown',
+      location: 'unknown',
+      episodeIds: [],
+      href: '/heroes/0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d',
+    })
   })
 })
 

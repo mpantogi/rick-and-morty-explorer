@@ -10,6 +10,7 @@ export {
   normalizeFilters,
   sameFilters,
 } from './model/filters'
+export { useHeroesStore } from './model/heroes-store'
 export { displayValue, genderLabel, statusLabel } from './model/labels'
 export { toCharacterView } from './model/mappers'
 export { UI_PAGE_SIZE } from './model/pagination'

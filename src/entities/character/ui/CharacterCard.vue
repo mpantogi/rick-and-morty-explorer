@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { BaseBadge } from '@/shared/ui'
+
 import { displayValue } from '../model/labels'
 import type { CharacterView } from '../model/types'
 import CharacterAvatar from './CharacterAvatar.vue'
@@ -65,5 +67,13 @@ const HEADING_TAGS = { 2: 'h2', 3: 'h3' } as const
     <div v-if="$slots.actions" class="character-card__actions absolute top-1.5 left-1.5 z-10">
       <slot name="actions" />
     </div>
+    <!-- Over the avatar; clicks pass through to the card's link. -->
+    <BaseBadge
+      v-if="character.source === 'hero'"
+      tone="accent"
+      class="character-card__tag pointer-events-none absolute bottom-1.5 left-1.5"
+    >
+      Your hero
+    </BaseBadge>
   </article>
 </template>
