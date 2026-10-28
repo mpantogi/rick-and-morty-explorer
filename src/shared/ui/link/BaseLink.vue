@@ -9,15 +9,11 @@ defineSlots<{ default: () => unknown }>()
   <RouterLink
     v-if="to"
     :to
-    class="link text-accent underline underline-offset-4 transition-colors duration-150 hover:decoration-2 motion-reduce:transition-none"
+    class="link text-accent underline underline-offset-4 hover:decoration-2"
   >
     <slot />
   </RouterLink>
-  <a
-    v-else
-    :href
-    class="link text-accent underline underline-offset-4 transition-colors duration-150 hover:decoration-2 motion-reduce:transition-none"
-  >
+  <a v-else :href class="link text-accent underline underline-offset-4 hover:decoration-2">
     <slot />
   </a>
 </template>
