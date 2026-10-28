@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { countActiveFilters } from '@/entities/character'
@@ -14,9 +14,14 @@ const DESCRIPTION =
   'Search and filter every Rick and Morty character by name, status, species, type and gender. Save favorites and create your own hero.'
 
 const route = useRoute()
+const isOutOfRange = ref(false)
 const seo = computed(() => {
   const { filters, page } = parseListQuery(route.query)
-  return homeSeo({ page, isFiltered: countActiveFilters(filters) > 0 })
+  return homeSeo({
+    page,
+    isFiltered: countActiveFilters(filters) > 0,
+    isOutOfRange: isOutOfRange.value,
+  })
 })
 
 usePageSeo({
@@ -56,6 +61,6 @@ usePageSeo({
         </p>
       </noscript>
     </div>
-    <CharacterBrowser />
+    <CharacterBrowser @out-of-range="isOutOfRange = $event" />
   </div>
 </template>

@@ -12,6 +12,8 @@ import { BaseButton, BaseSkeleton, EmptyState, PaginationNav, RegionError } from
 
 import { resultsSummary } from '../model/results-summary'
 
+const emit = defineEmits<{ outOfRange: [isOutOfRange: boolean] }>()
+
 const controller = useCharacterFilters()
 const { state, retry } = useCharacterList(controller.filters, controller.page)
 
@@ -21,6 +23,14 @@ const filtersForm = useTemplateRef<InstanceType<typeof CharacterFiltersForm>>('f
 const isUpdating = computed(() => state.value.kind === 'ready' && state.value.isUpdating)
 const summary = computed(() => resultsSummary(state.value, controller.page.value))
 const filtersKey = computed(() => JSON.stringify(controller.filters.value))
+const isOutOfRange = computed(
+  () => state.value.kind === 'empty' && state.value.reason === 'out-of-range',
+)
+
+// The page owns the head tags; it keeps a page past the last one out of the index.
+watch(isOutOfRange, (outOfRange) => {
+  emit('outOfRange', outOfRange)
+})
 
 function focusHeading(): void {
   heading.value?.focus({ preventScroll: true })

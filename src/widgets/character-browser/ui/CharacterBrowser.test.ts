@@ -135,6 +135,29 @@ describe('CharacterBrowser', () => {
     )
   })
 
+  it('tells its page when the requested page turns out to be past the last one', async () => {
+    const rendered = await setup('/?name=morty&page=4')
+    await vi.waitFor(() => {
+      expect(rendered.emitted('outOfRange')).toEqual([[true]])
+    })
+
+    await rendered.router.push('/?name=morty')
+
+    await vi.waitFor(() => {
+      expect(rendered.results().getAllByRole('article')).toHaveLength(4)
+    })
+    expect(rendered.emitted('outOfRange')).toEqual([[true], [false]])
+  })
+
+  it('never reports an existing page as out of range', async () => {
+    const rendered = await setup()
+
+    await vi.waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(12)
+    })
+    expect(rendered.emitted('outOfRange')).toBeUndefined()
+  })
+
   it('shows the failure in place, without a skeleton, and retries from the heading', async () => {
     server.use(http.get(`${API}/character`, () => apiJson({ error: 'boom' }, 500), { once: true }))
     const { user, results, summary, container } = await setup()

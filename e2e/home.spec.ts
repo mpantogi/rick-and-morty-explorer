@@ -221,6 +221,21 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(cards(page)).toHaveCount(12)
   })
 
+  test('keeps a page past the last one out of the index, canonical to the home page', async ({
+    page,
+    consoleGuard,
+  }) => {
+    consoleGuard.allowHttpErrors(PAST_LAST_API_PAGE_URL)
+    await openPage(page, '/?page=999')
+    await expect(page.locator('#results').getByText("There's no page 999.")).toBeVisible()
+
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex,follow')
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      /^https:\/\/[^/?#]+\/$/,
+    )
+  })
+
   test('reports an API failure in place and recovers with Try again', async ({
     page,
     consoleGuard,
