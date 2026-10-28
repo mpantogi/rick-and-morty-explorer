@@ -1,4 +1,4 @@
-import { LIST_URL } from './api-mock'
+import { NO_MATCH_URL } from './api-mock'
 
 export interface AppRoute {
   name: string
@@ -14,7 +14,7 @@ export const ROUTES: readonly AppRoute[] = [
   {
     name: 'home without matches',
     path: '/?name=zzzz',
-    expectedHttpErrors: [LIST_URL],
+    expectedHttpErrors: [NO_MATCH_URL],
     settled: '#results [data-state="empty"]',
   },
   { name: 'not found', path: '/nope', expectedHttpErrors: [/\/nope$/], settled: '#page-title' },

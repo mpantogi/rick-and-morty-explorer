@@ -1,13 +1,15 @@
 import type { Page } from '@playwright/test'
 
 import { expect, openPage, test } from './fixtures'
-import { failWith, LIST_URL } from './support/api-mock'
+import { FIRST_LIST_PAGE_URL, failWith, LIST_URL, NO_MATCH_URL } from './support/api-mock'
 import { captureAround, countChangedPixels } from './support/pixels'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 const SERVER_ERROR = 500
 // A 2 px ring around a card repaints over a thousand pixels; a clipped one repaints none.
 const VISIBLE_RING_PIXELS = 500
+// UI page 999 starts at item 11,976, which the window asks for on API page 599.
+const PAST_LAST_API_PAGE_URL = /\/api\/character\?page=599$/
 
 function results(page: Page) {
   return page.getByRole('region', { name: 'Results' })
@@ -186,7 +188,7 @@ test.describe('character list', { tag: '@journey' }, () => {
   })
 
   test('shows the empty state when nothing matches', async ({ page, consoleGuard }) => {
-    consoleGuard.allowHttpErrors(LIST_URL)
+    consoleGuard.allowHttpErrors(NO_MATCH_URL)
     await openPage(page, '/?name=zzzz')
 
     await expect(
@@ -199,7 +201,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     page,
     consoleGuard,
   }) => {
-    consoleGuard.allowHttpErrors(LIST_URL)
+    consoleGuard.allowHttpErrors(PAST_LAST_API_PAGE_URL)
     await openPage(page, '/?page=999')
     const region = page.locator('#results')
 
@@ -215,7 +217,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     page,
     consoleGuard,
   }) => {
-    consoleGuard.allowHttpErrors(LIST_URL)
+    consoleGuard.allowHttpErrors(FIRST_LIST_PAGE_URL)
     const failList = failWith(SERVER_ERROR)
     await page.route(LIST_URL, failList)
     await openPage(page, '/')
@@ -253,7 +255,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     page,
     consoleGuard,
   }) => {
-    consoleGuard.allowHttpErrors(LIST_URL)
+    consoleGuard.allowHttpErrors(NO_MATCH_URL)
     await installStateProbe(page)
     await openPage(page, '/?name=zzzz')
     await expect(page.locator('#results [data-state="empty"]')).toBeVisible()

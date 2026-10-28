@@ -1,5 +1,5 @@
 import { expect, openPage, type Theme, test, useStoredTheme } from './fixtures'
-import { failWith, LIST_URL } from './support/api-mock'
+import { FIRST_LIST_PAGE_URL, failWith, LIST_URL } from './support/api-mock'
 import { ROUTES } from './support/routes'
 
 const THEMES: readonly Theme[] = ['light', 'dark']
@@ -28,7 +28,7 @@ for (const theme of THEMES) {
     consoleGuard,
     makeAxeBuilder,
   }) => {
-    consoleGuard.allowHttpErrors(LIST_URL)
+    consoleGuard.allowHttpErrors(FIRST_LIST_PAGE_URL)
     await useStoredTheme(page, theme)
     await page.route(LIST_URL, failWith(SERVER_ERROR))
 

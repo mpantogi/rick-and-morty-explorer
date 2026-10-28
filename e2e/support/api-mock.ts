@@ -8,6 +8,8 @@ import { listCharacters } from '../../test/api-semantics.ts'
 
 const API_ROUTES = 'https://rickandmortyapi.com/api/**'
 export const LIST_URL = /\/api\/character(\?|$)/
+export const FIRST_LIST_PAGE_URL = /\/api\/character\?page=1$/
+export const NO_MATCH_URL = /\/api\/character\?name=zzzz&page=1$/
 
 const AVATAR_PATH = /^\/api\/character\/avatar\/\d+\.jpeg$/
 const LIST_PATH = '/api/character'
