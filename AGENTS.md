@@ -87,6 +87,10 @@ least 4.5:1 in both themes.
 - Semantic HTML and WCAG 2.2 AA: labelled controls, visible focus, one `h1` per page.
 - Code must be SSR-safe: no `window`, `document` or `localStorage` at module scope or during the
   server render.
+- Build-time code lives in `build/`, outside the FSD gate: `ssg-options.ts` holds the vite-ssg
+  hooks and `seo-files.ts` writes `sitemap.xml`, `robots.txt` and `llms.txt` after the pages are
+  rendered. The site URL has one source: `parseEnv` (`src/shared/config/parse-env.ts`) validates
+  `VITE_SITE_URL` for the app (`env.siteUrl`) and for the build alike.
 - Prerendering (`src/app/ssg`) loads the whole catalogue in three bulk requests at build time and
   seeds each character route's queries with the same `queryOptions` keys the page reads, so the
   page renders from the dehydrated state without a request. Keep those keys shared; data that only

@@ -14,8 +14,8 @@ character list (12 characters per page over the API's 20-item pages, URL-synced 
 pagination, and loading, empty and error states), character detail pages (profile and episode
 list), favorites (saved in this browser, listed on their own page) and the create-hero form (name,
 gender and an https image URL with a live preview, saved in this browser). Created heroes lead the
-character list, follow its filters and have a page of their own. Next: SEO files, security headers
-and deployment.
+character list, follow its filters and have a page of their own. The build writes `sitemap.xml`,
+`robots.txt` and `llms.txt`. Next: brand assets, security headers and deployment.
 
 ## Tech stack
 
@@ -77,8 +77,9 @@ yarn test:e2e --project=chromium
 ```
 
 `yarn build` loads every character and episode from the live API in three bulk requests and
-prerenders one page per character, with its data embedded. If the API is down, the build fails
-rather than publishing broken pages.
+prerenders one page per character, with its data embedded. It then writes `sitemap.xml` (home plus
+every character page), `robots.txt` and `llms.txt` into `dist/`. If the API is down, the build
+fails rather than publishing broken pages.
 
 The E2E suite never calls the live API: every request to it is answered from
 `e2e/support/api-fixture.json`, a recording of characters 1–60 and their episodes. Refresh it with
@@ -92,5 +93,5 @@ app fail fast if either is not an `https:` URL. Set them in the shell or in an u
 
 | Variable            | Default                                  | Used for                               |
 | ------------------- | ---------------------------------------- | -------------------------------------- |
-| `VITE_SITE_URL`     | `https://rickverse-explorer.netlify.app` | Canonical URLs and social preview tags |
+| `VITE_SITE_URL`     | `https://rickverse-explorer.netlify.app` | Canonical URLs, social tags, SEO files |
 | `VITE_API_BASE_URL` | `https://rickandmortyapi.com/api`        | Base URL of the Rick and Morty API     |
