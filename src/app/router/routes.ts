@@ -12,6 +12,11 @@ export const routes: RouteRecordRaw[] = [
     props: (route) => ({ id: Number(route.params.id) }),
   },
   {
+    path: '/favorites',
+    name: 'favorites',
+    component: () => import('@/pages/favorites').then((m) => m.FavoritesPage),
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     component: () => import('@/pages/not-found').then((m) => m.NotFoundPage),

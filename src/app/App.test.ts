@@ -13,6 +13,32 @@ describe('App', () => {
     )
   })
 
+  it('renders the favorites page and marks it current in the navigation', async () => {
+    await renderWithApp(App, { route: '/favorites' })
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Favorites' })).toBeInTheDocument()
+    expect(screen.getByText('No favorites yet.')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('navigation', { name: 'Main' })).getByRole('link', {
+        name: 'Favorites',
+      }),
+    ).toHaveAttribute('aria-current', 'page')
+  })
+
+  it.each(['/characters/abc', '/characters/0', '/characters/01'])(
+    'treats %s as not found without loading the character page',
+    async (path) => {
+      await renderWithApp(App, { route: path })
+
+      expect(
+        await screen.findByRole('heading', {
+          level: 1,
+          name: "Wrong dimension. We couldn't find this page.",
+        }),
+      ).toBeInTheDocument()
+    },
+  )
+
   it('renders the not-found page for an unknown path', async () => {
     await renderWithApp(App, { route: '/nope' })
 

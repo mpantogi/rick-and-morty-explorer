@@ -1,4 +1,5 @@
 export { characterQueries } from './api/queries'
+export type { ApiCharacter } from './api/schemas'
 export { type CharacterKey, characterKeySchema, parseCharacterKey } from './model/character-key'
 export {
   countActiveFilters,
@@ -9,6 +10,7 @@ export {
   sameFilters,
 } from './model/filters'
 export { displayValue, genderLabel, statusLabel } from './model/labels'
+export { toCharacterView } from './model/mappers'
 export { UI_PAGE_SIZE } from './model/pagination'
 export {
   type CharacterFilters,
