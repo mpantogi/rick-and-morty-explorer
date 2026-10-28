@@ -5,6 +5,12 @@ import { STORAGE_KEYS } from '../src/shared/config/storage-keys.ts'
 
 const WCAG_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
+declare global {
+  interface Window {
+    reportCspViolation: (violation: string) => Promise<void>
+  }
+}
+
 export type Theme = 'light' | 'dark'
 
 export interface ConsoleGuard {
@@ -28,9 +34,12 @@ export const test = base.extend<Fixtures>({
     async ({ page }, use) => {
       const problems: string[] = []
       const allowed: RegExp[] = []
+      await page.exposeFunction('reportCspViolation', (violation: string) => {
+        problems.push(`CSP violation: ${violation}`)
+      })
       await page.addInitScript(() => {
         document.addEventListener('securitypolicyviolation', (event) => {
-          console.error(`CSP violation: ${event.violatedDirective} blocked ${event.blockedURI}`)
+          void window.reportCspViolation(`${event.violatedDirective} blocked ${event.blockedURI}`)
         })
       })
       page.on('console', (message) => {

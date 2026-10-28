@@ -19,7 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "postinstall": "simple-git-hooks"
   },
   "dependencies": {
     "@lucide/vue": "1.62.0",
@@ -62,9 +63,11 @@
     "globals": "17.13.0",
     "jiti": "2.7.0",
     "jsdom": "29.1.1",
+    "lint-staged": "17.6.0",
     "msw": "3.0.3",
     "prettier": "3.9.10",
     "prettier-plugin-tailwindcss": "0.8.1",
+    "simple-git-hooks": "2.14.0",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
@@ -72,5 +75,15 @@
     "vitest": "5.0.5",
     "vue-eslint-parser": "10.4.1",
     "vue-tsc": "3.3.13"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx --no lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,vue}": [
+      "eslint --max-warnings=0 --fix",
+      "prettier --write"
+    ],
+    "*.{css,json,md,yml,yaml,html}": "prettier --write"
   }
 }
