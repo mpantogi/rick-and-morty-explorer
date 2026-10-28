@@ -16,7 +16,12 @@ describe('App', () => {
   it('renders the not-found page for an unknown path', async () => {
     await renderWithApp(App, { route: '/nope' })
 
-    expect(screen.getByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        level: 1,
+        name: "Wrong dimension. We couldn't find this page.",
+      }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Browse characters' })).toHaveAttribute('href', '/')
   })
 })

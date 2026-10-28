@@ -1,8 +1,26 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { toast } from 'vue-sonner'
 
 import { ApiError } from '@/shared/api'
 
 import { createQueryClient } from './query-client'
+
+const SERVER_TOAST = {
+  title: "The Rick and Morty API isn't responding",
+  description: "We'll keep what's on screen. Try again in a moment.",
+}
+const UNKNOWN_TOAST = {
+  title: "Couldn't load data",
+  description: 'Check your connection and try again.',
+}
+
+async function failQuery(error: Error, key = 'failing') {
+  const client = createQueryClient()
+  await client
+    .query({ queryKey: [key], queryFn: () => Promise.reject(error), retry: false })
+    .catch(() => undefined)
+  return client
+}
 
 const GC_TIME_MS = 30 * 60_000
 
@@ -40,5 +58,86 @@ describe('createQueryClient', () => {
     ['a non-API error', new Error('bug'), 0, false],
   ])('retry policy for %s', (_label, error, failureCount, expected) => {
     expect(retryPolicy()(failureCount, error)).toBe(expected)
+  })
+})
+
+describe('central query error policy', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('raises one de-duplicated server toast per failure case', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const client = createQueryClient()
+    const serverError = new ApiError('http', 'down', { status: 500 })
+
+    for (const key of ['page-1', 'page-2']) {
+      await client
+        .query({ queryKey: [key], queryFn: () => Promise.reject(serverError), retry: false })
+        .catch(() => undefined)
+    }
+
+    expect(toastError).toHaveBeenCalledTimes(2)
+    expect(toastError.mock.calls.map(([, options]) => options?.id)).toEqual([
+      'query-error:server',
+      'query-error:server',
+    ])
+    expect(toastError).toHaveBeenCalledWith(SERVER_TOAST.title, {
+      id: 'query-error:server',
+      description: SERVER_TOAST.description,
+    })
+  })
+
+  it('blames the connection for network failures', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+
+    await failQuery(new ApiError('network', 'offline'))
+
+    expect(toastError).toHaveBeenCalledWith(UNKNOWN_TOAST.title, {
+      id: 'query-error:unknown',
+      description: UNKNOWN_TOAST.description,
+    })
+  })
+
+  it('stays silent for a 404, which regions render as not found or empty', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+
+    await failQuery(new ApiError('http', 'missing', { status: 404 }))
+
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('stays silent for aborted and cancelled requests', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    await failQuery(new DOMException('aborted', 'AbortError'))
+
+    const client = createQueryClient()
+    const pending = client
+      .query({ queryKey: ['slow'], queryFn: () => new Promise<never>(() => undefined) })
+      .catch(() => undefined)
+    await client.cancelQueries({ queryKey: ['slow'] })
+    await pending
+
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('reports an API contract failure with its issues before toasting the server case', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const drift = new ApiError('parse', 'shape', { status: 200, cause: [{ path: ['status'] }] })
+
+    await failQuery(drift)
+
+    expect(consoleError).toHaveBeenCalledWith('[api-contract]', drift)
+    expect(toastError).toHaveBeenCalledWith(SERVER_TOAST.title, expect.anything())
+  })
+
+  it('never toasts while prerendering', async () => {
+    vi.stubEnv('SSR', true)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+
+    await failQuery(new ApiError('http', 'down', { status: 503 }))
+
+    expect(toastError).not.toHaveBeenCalled()
   })
 })

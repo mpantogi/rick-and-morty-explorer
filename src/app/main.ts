@@ -1,6 +1,7 @@
 import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { ViteSSG } from 'vite-ssg'
+import 'vue-sonner/style.css'
 
 import App from './App.vue'
 import { installChunkReload } from './lib/chunk-reload'

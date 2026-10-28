@@ -49,7 +49,7 @@ describe('installRouteFocus', () => {
     await nextTick()
 
     expect(document.activeElement).toBe(document.getElementById('page-title'))
-    expect(document.activeElement).toHaveTextContent('Page not found')
+    expect(document.activeElement).toHaveTextContent("We couldn't find this page.")
   })
 
   it('keeps focus when only the query changes on the same path', async () => {
