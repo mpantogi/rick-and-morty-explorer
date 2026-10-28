@@ -1,0 +1,11 @@
+dist
+coverage
+playwright-report
+test-results
+public
+e2e/support/api-fixture.json
+yarn.lock
+.yarn
+.pipeline/
+.pipeline-*/
+tasks/

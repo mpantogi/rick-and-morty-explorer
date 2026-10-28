@@ -10,7 +10,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite-ssg build",
-    "typecheck": "vue-tsc --build"
+    "typecheck": "vue-tsc --build",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@unhead/vue": "2.1.17",
@@ -23,10 +27,26 @@
     "@tsconfig/node24": "24.0.5",
     "@types/node": "24.19.2",
     "@vitejs/plugin-vue": "6.0.10",
+    "@vitest/eslint-plugin": "1.6.28",
+    "@vue/eslint-config-typescript": "14.9.0",
     "@vue/tsconfig": "0.9.1",
+    "eslint": "10.13.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-boundaries": "7.4.0",
+    "eslint-plugin-playwright": "2.12.1",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "eslint-plugin-vue": "10.12.0",
+    "eslint-plugin-vuejs-accessibility": "2.6.3",
+    "globals": "17.13.0",
+    "jiti": "2.7.0",
+    "prettier": "3.9.10",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",
+    "typescript-eslint": "8.72.1",
     "vite": "8.3.5",
+    "vue-eslint-parser": "10.4.1",
     "vue-tsc": "3.3.13"
   }
 }
