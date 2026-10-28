@@ -59,7 +59,7 @@ describe('FSD boundaries gate', { timeout: LINT_TIMEOUT_MS }, () => {
   it('rejects an entity importing a feature', async () => {
     const messages = await boundaryMessages(
       'src/entities/character/model/mappers.ts',
-      "import { useFavoritesStore } from '@/features/favorites'\nexport const probe = useFavoritesStore\n",
+      "import { FavoriteToggle } from '@/features/favorites'\nexport const probe = FavoriteToggle\n",
     )
 
     expect(messages).toEqual([
@@ -70,7 +70,7 @@ describe('FSD boundaries gate', { timeout: LINT_TIMEOUT_MS }, () => {
   it('rejects a feature importing another feature', async () => {
     const messages = await boundaryMessages(
       'src/features/theme/model/use-theme.ts',
-      "import { useFavoritesStore } from '@/features/favorites'\nexport const probe = useFavoritesStore\n",
+      "import { useFavoriteCharacters } from '@/features/favorites'\nexport const probe = useFavoriteCharacters\n",
     )
 
     expect(messages).toEqual([
@@ -92,7 +92,7 @@ describe('FSD boundaries gate', { timeout: LINT_TIMEOUT_MS }, () => {
   it('allows a feature to import an entity through its public API', async () => {
     const messages = await boundaryMessages(
       'src/features/favorites/model/favorites-store.ts',
-      "import { apiKey } from '@/entities/character'\nexport const probe = apiKey\n",
+      "import { characterKeySchema } from '@/entities/character'\nexport const probe = characterKeySchema\n",
     )
 
     expect(messages).toEqual([])
