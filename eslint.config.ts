@@ -16,6 +16,7 @@ const ALLOWED: Record<string, string[]> = {
   features: ['entities', 'shared'],
   entities: ['shared'],
 }
+const ZOD_MODULE = 'src/shared/zod/zod.ts'
 
 export default withVueTs(
   { name: 'app/files', files: ['**/*.{ts,mts,vue}'] },
@@ -125,6 +126,25 @@ export default withVueTs(
             {
               disallow: { to: { element: { type: 'shared', fileInternalPath: '!*/index.ts' } } },
               message: 'Import shared segments through their index.ts',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    name: 'app/jitless-zod',
+    files: ['src/**/*.{ts,vue}'],
+    ignores: ['src/**/*.test.ts', ZOD_MODULE],
+    rules: {
+      '@typescript-eslint/no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^zod(?:/|$)',
+              allowTypeImports: true,
+              message: `Import z from @/shared/zod (${ZOD_MODULE} configures it jitless for the CSP).`,
             },
           ],
         },

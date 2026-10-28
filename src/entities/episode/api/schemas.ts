@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@/shared/zod'
 
 // z.object strips characters/url/created, keeping the query cache and prerendered state small.
 export const apiEpisodeSchema = z.object({

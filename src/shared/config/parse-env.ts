@@ -1,6 +1,5 @@
-import { z } from 'zod'
-
 // The build's Vite config loads this file too; Vite's coming native config loader needs extensions.
+import { z } from '../zod/zod.ts'
 import { SITE } from './site.ts'
 
 export interface RawEnv {

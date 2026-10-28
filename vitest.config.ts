@@ -27,13 +27,7 @@ export default defineConfig((configEnv) =>
         coverage: {
           provider: 'v8',
           include: ['src/**/*.{ts,vue}', 'build/**/*.ts'],
-          exclude: [
-            '**/*.test.ts',
-            '**/index.ts',
-            'src/app/main.ts',
-            'src/app/zod-config.ts',
-            'build/ssg-options.ts',
-          ],
+          exclude: ['**/*.test.ts', '**/index.ts', 'src/app/main.ts', 'build/ssg-options.ts'],
           reporter: ['text', 'html', 'lcov'],
           thresholds: { lines: 85, statements: 85, functions: 85, branches: 80 },
         },

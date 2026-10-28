@@ -1,5 +1,3 @@
-import './zod-config'
-
 import { dehydrate, type DehydratedState, hydrate, VueQueryPlugin } from '@tanstack/vue-query'
 import { createPinia } from 'pinia'
 import { ViteSSG } from 'vite-ssg'

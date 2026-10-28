@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@/shared/zod'
 
 import { GENDERS } from './types'
 

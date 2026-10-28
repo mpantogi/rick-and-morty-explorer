@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@/shared/zod'
 
 const httpUrl = z.url({ protocol: /^https?$/ })
 // Episode ids are read from these URLs, so one without an id fails the parse.

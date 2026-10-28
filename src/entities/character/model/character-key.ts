@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from '@/shared/zod'
 
 export type CharacterKey = `api:${number}` | `hero:${string}`
 
