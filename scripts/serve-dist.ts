@@ -1,5 +1,5 @@
-// Serves dist/ the way Netlify does (_redirects rewrites, real 404 status) for `yarn preview` and E2E;
-// `vite preview` answers every unknown URL with index.html and 200, so it would test different routing.
+// Serves dist/ the way Netlify does (_redirects rewrites, _headers, real 404 status) for `yarn preview`
+// and E2E; `vite preview` answers every unknown URL with index.html and 200, so it would test less.
 import { createReadStream } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
@@ -34,6 +34,17 @@ interface Rewrite {
   to: string
 }
 
+interface HeaderRule {
+  path: string
+  headers: Record<string, string>
+}
+
+interface Reply {
+  file: string
+  status: number
+  headers: Record<string, string>
+}
+
 class BadRequestError extends Error {}
 
 async function readOptional(file: string): Promise<string> {
@@ -52,6 +63,30 @@ async function loadRewrites(): Promise<Rewrite[]> {
     .map((line) => line.trim().split(/\s+/))
     .filter(([from, to, status]) => from && to && !from.startsWith('#') && status === '200')
     .map(([from, to]) => ({ from: from.split('/'), to }))
+}
+
+// Netlify `_headers`: an unindented path (exact, or a prefix ending in `*`), then indented headers.
+async function loadHeaderRules(): Promise<HeaderRule[]> {
+  const rules: HeaderRule[] = []
+  for (const line of (await readOptional(join(DIST, '_headers'))).split('\n')) {
+    const text = line.trim()
+    if (text === '' || text.startsWith('#')) continue
+    if (!/^\s/.test(line)) {
+      rules.push({ path: text, headers: {} })
+      continue
+    }
+    const colon = text.indexOf(':')
+    const rule = rules.at(-1)
+    if (rule) rule.headers[text.slice(0, colon).trim()] = text.slice(colon + 1).trim()
+  }
+  return rules
+}
+
+function headersFor(rules: readonly HeaderRule[], path: string): Record<string, string> {
+  const matching = rules.filter((rule) =>
+    rule.path.endsWith('*') ? path.startsWith(rule.path.slice(0, -1)) : rule.path === path,
+  )
+  return Object.fromEntries(matching.flatMap((rule) => Object.entries(rule.headers)))
 }
 
 function matches(pattern: readonly string[], segments: readonly string[]): boolean {
@@ -85,31 +120,37 @@ async function findFile(path: string): Promise<string | null> {
   return null
 }
 
-function send(res: ServerResponse, req: IncomingMessage, file: string, status: number): void {
+function send(req: IncomingMessage, res: ServerResponse, { file, status, headers }: Reply): void {
   res.writeHead(status, {
+    ...headers,
     'Content-Type': MIME_TYPES[extname(file)] ?? 'application/octet-stream',
   })
   if (req.method === 'HEAD') res.end()
   else createReadStream(file).pipe(res)
 }
 
-async function handle(req: IncomingMessage, res: ServerResponse, rewrites: Rewrite[]) {
+async function locate(path: string): Promise<Omit<Reply, 'headers'>> {
+  const rewrite = rewrites.find((rule) => matches(rule.from, path.split('/')))
+  const file = await findFile(rewrite?.to ?? path)
+  return file
+    ? { file, status: STATUS.ok }
+    : { file: join(DIST, '404.html'), status: STATUS.notFound }
+}
+
+async function handle(req: IncomingMessage, res: ServerResponse) {
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(STATUS.methodNotAllowed, { Allow: 'GET, HEAD' }).end()
     return
   }
   const path = toSafePath(req.url ?? '/')
-  const rewrite = rewrites.find((rule) => matches(rule.from, path.split('/')))
-  const file = await findFile(rewrite?.to ?? path)
-  if (file) send(res, req, file, STATUS.ok)
-  else send(res, req, join(DIST, '404.html'), STATUS.notFound)
+  send(req, res, { ...(await locate(path)), headers: headersFor(headerRules, path) })
 }
 
 const { values } = parseArgs({ options: { port: { type: 'string', default: DEFAULT_PORT } } })
-const rewrites = await loadRewrites()
+const [rewrites, headerRules] = await Promise.all([loadRewrites(), loadHeaderRules()])
 
 createServer((req, res) => {
-  handle(req, res, rewrites).catch((error: unknown) => {
+  handle(req, res).catch((error: unknown) => {
     const status = error instanceof BadRequestError ? STATUS.badRequest : STATUS.serverError
     res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' }).end(String(error))
   })

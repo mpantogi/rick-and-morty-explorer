@@ -16,7 +16,8 @@ list), favorites (saved in this browser, listed on their own page) and the creat
 gender and an https image URL with a live preview, saved in this browser). Created heroes lead the
 character list, follow its filters and have a page of their own. The build writes `sitemap.xml`,
 `robots.txt` and `llms.txt`, and the brand mark ships as a favicon set, web manifest icons and a
-social card. Next: security headers and deployment.
+social card. Every page carries a Content Security Policy with build-time hashes of its inline
+scripts, and `public/_headers` adds the security and caching headers. Next: deployment.
 
 ## Tech stack
 
@@ -57,7 +58,7 @@ yarn dev
 | --------------------- | -------------------------------------------------------------------- |
 | `yarn dev`            | Start the Vite dev server                                            |
 | `yarn build`          | Prerender every page into `dist/` with vite-ssg (calls the live API) |
-| `yarn preview`        | Serve `dist/` with Netlify-style routing (real 404s) on port 4173    |
+| `yarn preview`        | Serve `dist/` with Netlify-style routing and headers on port 4173    |
 | `yarn test`           | Run the unit and integration tests once                              |
 | `yarn test:watch`     | Run the tests in watch mode                                          |
 | `yarn test:coverage`  | Run the tests with coverage thresholds                               |

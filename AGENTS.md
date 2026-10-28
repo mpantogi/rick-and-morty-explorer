@@ -12,7 +12,7 @@ leaves the machine's global Yarn untouched. Use Node 24.
 | `corepack yarn install`                             | Install dependencies and the git pre-commit hook                      |
 | `corepack yarn dev`                                 | Vite dev server                                                       |
 | `corepack yarn build`                               | Prerender every page into `dist/` (vite-ssg, three live API requests) |
-| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing on port 4173                 |
+| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing and headers on port 4173     |
 | `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches)           |
 | `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                  |
 | `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API            |
@@ -25,7 +25,8 @@ Before calling work done, run `format:check`, `lint`, `typecheck`, `test:coverag
 ### End-to-end tests
 
 - Build first: the Playwright web server only serves an existing `dist/` through
-  `scripts/serve-dist.ts`, which mirrors Netlify (rewrites, real 404 status).
+  `scripts/serve-dist.ts`, which mirrors Netlify (`_redirects` rewrites, `_headers`, real 404
+  status).
 - Install the browser once with `corepack yarn playwright install chromium`.
 - Every test runs under an automatic console guard that fails on `console.error`, uncaught errors
   and CSP violations. A test that causes a 4xx/5xx on purpose declares the narrowest URL pattern
@@ -128,6 +129,16 @@ least 4.5:1 in both themes.
 
 ## Security
 
+- Every prerendered page carries a CSP meta tag, built in vite-ssg's `onPageRendered` hook by
+  `build/csp.ts`: scripts come from this origin plus the sha256 hash of each inline script, so
+  `'unsafe-inline'` and `'unsafe-eval'` never appear in `script-src`. The build refuses a page whose
+  inline scripts are anything but `index.html`'s own (the no-flash theme script) and vite-ssg's
+  `window.__INITIAL_STATE__` script: never add an inline script, and keep JSON-LD as an
+  `application/ld+json` block through `usePageSeo`. Styles allow `'unsafe-inline'` because
+  vue-sonner and VueUse set inline styles.
+- `public/_headers` holds what a meta tag cannot carry (`frame-ancestors`, `X-Frame-Options`, HSTS,
+  COOP, `Referrer-Policy`, `Permissions-Policy`, `nosniff`) and the one-year immutable cache for
+  `/assets/*`.
 - Never use `v-html`. User text renders through interpolation only.
 - Validate every image URL with zod before it reaches an `<img>`: `http(s)` only for API data,
   `https` only for user input.
