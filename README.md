@@ -20,7 +20,8 @@ social card. Every page carries a Content Security Policy with build-time hashes
 scripts, and `public/_headers` adds the security and caching headers. `netlify.toml` holds the
 Netlify build settings. A budget check keeps the JavaScript and CSS the home page loads up front
 under 150 KiB and 30 KiB gzipped, and the character page's code loads while the browser is idle.
-Next: CI and the deployed site.
+End-to-end tests cover the SEO tags and crawler files, the security headers and CSP, and keyboard
+use. Next: CI and the deployed site.
 
 ## Tech stack
 

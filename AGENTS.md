@@ -45,6 +45,10 @@ Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `te
   `e2e/support/state-probe.ts` records every data region's `data-state` (`#results`, `#profile`,
   `#episodes`, `#favorites`) from the first byte of HTML and flags any moment with two branches on
   screen. `trackApiCalls` (in `api-mock.ts`) counts the app's JSON API requests, not avatars.
+- `seo.spec.ts` and `security.spec.ts` read what crawlers and the host serve: raw HTML and headers
+  through the `request` fixture, parsed with `DOMParser` inside the page (it never runs the
+  page's scripts). Only `@journey` specs run beyond Chromium, so `keyboard.spec.ts` (Tab order,
+  visible focus rings) and these two are Chromium-only.
 
 ### Deploy
 
