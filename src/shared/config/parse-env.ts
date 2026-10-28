@@ -2,12 +2,12 @@
 import { z } from '../zod/zod.ts'
 import { SITE } from './site.ts'
 
-export interface RawEnv {
+interface RawEnv {
   readonly VITE_SITE_URL?: string
   readonly VITE_API_BASE_URL?: string
 }
 
-export interface Env {
+interface Env {
   readonly siteUrl: string
   readonly apiBaseUrl: string
 }

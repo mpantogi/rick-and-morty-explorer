@@ -6,7 +6,7 @@ import { loadEnv } from 'vite'
 import type { ViteSSGOptions } from 'vite-ssg'
 
 import { parseEnv } from '../src/shared/config/parse-env.ts'
-import { injectCsp, inlineScripts } from './csp.ts'
+import { type CspOptions, injectCsp, inlineScripts } from './csp.ts'
 import { writeSeoFiles } from './seo-files.ts'
 
 // vite-ssg writes to Vite's default outDir under the project root, which is the working directory.
@@ -14,7 +14,7 @@ const OUT_DIR = 'dist'
 
 export function createSsgOptions(mode: string): ViteSSGOptions {
   const { siteUrl, apiBaseUrl } = parseEnv(loadEnv(mode, process.cwd(), 'VITE_'))
-  const csp = {
+  const csp: CspOptions = {
     templateScripts: inlineScripts(readFileSync('index.html', 'utf8')),
     apiOrigin: new URL(apiBaseUrl).origin,
   }
