@@ -9,7 +9,6 @@ blob-report
 .netlify
 .env
 .env.*
-!.env.example
 *.tsbuildinfo
 .eslintcache
 *.local
