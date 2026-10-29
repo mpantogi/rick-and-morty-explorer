@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 
 import { ApiError } from '@/shared/api'
@@ -62,10 +62,6 @@ describe('createQueryClient', () => {
 })
 
 describe('central query error policy', () => {
-  afterEach(() => {
-    vi.unstubAllEnvs()
-  })
-
   it('raises one de-duplicated server toast per failure case', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
     const client = createQueryClient()

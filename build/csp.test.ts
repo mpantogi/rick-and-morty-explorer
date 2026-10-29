@@ -151,6 +151,7 @@ describe('injectCsp', () => {
     ['code after the state string', `${STATE_SCRIPT};alert(1)`],
     ['an object literal instead of a JSON string', 'window.__INITIAL_STATE__={"vueQuery":{}}'],
     ['a JSON string that holds no object', 'window.__INITIAL_STATE__="[1]"'],
+    ['a JSON string that holds null', 'window.__INITIAL_STATE__="null"'],
     ['a JSON string that is not JSON', 'window.__INITIAL_STATE__="alert(1)"'],
     ['another global', 'window.__OTHER_STATE__="{}"'],
   ])('refuses a state script with %s', (_, script) => {
