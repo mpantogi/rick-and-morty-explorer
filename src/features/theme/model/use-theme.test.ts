@@ -7,6 +7,9 @@ import { STORAGE_KEYS } from '@/shared/config'
 import indexHtml from '../../../../index.html?raw'
 import { useTheme } from './use-theme'
 
+const LIGHT_CANVAS = '#f9fafb'
+const DARK_CANVAS = '#202329'
+
 function mockSystemPreference(prefersDark: boolean) {
   vi.stubGlobal(
     'matchMedia',
@@ -132,5 +135,33 @@ describe('useTheme', () => {
 
   it('is read by the no-flash script in index.html under the same storage key', () => {
     expect(indexHtml).toContain(`localStorage.getItem('${STORAGE_KEYS.theme}') === 'dark'`)
+  })
+
+  it('paints the browser bar in the chosen theme, not the operating system one', async () => {
+    mockSystemPreference(true)
+    const meta = document.createElement('meta')
+    meta.name = 'theme-color'
+    meta.content = LIGHT_CANVAS
+    document.head.append(meta)
+    const started = startTheme()
+    stop = () => {
+      started.stop()
+      meta.remove()
+    }
+
+    started.theme.toggle()
+    await nextTick()
+    expect(meta.content).toBe(DARK_CANVAS)
+
+    started.theme.toggle()
+    await nextTick()
+    expect(meta.content).toBe(LIGHT_CANVAS)
+  })
+
+  it('starts the browser bar light and lets the no-flash script switch it with the page', () => {
+    const metas = [...indexHtml.matchAll(/<meta name="theme-color"[^>]*>/g)].map(([tag]) => tag)
+
+    expect(metas).toEqual([`<meta name="theme-color" content="${LIGHT_CANVAS}" />`])
+    expect(indexHtml).toContain(`.setAttribute('content', '${DARK_CANVAS}')`)
   })
 })

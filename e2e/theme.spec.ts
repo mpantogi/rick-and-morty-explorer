@@ -1,6 +1,16 @@
+import type { Page } from '@playwright/test'
+
 import { expect, openPage, test, useStoredTheme } from './fixtures'
 
 const DARK_CANVAS = 'rgb(32, 35, 41)'
+
+const LIGHT_BAR = '#f9fafb'
+const DARK_BAR = '#202329'
+
+// The colour mobile browsers paint their address bar with.
+function browserBar(page: Page) {
+  return page.locator('meta[name="theme-color"]')
+}
 
 test.describe('theme', { tag: '@journey' }, () => {
   test('starts light and switches the whole canvas to the dark grey', async ({ page }) => {
@@ -10,11 +20,13 @@ test.describe('theme', { tag: '@journey' }, () => {
 
     await expect(html).not.toHaveClass(/\bdark\b/)
     await expect(toggle).toHaveAttribute('aria-pressed', 'false')
+    await expect(browserBar(page)).toHaveAttribute('content', LIGHT_BAR)
 
     await toggle.click()
 
     await expect(html).toHaveClass(/\bdark\b/)
     await expect(toggle).toHaveAttribute('aria-pressed', 'true')
+    await expect(browserBar(page)).toHaveAttribute('content', DARK_BAR)
     await expect
       .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor))
       .toBe(DARK_CANVAS)
@@ -60,6 +72,7 @@ test.describe('theme', { tag: '@journey' }, () => {
       'aria-pressed',
       'true',
     )
+    await expect(browserBar(page)).toHaveAttribute('content', DARK_BAR)
   })
 
   test('applies a saved dark theme before the app runs, so it never flashes light', async ({
