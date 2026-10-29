@@ -1,6 +1,6 @@
 import type { ErrorCase } from '@/shared/api'
 
-export interface ErrorCaseCopy {
+interface ErrorCaseCopy {
   accent: string
   headline: string
   body: string

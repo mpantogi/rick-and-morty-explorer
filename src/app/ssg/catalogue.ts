@@ -10,7 +10,7 @@ export class CatalogueError extends Error {
   override readonly name = 'CatalogueError'
 }
 
-export interface Catalogue {
+interface Catalogue {
   readonly characters: ReadonlyMap<number, ApiCharacter>
   readonly episodes: ReadonlyMap<number, ApiEpisode>
 }

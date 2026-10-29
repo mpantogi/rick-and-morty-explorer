@@ -1,4 +1,4 @@
-export type ApiErrorKind = 'http' | 'network' | 'timeout' | 'parse'
+type ApiErrorKind = 'http' | 'network' | 'timeout' | 'parse'
 
 const HTTP_NOT_FOUND = 404
 const HTTP_TOO_MANY_REQUESTS = 429

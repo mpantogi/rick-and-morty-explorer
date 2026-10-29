@@ -4,7 +4,7 @@ import { type AsyncState, DESCRIPTION_MAX, type SeoImage, truncate } from '@/sha
 
 const PERSON_DESCRIPTION = 'Fictional character from the animated series Rick and Morty.'
 
-export interface CharacterPageSeo {
+interface CharacterPageSeo {
   title: string
   description: string
   path: string | null

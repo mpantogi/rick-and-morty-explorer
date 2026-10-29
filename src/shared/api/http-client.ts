@@ -8,7 +8,7 @@ const REQUEST_TIMEOUT_MS = 10_000
 
 type Query = Readonly<Record<string, string>>
 
-export interface GetJsonOptions<T> {
+interface GetJsonOptions<T> {
   path: string
   query?: Query
   schema: z.ZodType<T>

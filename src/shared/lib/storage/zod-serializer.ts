@@ -2,12 +2,12 @@ import type { z } from 'zod'
 
 import { reportError } from '../report-error'
 
-export interface StorageSerializer<T> {
+interface StorageSerializer<T> {
   read(raw: string): T
   write(value: T): string
 }
 
-export interface ListSerializerOptions {
+interface ListSerializerOptions {
   max: number
 }
 
