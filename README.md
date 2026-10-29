@@ -96,8 +96,9 @@ The E2E suite never calls the live API: every request to it is answered from
 
 ## Configuration
 
-Both variables are optional. Their defaults live in `src/shared/config/parse-env.ts`; the build and
-the app fail fast if either is not an `https:` URL. Set them in the shell or in an untracked
+Both variables are optional. Their defaults are `SITE.defaultUrl` and `SITE.apiBaseUrl` in
+`src/shared/config/site.ts`, and `src/shared/config/parse-env.ts` validates them: the build and the
+app fail fast if either is not an `https:` URL. Set them in the shell or in an untracked
 `.env.local`. Netlify builds with `netlify.toml`, which sets Node 24 and the production
 `VITE_SITE_URL`.
 
