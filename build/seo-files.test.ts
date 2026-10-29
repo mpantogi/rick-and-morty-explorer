@@ -82,6 +82,12 @@ describe('buildLlmsTxt', () => {
       'Query parameters: `page`, `name`, `status`, `species`, `type`, `gender`.',
     )
   })
+
+  it('says browser-only data has no crawlable page, without denying the favorites page', () => {
+    expect(buildLlmsTxt(SITE_URL)).toContain(
+      "- Favorites and created heroes are saved only in the visitor's browser, so no crawlable page lists them.",
+    )
+  })
 })
 
 describe('writeSeoFiles', () => {

@@ -50,7 +50,7 @@ export function buildLlmsTxt(siteUrl: string): string {
     '## Data',
     '',
     `- Characters, episodes and images come from [The Rick and Morty API](${API_SITE}).`,
-    "- Favorites and created heroes are saved only in the visitor's browser; no page lists them.",
+    "- Favorites and created heroes are saved only in the visitor's browser, so no crawlable page lists them.",
     '',
   ].join('\n')
 }
