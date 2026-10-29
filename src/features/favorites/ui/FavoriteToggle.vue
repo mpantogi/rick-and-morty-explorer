@@ -37,7 +37,7 @@ function toggle(): void {
 }
 </script>
 
-<!-- Only aria-pressed and the fill change, so the button keeps its size in every state. -->
+<!-- Only aria-pressed and the heart's fill and colour change, so the size never does. -->
 <template>
   <BaseButton
     :variant="VARIANTS[variant].button"

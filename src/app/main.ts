@@ -15,7 +15,7 @@ import './styles/main.css'
 export const createApp = ViteSSG(
   App,
   // Empty link state classes keep the BEM class first; links style the current page via aria-current.
-  // eslint-disable-next-line @typescript-eslint/no-deprecated -- stable API; replacement is experimental in vue-router 5.4
+  // eslint-disable-next-line @typescript-eslint/no-deprecated -- scrollBehavior is stable; its replacement is experimental in vue-router 5.4
   { routes, scrollBehavior, linkActiveClass: '', linkExactActiveClass: '' },
   async ({ app, router, initialState, onSSRAppRendered, routePath }) => {
     app.use(createPinia())

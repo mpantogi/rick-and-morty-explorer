@@ -4,7 +4,7 @@ import { expect, openPage, test, useStoredHeroes } from './fixtures'
 import { PORTAL_PETE } from './support/heroes'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
-// API avatar URLs, which the API mock serves; the broken one is answered with a 404 below.
+// The API mock serves IMAGE, an avatar; BROKEN_IMAGE is answered with a 404 in its own test.
 const IMAGE = 'https://rickandmortyapi.com/api/character/avatar/7.jpeg'
 const BROKEN_IMAGE = 'https://images.example.com/missing.png'
 const INSECURE_IMAGE = 'http://example.com/pete.png'

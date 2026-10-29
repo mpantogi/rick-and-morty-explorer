@@ -60,7 +60,7 @@ describe('installRouteFocus', () => {
     expect(document.activeElement).toHaveTextContent("We couldn't find this page.")
   })
 
-  // Paging is excluded: the character list moves focus to its own results heading.
+  // Same-path changes (paging, filters) keep focus; paging moves it to the results heading.
   it('keeps focus when only the query changes on the same path', async () => {
     const { router, unmount } = await mountApp()
     cleanup = unmount

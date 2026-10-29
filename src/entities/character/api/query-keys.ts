@@ -1,6 +1,6 @@
 import type { CharacterFilters } from '../model/types'
 
-// Lowercased, non-empty values in a fixed key order, so equal searches share one cache entry.
+// Lowercased, no empty values: equal searches share one cache entry, whatever the key order.
 export type ApiFilterParams = Readonly<Partial<Record<keyof CharacterFilters, string>>>
 
 export const characterKeys = {

@@ -10,10 +10,10 @@ import { LOGO_MARK } from '../src/shared/ui/brand/logo-mark.ts'
 
 const PUBLIC_DIR = resolve(import.meta.dirname, '..', 'public')
 
-// Tailwind 4.3.3 palette values behind the app's tokens (oklch converted to sRGB hex).
+// The colours behind the app's tokens: Tailwind 4.3.3 palette values (oklch as sRGB hex).
 const COLOR = {
   canvas: '#f9fafb', // gray-50
-  darkCanvas: '#202329',
+  darkCanvas: '#202329', // the task's dark background, not a Tailwind value
   fg: '#101828', // gray-900
   darkFg: '#f9fafb', // gray-50
   accent: '#ca3500', // orange-700
@@ -84,23 +84,25 @@ function ogImageHtml(): string {
 }
 
 function toIco(png: Buffer, size: number): Buffer {
+  const fields: Record<string, readonly [value: number, bytes: 1 | 2 | 4]> = {
+    reserved: [0, 2],
+    type: [ICO_TYPE_ICON, 2],
+    imageCount: [ICO_IMAGE_COUNT, 2],
+    width: [size, 1],
+    height: [size, 1],
+    paletteColors: [0, 1],
+    entryReserved: [0, 1],
+    colorPlanes: [ICO_COLOR_PLANES, 2],
+    bitsPerPixel: [ICO_BITS_PER_PIXEL, 2],
+    imageBytes: [png.length, 4],
+    imageOffset: [ICO_HEADER_BYTES + ICO_ENTRY_BYTES, 4],
+  }
   const header = Buffer.alloc(ICO_HEADER_BYTES + ICO_ENTRY_BYTES)
   let offset = 0
-  const write = (value: number, bytes: 1 | 2 | 4) => {
+  for (const [value, bytes] of Object.values(fields)) {
     header.writeUIntLE(value, offset, bytes)
     offset += bytes
   }
-  write(0, 2) // reserved
-  write(ICO_TYPE_ICON, 2)
-  write(ICO_IMAGE_COUNT, 2)
-  write(size, 1) // width
-  write(size, 1) // height
-  write(0, 1) // no palette
-  write(0, 1) // reserved
-  write(ICO_COLOR_PLANES, 2)
-  write(ICO_BITS_PER_PIXEL, 2)
-  write(png.length, 4)
-  write(ICO_HEADER_BYTES + ICO_ENTRY_BYTES, 4) // where the PNG starts
   return Buffer.concat([header, png])
 }
 
