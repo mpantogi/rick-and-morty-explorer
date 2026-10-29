@@ -38,10 +38,11 @@ const { defineField, errors, handleSubmit, submitCount } = useForm({
 
 // Errors first show on submit, then follow every edit. An error shown on blur would push Create
 // hero down while it is pressed, so the release would miss it and the click would be lost.
-const validateAfterSubmit = () => {
-  const live = submitCount.value > 0
-  return { validateOnBlur: live, validateOnChange: live, validateOnModelUpdate: live }
-}
+const validateAfterSubmit = () => ({
+  validateOnBlur: false,
+  validateOnChange: false,
+  validateOnModelUpdate: submitCount.value > 0,
+})
 const [name, nameEvents] = defineField('name', validateAfterSubmit)
 const [gender, genderEvents] = defineField('gender', validateAfterSubmit)
 const [image, imageEvents] = defineField('image', validateAfterSubmit)
