@@ -11,6 +11,11 @@ const VISIBLE_RING_PIXELS = 500
 // UI page 999 starts at item 11,976, which the window asks for on API page 599.
 const PAST_LAST_API_PAGE_URL = /\/api\/character\?page=599$/
 
+// Safari on macOS tabs past links unless Option is held, which is how its keyboard users reach them.
+function tabToLinkKey(browserName: string): string {
+  return browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab'
+}
+
 function results(page: Page) {
   return page.getByRole('region', { name: 'Results' })
 }
@@ -97,14 +102,14 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(summary(page)).toHaveText('Showing 1 of 1 character')
   })
 
-  test('rings the card a keyboard user tabs to', async ({ page }) => {
+  test('rings the card a keyboard user tabs to', async ({ page, browserName }) => {
     await openPage(page, '/')
     const card = cards(page).first()
     await expect(card.locator('img')).toHaveJSProperty('complete', true)
     await page.getByRole('heading', { level: 2, name: 'Results' }).focus()
     const unfocused = await captureAround(card)
 
-    await page.keyboard.press('Tab')
+    await page.keyboard.press(tabToLinkKey(browserName))
 
     await expect(card.getByRole('link')).toBeFocused()
     const focused = await captureAround(card)
