@@ -47,6 +47,11 @@ function resetFilters(): void {
   focusName()
 }
 
+// Filters apply as they change, so there is no submit button: Enter applies typed text at once.
+function submitOnEnter(event: KeyboardEvent): void {
+  if (!event.isComposing && !event.defaultPrevented) form.value?.requestSubmit()
+}
+
 defineExpose({ focusName })
 </script>
 
@@ -70,6 +75,7 @@ defineExpose({ focusName })
           enterkeyhint="search"
           placeholder="e.g. Rick"
           @update:model-value="(value) => controller.update('name', value)"
+          @keydown.enter="submitOnEnter"
         />
       </BaseField>
       <BaseButton
@@ -107,6 +113,7 @@ defineExpose({ focusName })
           :model-value="controller.draft.species"
           @update:model-value="(value) => controller.update('species', value)"
           @pick="controller.applyNow"
+          @keydown.enter="submitOnEnter"
         />
       </BaseField>
       <BaseField v-slot="{ id }" label="Type" class="filters__field">
@@ -117,8 +124,10 @@ defineExpose({ focusName })
           type="text"
           :maxlength="FILTER_MAX_LENGTH"
           autocomplete="off"
+          enterkeyhint="search"
           placeholder="e.g. Parasite"
           @update:model-value="(value) => controller.update('type', value)"
+          @keydown.enter="submitOnEnter"
         />
       </BaseField>
       <BaseField v-slot="{ id, labelId }" label="Gender" class="filters__field">
@@ -132,15 +141,8 @@ defineExpose({ focusName })
       </BaseField>
     </div>
 
-    <div class="filters__actions flex flex-wrap gap-3">
-      <BaseButton type="submit" variant="primary" class="filters__submit">Search</BaseButton>
-      <BaseButton
-        v-if="controller.activeCount.value > 0"
-        class="filters__reset"
-        @click="resetFilters"
-      >
-        Reset filters
-      </BaseButton>
+    <div v-if="controller.activeCount.value > 0" class="filters__actions flex">
+      <BaseButton class="filters__reset" @click="resetFilters">Reset filters</BaseButton>
     </div>
   </form>
 </template>

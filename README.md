@@ -48,6 +48,7 @@ Live site: https://rickverse-explorer.netlify.app
   (focus stays on the control, `aria-activedescendant` marks the option). The popups of a native
   `<select>` and `<datalist>` differ per browser and cannot be styled; reka-ui 2.11 would add a
   second VueUse major and floating-ui for three fields.
+  Filters apply as they change, so there is no Search button.
 - **Local persistence.** Favorites and heroes are Pinia stores backed by VueUse `useStorage`,
   with versioned keys, a Zod check on every read and caps of 2,000 favorites and 500 heroes. When
   the browser blocks site data, the app says so once and keeps them in memory for the visit.

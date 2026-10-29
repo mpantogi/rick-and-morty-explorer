@@ -136,7 +136,7 @@ least 4.5:1 in both themes.
 - Never combine `class` with `:class` on one element: on a plain element the prerendered HTML lists
   the dynamic classes first. Use one ordered `:class` array that starts with the BEM classes;
   ESLint (`vue/no-duplicate-attributes`) rejects the mix.
-- Pass a parent's BEM mix (`<BaseButton class="filters__submit">`) only to a component whose root
+- Pass a parent's BEM mix (`<BaseButton class="filters__reset">`) only to a component whose root
   is a `Base*` primitive. Primitives turn off attribute inheritance and place the mix right after
   their own BEM classes (`useBemMix`); on any other component Vue appends it after the utilities.
   A wrapper that adds utilities to its primitive (`BackLink`) forwards the mix with `useBemMix` too.

@@ -37,6 +37,8 @@ describe('CharacterFiltersForm', () => {
     expect(within(form).getByRole('combobox', { name: 'Species' })).toBeInTheDocument()
     expect(within(form).getByRole('textbox', { name: 'Type' })).toBeInTheDocument()
     expect(within(form).getByRole('combobox', { name: 'Gender' })).toBeInTheDocument()
+    // Every filter applies as it changes, so the form has no submit button.
+    expect(within(form).queryByRole('button', { name: 'Search' })).not.toBeInTheDocument()
   })
 
   it('offers every status and gender with an "any" option first', async () => {
@@ -118,17 +120,24 @@ describe('CharacterFiltersForm', () => {
     })
   })
 
-  it('applies typed text on submit, without waiting for the typing pause', async () => {
-    const { query } = await setup()
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  it.each([
+    ['searchbox', 'Name', 'name'],
+    ['textbox', 'Type', 'type'],
+  ] as const)(
+    'applies typed text on Enter in the %s %s, without waiting for the typing pause',
+    async (role, name, field) => {
+      const { query } = await setup()
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const control = screen.getByRole(role, { name })
 
-    await fireEvent.update(screen.getByRole('searchbox', { name: 'Name' }), 'morty')
-    await fireEvent.submit(screen.getByRole('search', { name: 'Filter characters' }))
-    // A macrotask lets the router settle while the faked 300 ms debounce never fires.
-    await new Promise((resolve) => setImmediate(resolve))
+      await fireEvent.update(control, 'morty')
+      await fireEvent.keyDown(control, { key: 'Enter' })
+      // A macrotask lets the router settle while the faked 300 ms debounce never fires.
+      await new Promise((resolve) => setImmediate(resolve))
 
-    expect(query()).toEqual({ name: 'morty' })
-  })
+      expect(query()).toEqual({ [field]: 'morty' })
+    },
+  )
 
   it('applies a picked species at once', async () => {
     const { query } = await setup()

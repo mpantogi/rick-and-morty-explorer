@@ -210,7 +210,7 @@ test.describe('character list', { tag: '@journey' }, () => {
       filter: 'type',
       apply: async (page: Page) => {
         await page.getByRole('textbox', { name: 'Type' }).fill('Parasite')
-        await page.getByRole('button', { name: 'Search' }).click()
+        await page.getByRole('textbox', { name: 'Type' }).press('Enter')
       },
       url: '/?type=Parasite',
       total: 3,
