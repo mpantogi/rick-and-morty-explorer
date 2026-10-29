@@ -17,7 +17,7 @@ function characterTitle(character: CharacterView, id: number): string {
   return `${character.name} (#${id})`
 }
 
-function episodeCount(count: number): string {
+export function episodeCount(count: number): string {
   return `${count} episode${count === 1 ? '' : 's'}`
 }
 

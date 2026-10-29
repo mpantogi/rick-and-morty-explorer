@@ -8,7 +8,7 @@ import { paths } from '@/shared/config'
 import { usePageSeo } from '@/shared/lib'
 import { BackLink, BreadcrumbTrail, ErrorView, RegionError } from '@/shared/ui'
 
-import { characterPageSeo } from '../model/character-seo'
+import { characterPageSeo, episodeCount } from '../model/character-seo'
 
 const { id } = defineProps<{ id: number }>()
 
@@ -31,10 +31,7 @@ usePageSeo({
   jsonLd: () => seo.value.jsonLd,
 })
 
-const appearances = computed(() => {
-  const count = episodeIds.value.length
-  return `Appears in ${count} ${count === 1 ? 'episode' : 'episodes'}`
-})
+const appearances = computed(() => `Appears in ${episodeCount(episodeIds.value.length)}`)
 
 function focusTitle(): void {
   document.getElementById('page-title')?.focus()
