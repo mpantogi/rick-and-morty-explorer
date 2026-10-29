@@ -1,6 +1,8 @@
+import { createHash } from 'node:crypto'
+
 import { describe, expect, it } from 'vitest'
 
-import { buildCsp, CspError, hashInlineScripts, injectCsp, inlineScripts } from './csp'
+import { buildCsp, CspError, injectCsp, inlineScripts } from './csp'
 
 const API_ORIGIN = 'https://rickandmortyapi.com'
 const THEME_SCRIPT =
@@ -40,6 +42,11 @@ function directive(policy: string, name: string): string | undefined {
 
 const options = { templateScripts: [THEME_SCRIPT], apiOrigin: API_ORIGIN }
 
+// Computed here from node:crypto, apart from the module under test.
+function sha256Source(text: string): string {
+  return `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
+}
+
 describe('inlineScripts', () => {
   it('returns the inline executable scripts and skips external and JSON-LD ones', () => {
     const html = page({
@@ -51,13 +58,24 @@ describe('inlineScripts', () => {
   })
 })
 
-describe('hashInlineScripts', () => {
+describe('script hashes', () => {
+  const scriptSrcOf = (script: string) =>
+    directive(
+      cspOf(
+        injectCsp(`<meta charset="utf-8"><script>${script}</script>`, {
+          templateScripts: [script],
+          apiOrigin: API_ORIGIN,
+        }),
+      ),
+      'script-src',
+    )
+
   it('hashes the exact script text as CSP sha256 sources', () => {
-    expect(hashInlineScripts(`<script>${KNOWN_SCRIPT}</script>`)).toEqual([KNOWN_HASH])
+    expect(scriptSrcOf(KNOWN_SCRIPT)).toBe(`script-src 'self' ${KNOWN_HASH}`)
   })
 
   it('treats whitespace as part of the script', () => {
-    expect(hashInlineScripts(`<script> ${KNOWN_SCRIPT}</script>`)).not.toEqual([KNOWN_HASH])
+    expect(scriptSrcOf(` ${KNOWN_SCRIPT}`)).not.toContain(KNOWN_HASH)
   })
 })
 
@@ -119,9 +137,8 @@ describe('injectCsp', () => {
     const policy = cspOf(injectCsp(html, options))
 
     expect(directive(policy, 'script-src')).toBe(
-      `script-src 'self' ${hashInlineScripts(html).join(' ')}`,
+      `script-src 'self' ${[THEME_SCRIPT, STATE_SCRIPT].map(sha256Source).join(' ')}`,
     )
-    expect(hashInlineScripts(html)).toHaveLength(2)
   })
 
   it('leaves the rest of the page untouched', () => {
@@ -138,6 +155,13 @@ describe('injectCsp', () => {
     const html = page({ body: '<script>alert(1)</script>' })
 
     expect(() => injectCsp(html, options)).toThrow(CspError)
+  })
+
+  it.each([
+    ['a data-src attribute', '<script data-src="/x.js">alert(1)</script>'],
+    ['a data-type attribute', '<script data-type="application/json">alert(1)</script>'],
+  ])('refuses an inline script that only looks external or inert through %s', (_, script) => {
+    expect(() => injectCsp(page({ body: script }), options)).toThrow(CspError)
   })
 
   it('accepts a state script that ends with a semicolon', () => {

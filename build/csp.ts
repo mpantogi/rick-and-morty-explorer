@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto'
 
-// Inline scripts the browser executes: no `src`, and not a JSON data block such as JSON-LD.
+// Inline scripts the browser executes: no `src`, and not a JSON data block such as JSON-LD. The
+// leading `\s` keeps look-alikes such as `data-src` or `data-type` from passing for the real ones.
 const INLINE_EXECUTABLE =
-  /<script(?![^>]*\bsrc=)(?![^>]*\btype="application\/(?:ld\+)?json")[^>]*>([\s\S]*?)<\/script>/gi
+  /<script(?![^>]*\ssrc\s*=)(?![^>]*\stype="application\/(?:ld\+)?json")[^>]*>([\s\S]*?)<\/script>/gi
 const CHARSET_META = /<meta charset="[^"]*"\s*\/?>/i
 const STATE_SCRIPT_PREFIX = 'window.__INITIAL_STATE__='
 
@@ -20,10 +21,8 @@ export function inlineScripts(html: string): string[] {
   return [...html.matchAll(INLINE_EXECUTABLE)].map(([, text = '']) => text)
 }
 
-export function hashInlineScripts(html: string): string[] {
-  return inlineScripts(html).map(
-    (text) => `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`,
-  )
+function sha256Source(text: string): string {
+  return `'sha256-${createHash('sha256').update(text, 'utf8').digest('base64')}'`
 }
 
 // Directives a meta tag cannot carry (frame-ancestors) live in public/_headers.
@@ -75,8 +74,9 @@ function assertExpectedScripts(scripts: readonly string[], template: readonly st
 export function injectCsp(html: string, { templateScripts, apiOrigin }: CspOptions): string {
   const charset = CHARSET_META.exec(html)
   if (!charset) throw new CspError('the page has no <meta charset> for the CSP meta to follow')
-  assertExpectedScripts(inlineScripts(html), templateScripts)
-  const policy = buildCsp(hashInlineScripts(html), apiOrigin)
+  const scripts = inlineScripts(html)
+  assertExpectedScripts(scripts, templateScripts)
+  const policy = buildCsp(scripts.map(sha256Source), apiOrigin)
   const end = charset.index + charset[0].length
   return `${html.slice(0, end)}<meta http-equiv="Content-Security-Policy" content="${policy}">${html.slice(end)}`
 }
