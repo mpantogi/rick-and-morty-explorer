@@ -140,6 +140,33 @@ describe('central query error policy', () => {
     expect(toastError).toHaveBeenCalledWith(SERVER_TOAST.title, expect.anything())
   })
 
+  it('reports an error thrown inside a query function before toasting it', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const bug = new TypeError("Cannot read properties of undefined (reading 'results')")
+
+    await failQuery(bug)
+
+    expect(consoleError).toHaveBeenCalledExactlyOnceWith('[query]', bug)
+    expect(toastError).toHaveBeenCalledWith(UNKNOWN_TOAST.title, {
+      id: 'query-error:unknown',
+      description: UNKNOWN_TOAST.description,
+    })
+  })
+
+  it.each([
+    ['a network failure', new ApiError('network', 'offline')],
+    ['a server error', new ApiError('http', 'down', { status: 503 })],
+    ['a 404', new ApiError('http', 'missing', { status: 404 })],
+  ])('leaves %s to the toast and the region, without a console report', async (_, error) => {
+    vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    await failQuery(error)
+
+    expect(consoleError).not.toHaveBeenCalled()
+  })
+
   it('never toasts while prerendering', async () => {
     vi.stubEnv('SSR', true)
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)

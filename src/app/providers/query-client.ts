@@ -29,10 +29,12 @@ function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
-// Regions render their own in-place state; this only adds the transient, de-duplicated toast.
+// Regions render their own in-place state. This adds the de-duplicated toast, and reports what a
+// developer must see: API contract drift, and any non-ApiError (a bug inside a query function).
 function notifyQueryError(error: unknown): void {
   if (import.meta.env.SSR || error instanceof CancelledError || isAbortError(error)) return
-  if (error instanceof ApiError && error.kind === 'parse') reportError(error, 'api-contract')
+  if (!(error instanceof ApiError)) reportError(error, 'query')
+  else if (error.kind === 'parse') reportError(error, 'api-contract')
   const errorCase = toErrorCase(error)
   if (errorCase === 'not_found') return
   const { title, description } = TOAST_COPY[errorCase]

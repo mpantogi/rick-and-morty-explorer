@@ -35,7 +35,9 @@ Status: accepted
   character the list or the favorites already cached, and the favorites list from the characters
   the cache already holds (`initialData`); it requests only when one of them is missing.
 - `QueryCache.onError` raises one toast per error case (deduplicated by id) and stays silent for
-  404s and cancellations. Each region renders its own error with a retry.
+  404s and cancellations. It also sends API contract drift and any error that is not an
+  `ApiError` (a bug inside a query function) to the console through `reportError`. Each region
+  renders its own error with a retry.
 - `queryClient.query` replaces `ensureQueryData`, `fetchQuery` and `prefetchQuery`, which are
   deprecated in vue-query 5.105.
 
