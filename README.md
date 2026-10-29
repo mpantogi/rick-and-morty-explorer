@@ -21,7 +21,8 @@ scripts, and `public/_headers` adds the security and caching headers. `netlify.t
 Netlify build settings. A budget check keeps the JavaScript and CSS the home page loads up front
 under 150 KiB and 30 KiB gzipped, and the character page's code loads while the browser is idle.
 End-to-end tests cover the SEO tags and crawler files, the security headers and CSP, and keyboard
-use. Next: CI.
+use. GitHub Actions (`.github/workflows/ci.yml`) runs the dependency audit, every check, the
+build and the full Playwright matrix on each push to `main` and on pull requests.
 
 ## Tech stack
 

@@ -24,6 +24,10 @@ leaves the machine's global Yarn untouched. Use Node 24.
 Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `test:coverage`,
 `build`, `check:budget`), then `test:e2e --project=chromium`.
 
+CI (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests: the `verify`
+job audits dependencies (`yarn npm audit --all --recursive`), then runs the `verify` steps and
+uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that build. Keep both green.
+
 ### End-to-end tests
 
 - Build first: the Playwright web server only serves an existing `dist/` through
