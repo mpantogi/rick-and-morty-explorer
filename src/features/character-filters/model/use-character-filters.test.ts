@@ -148,6 +148,18 @@ describe('useCharacterFilters', () => {
     expect(controller.draft.name).toBe('summ')
   })
 
+  it('drops pending text when the visitor leaves before the typing pause ends', async () => {
+    const view = await setup()
+    view.replace.mockClear()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+
+    view.controller.update('name', 'rick')
+    view.unmount()
+    await vi.advanceTimersByTimeAsync(DEBOUNCE_MS)
+
+    expect(view.replace).not.toHaveBeenCalled()
+  })
+
   it('clears the draft, any pending text and the URL on reset', async () => {
     const { controller, query, replace } = await setup('/?name=rick&gender=male&page=2')
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })

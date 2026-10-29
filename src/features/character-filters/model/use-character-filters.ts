@@ -1,5 +1,14 @@
 import { useDebounceFn } from '@vueuse/core'
-import { computed, type ComputedRef, onMounted, reactive, readonly, type Ref, watch } from 'vue'
+import {
+  computed,
+  type ComputedRef,
+  onMounted,
+  onScopeDispose,
+  reactive,
+  readonly,
+  type Ref,
+  watch,
+} from 'vue'
 import { type LocationQueryRaw, type RouteLocationRaw, useRoute, useRouter } from 'vue-router'
 
 import {
@@ -45,6 +54,8 @@ export function useCharacterFilters(): CharacterFiltersController {
     replaceQuery(toListQuery(normalizeFilters(draft), FIRST_PAGE))
   }
   const applyDebounced = useDebounceFn(apply, TEXT_INPUT_DEBOUNCE_MS)
+  // VueUse keeps the timer past unmount, and a late apply would write this query onto the next page.
+  onScopeDispose(applyDebounced.cancel)
 
   function applyNow(): void {
     applyDebounced.cancel()
