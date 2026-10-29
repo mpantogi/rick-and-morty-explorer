@@ -215,3 +215,7 @@ rewrites) and `public/_headers` (security and cache headers, and the web manifes
 - **Git-connected:** link the repository to a Netlify site. Netlify reads `netlify.toml` (build
   command `yarn build`, publish directory `dist`, Node 24 and the production `VITE_SITE_URL`) and
   builds on every push to the production branch.
+
+A new Netlify project on the Free plan injects a "Powered by Netlify" badge into the pages it
+serves. The badge's `srcdoc` iframe inherits each page's meta CSP, so turn it off under Project
+configuration > General, or set `built_with_badge_enabled: false` through the Netlify API.
