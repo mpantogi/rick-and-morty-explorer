@@ -39,6 +39,18 @@ describe('getPageItems', () => {
     ])
   })
 
+  it('keeps the end gap while more than one page would hide behind it', () => {
+    expect(getPageItems(65, 69, SIBLINGS)).toEqual([
+      1,
+      'ellipsis-start',
+      64,
+      65,
+      66,
+      'ellipsis-end',
+      69,
+    ])
+  })
+
   it.each([66, 69])('closes the end without a gap at page %i', (current) => {
     expect(getPageItems(current, 69, SIBLINGS)).toEqual([1, 'ellipsis-start', 65, 66, 67, 68, 69])
   })

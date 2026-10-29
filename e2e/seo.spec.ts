@@ -1,3 +1,5 @@
+import { readdirSync } from 'node:fs'
+
 import type { APIRequestContext, Page } from '@playwright/test'
 
 import { expect, test } from './fixtures'
@@ -6,7 +8,7 @@ const TITLE_MAX = 60
 const DESCRIPTION_MAX = 155
 const OK = 200
 const NOT_FOUND = 404
-const LAST_CHARACTER_ID = 826
+const CHARACTER_PAGES = new URL('../dist/characters/', import.meta.url)
 
 interface HeadSummary {
   titles: string[]
@@ -16,6 +18,16 @@ interface HeadSummary {
   social: Record<string, string>
   jsonLdTypes: string[]
   hasCspMeta: boolean
+}
+
+// The live API decided how many characters the build prerendered; the build, not this test, knows.
+function prerenderedCharacterIds(): number[] {
+  return readdirSync(CHARACTER_PAGES)
+    .flatMap((file) => {
+      const id = /^(\d+)\.html$/.exec(file)?.[1]
+      return id === undefined ? [] : [Number(id)]
+    })
+    .toSorted((a, b) => a - b)
 }
 
 async function fetchText(request: APIRequestContext, path: string): Promise<string> {
@@ -123,12 +135,19 @@ test.describe('prerendered SEO', () => {
 })
 
 test.describe('crawler files', () => {
-  test('the sitemap lists the home page and every character page', async ({ request }) => {
+  test('the sitemap lists the home page and every prerendered character page', async ({
+    request,
+  }) => {
     const sitemap = await fetchText(request, '/sitemap.xml')
+    const prerendered = prerenderedCharacterIds()
+    const listed = [...sitemap.matchAll(/<loc>https:\/\/[^<]+\/characters\/(\d+)<\/loc>/g)]
+      .map(([, id = '']) => Number(id))
+      .toSorted((a, b) => a - b)
 
+    expect(prerendered.length).toBeGreaterThan(0)
     expect(sitemap).toMatch(/<loc>https:\/\/[^<]+\/<\/loc>/)
-    expect(sitemap).toContain(`/characters/${String(LAST_CHARACTER_ID)}</loc>`)
-    expect(sitemap.match(/<url>/g)).toHaveLength(LAST_CHARACTER_ID + 1)
+    expect(listed).toEqual(prerendered)
+    expect(sitemap.match(/<url>/g)).toHaveLength(prerendered.length + 1)
   })
 
   test('robots.txt allows crawling and points to the sitemap', async ({ request }) => {

@@ -1,5 +1,5 @@
-import { screen, within } from '@testing-library/vue'
-import { describe, expect, it, vi } from 'vitest'
+import { fireEvent, screen, within } from '@testing-library/vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 
 import { renderWithApp } from '../../../../test/render'
@@ -21,6 +21,10 @@ async function setup(route = '/') {
 }
 
 describe('CharacterFiltersForm', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('is a labelled search landmark with a labelled control for every filter', async () => {
     await setup()
 
@@ -101,15 +105,16 @@ describe('CharacterFiltersForm', () => {
     })
   })
 
-  it('applies typed text on submit', async () => {
-    const { user, query } = await setup()
+  it('applies typed text on submit, without waiting for the typing pause', async () => {
+    const { query } = await setup()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
 
-    await user.type(screen.getByRole('searchbox', { name: 'Name' }), 'morty')
-    await user.click(screen.getByRole('button', { name: 'Search' }))
+    await fireEvent.update(screen.getByRole('searchbox', { name: 'Name' }), 'morty')
+    await fireEvent.submit(screen.getByRole('search', { name: 'Filter characters' }))
+    // A macrotask lets the router settle while the faked 300 ms debounce never fires.
+    await new Promise((resolve) => setImmediate(resolve))
 
-    await vi.waitFor(() => {
-      expect(query()).toEqual({ name: 'morty' })
-    })
+    expect(query()).toEqual({ name: 'morty' })
   })
 
   it('offers Reset filters only while a filter is applied', async () => {

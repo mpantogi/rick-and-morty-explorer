@@ -154,4 +154,22 @@ describe('getJson', () => {
 
     expect(await request).toMatchObject({ kind: 'timeout', isRetryable: true })
   })
+
+  it('clears its timeout and its abort listener once the request settles', async () => {
+    respondWith(() => HttpResponse.json({ id: 1 }))
+    const setTimer = vi.spyOn(globalThis, 'setTimeout')
+    const clearTimer = vi.spyOn(globalThis, 'clearTimeout')
+    const { signal } = new AbortController()
+    const addListener = vi.spyOn(signal, 'addEventListener')
+    const removeListener = vi.spyOn(signal, 'removeEventListener')
+
+    await getJson({ path: '/character/1', schema: itemSchema, signal })
+
+    const timeoutCall = setTimer.mock.calls.findIndex(([, ms]) => ms === DEFAULT_TIMEOUT_MS)
+    expect(timeoutCall).toBeGreaterThanOrEqual(0)
+    expect(clearTimer).toHaveBeenCalledWith(setTimer.mock.results[timeoutCall]?.value)
+    const onAbort = addListener.mock.calls.find(([type]) => type === 'abort')?.[1]
+    expect(onAbort).toBeTypeOf('function')
+    expect(removeListener).toHaveBeenCalledWith('abort', onAbort)
+  })
 })

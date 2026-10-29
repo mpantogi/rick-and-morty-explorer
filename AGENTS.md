@@ -77,6 +77,9 @@ Every action is pinned to a full commit SHA with its version in a comment
   through the `request` fixture, parsed with `DOMParser` inside the page (it never runs the
   page's scripts). Only `@journey` specs run beyond Chromium, so `keyboard.spec.ts` (Tab order,
   visible focus rings) and these two are Chromium-only.
+- Prerendered pages carry live API data from build time. A count that depends on it (sitemap
+  entries, a character's episodes) comes from the build (`dist/`, the page's embedded state),
+  never from a hard-coded number; the client-side mock data in the fixture can be hard-coded.
 - WebKit on macOS (the `webkit`, `iphone-17` and `ipad` projects) skips links on Tab, as Safari
   does by default. A journey that tabs to a link presses `Alt+Tab` there (`home.spec.ts`).
 

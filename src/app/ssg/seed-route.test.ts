@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 
 import { toCharacterView, useCharacter } from '@/entities/character'
-import { useEpisodes } from '@/entities/episode'
+import { episodeQueries, useEpisodes } from '@/entities/episode'
 
-import { listCharacters } from '../../../test/api-semantics'
+import { findByIds, listCharacters } from '../../../test/api-semantics'
 import { CHARACTERS } from '../../../test/fixtures/characters'
 import { API, apiJson } from '../../../test/msw/handlers'
 import { recordRequests, server } from '../../../test/msw/server'
@@ -53,6 +53,28 @@ describe('seedRoute', () => {
       data: [{ id: 10 }, { id: 22 }, { id: 28 }],
     })
     expect(paths).toEqual([])
+  })
+
+  it('keys the episodes by sorted id when the API lists them out of order', async () => {
+    const shuffled = CHARACTERS.map((record) =>
+      record.id === AQUA_RICK ? { ...record, episode: record.episode.toReversed() } : record,
+    )
+    server.use(
+      http.get(`${API}/character/:ids`, ({ params }) => {
+        const { body, status } = findByIds(shuffled, String(params.ids), 'Character')
+        return apiJson(body, status)
+      }),
+    )
+    const { seedRoute } = await freshSeedRoute()
+    const queryClient = createTestQueryClient()
+
+    await seedRoute(queryClient, `/characters/${String(AQUA_RICK)}`)
+
+    expect(queryClient.getQueryData(episodeQueries.byIds([10, 22, 28]).queryKey)).toMatchObject([
+      { id: 10 },
+      { id: 22 },
+      { id: 28 },
+    ])
   })
 
   it.each([undefined, '/', '/favorites', '/404', '/characters/abc'])(

@@ -233,6 +233,25 @@ describe('useCharacterList', () => {
     })
   })
 
+  it('prefetches nothing while a new search is still loading', async () => {
+    const { state, filters, queryClient } = await setup()
+    await vi.waitFor(() => {
+      expect(state.value).toMatchObject(READY)
+    })
+    const release = holdListResponses()
+
+    filters.value = { ...EMPTY_FILTERS, name: 'morty' }
+    await vi.waitFor(() => {
+      expect(state.value).toMatchObject({ kind: 'ready', isUpdating: true })
+    })
+    await nextTick()
+
+    expect(
+      queryClient.getQueryCache().find({ queryKey: characterKeys.window({ name: 'morty' }, 2, 0) }),
+    ).toBeUndefined()
+    release()
+  })
+
   it('does not prefetch past the last page', async () => {
     const { state, queryClient } = await setup({ page: 3 })
     await vi.waitFor(() => {

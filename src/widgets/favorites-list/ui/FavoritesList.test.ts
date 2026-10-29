@@ -115,7 +115,7 @@ describe('FavoritesList', () => {
     await user.click(screen.getByRole('button', { name: 'Favorite Beth Smith' }))
 
     expect(cardNames()).toEqual(['Rick Sanchez'])
-    expect(status()).toHaveTextContent('1 favorite')
+    expect(status()).toHaveTextContent(/^1 favorite$/)
     expect(screen.getByRole('heading', { level: 1, name: 'Favorites' })).toHaveFocus()
     expect(container.querySelector('#favorites')).toHaveAttribute('aria-busy', 'false')
     await new Promise((resolve) => setTimeout(resolve))

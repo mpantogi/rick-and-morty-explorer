@@ -36,6 +36,12 @@ function previewFigure(): HTMLElement {
   return figure
 }
 
+function previewImage(preview: HTMLElement): HTMLImageElement {
+  const image = preview.querySelector('img')
+  if (!image) throw new Error('The preview shows no image')
+  return image
+}
+
 function savedHeroes(): unknown[] {
   return JSON.parse(localStorage.getItem(STORAGE_KEYS.heroes) ?? '[]') as unknown[]
 }
@@ -243,5 +249,23 @@ describe('CreateHeroForm', () => {
     await vi.advanceTimersByTimeAsync(1)
     await nextTick()
     expect(preview.querySelector('img')).toHaveAttribute('src', IMAGE)
+  })
+
+  it('tries a new address again after one failed to load', async () => {
+    const { image } = await setup()
+    const preview = previewFigure()
+    vi.useFakeTimers()
+    await fireEvent.update(image(), 'https://example.com/missing.png')
+    await vi.advanceTimersByTimeAsync(PREVIEW_PAUSE_MS)
+    await nextTick()
+    await fireEvent.error(previewImage(preview))
+    expect(within(preview).getByRole('status')).toHaveTextContent(/couldn't load this image/)
+
+    await fireEvent.update(image(), IMAGE)
+    await vi.advanceTimersByTimeAsync(PREVIEW_PAUSE_MS)
+    await nextTick()
+
+    expect(previewImage(preview)).toHaveAttribute('src', IMAGE)
+    expect(within(preview).getByRole('status')).toBeEmptyDOMElement()
   })
 })

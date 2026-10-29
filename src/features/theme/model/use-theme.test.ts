@@ -54,6 +54,16 @@ describe('useTheme', () => {
     expect(document.documentElement).not.toHaveClass('dark')
   })
 
+  it('starts light on a dark OS with nothing saved, as the no-flash script does', async () => {
+    mockSystemPreference(true)
+    const started = startTheme()
+    stop = started.stop
+    await nextTick()
+
+    expect(started.theme.isDark.value).toBe(false)
+    expect(document.documentElement).not.toHaveClass('dark')
+  })
+
   it('persists the choice and applies the dark class to the document', async () => {
     const started = startTheme()
     stop = started.stop

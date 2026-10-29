@@ -14,6 +14,8 @@ import CharacterPage from './CharacterPage.vue'
 
 // Aqua Rick appears in episodes 10, 22 and 28, all three in the episode fixture.
 const AQUA_RICK = 22
+// Adjudicator Rick appears only in episode 28.
+const ADJUDICATOR_RICK = 8
 
 function character(id: number) {
   const found = CHARACTERS.find((record) => record.id === id)
@@ -57,6 +59,12 @@ function episodeNames(container: Element): string[] {
 }
 
 describe('CharacterPage', () => {
+  it('counts a single episode in the singular', async () => {
+    await renderPage(ADJUDICATOR_RICK, seededClient(ADJUDICATOR_RICK))
+
+    expect(screen.getByText('Appears in 1 episode')).toBeInTheDocument()
+  })
+
   it('renders a prerendered character and its episodes without any request', async () => {
     const paths = recordRequests()
 

@@ -20,6 +20,28 @@ test.describe('theme', { tag: '@journey' }, () => {
       .toBe(DARK_CANVAS)
   })
 
+  test('stays light on a dark operating system until the visitor picks dark', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        document.documentElement.dataset.darkAtReady = String(
+          document.documentElement.classList.contains('dark'),
+        )
+      })
+    })
+
+    await openPage(page, '/')
+
+    const html = page.locator('html')
+    await expect(html).toHaveAttribute('data-dark-at-ready', 'false')
+    await expect(html).not.toHaveClass(/\bdark\b/)
+    await expect(page.getByRole('button', { name: 'Dark theme' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    await expect(html).toHaveCSS('color-scheme', 'light')
+  })
+
   test('shows the hand cursor on the toggle like any enabled button', async ({ page }) => {
     await openPage(page, '/')
 

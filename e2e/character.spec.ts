@@ -1,11 +1,32 @@
-import type { Page } from '@playwright/test'
+import type { APIRequestContext, Page } from '@playwright/test'
+import { z } from 'zod'
 
 import { expect, openPage, test } from './fixtures'
 import { EPISODES_URL, failWith, trackApiCalls } from './support/api-mock'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 const SERVER_ERROR = 500
-const RICK_EPISODES = 51
+// Morty Smith in e2e/support/api-fixture.json, which client navigation reads.
+const MORTY_FIXTURE_EPISODES = 51
+const STATE_SCRIPT = /<script>window\.__INITIAL_STATE__=("[^<]*")<\/script>/
+const dehydratedSchema = z.object({
+  vueQuery: z.object({
+    queries: z.array(
+      z.object({ queryKey: z.array(z.unknown()), state: z.object({ data: z.unknown() }) }),
+    ),
+  }),
+})
+const characterSchema = z.object({ id: z.number(), episode: z.array(z.string()) })
+
+// A prerendered page carries live API data, so its episode count comes from its own embedded state.
+async function prerenderedEpisodeCount(request: APIRequestContext, id: number): Promise<number> {
+  const html = await (await request.get(`/characters/${String(id)}`)).text()
+  const literal = STATE_SCRIPT.exec(html)?.[1]
+  if (literal === undefined) throw new Error(`/characters/${String(id)} embeds no state`)
+  const state = dehydratedSchema.parse(JSON.parse(z.string().parse(JSON.parse(literal))))
+  const detail = state.vueQuery.queries.find(({ queryKey }) => queryKey[1] === 'detail')
+  return characterSchema.parse(detail?.state.data).episode.length
+}
 
 function facts(page: Page) {
   return page.locator('.character-profile__facts')
@@ -17,7 +38,11 @@ async function openFromList(page: Page, path: string, name: string): Promise<voi
 }
 
 test.describe('character detail', { tag: '@journey' }, () => {
-  test('renders the prerendered profile and episodes without asking the API', async ({ page }) => {
+  test('renders the prerendered profile and episodes without asking the API', async ({
+    page,
+    request,
+  }) => {
+    const episodes = await prerenderedEpisodeCount(request, 1)
     const apiCalls = trackApiCalls(page)
 
     await openPage(page, '/characters/1')
@@ -26,8 +51,9 @@ test.describe('character detail', { tag: '@journey' }, () => {
     await expect(facts(page).getByText('Alive')).toBeVisible()
     await expect(facts(page).getByText('None')).toBeVisible()
     await expect(facts(page).getByText('Earth (C-137)')).toBeVisible()
-    await expect(page.getByText('Appears in 51 episodes')).toBeVisible()
-    await expect(page.locator('#episodes').getByRole('listitem')).toHaveCount(RICK_EPISODES)
+    expect(episodes).toBeGreaterThan(1)
+    await expect(page.getByText(`Appears in ${String(episodes)} episodes`)).toBeVisible()
+    await expect(page.locator('#episodes').getByRole('listitem')).toHaveCount(episodes)
     await expect(page.locator('#episodes time').first()).toHaveAttribute('datetime', '2013-12-02')
     expect(apiCalls).toEqual([])
   })
@@ -37,7 +63,9 @@ test.describe('character detail', { tag: '@journey' }, () => {
 
     await expect(page).toHaveURL('/characters/2')
     await expect(page.getByRole('heading', { level: 1, name: 'Morty Smith' })).toBeFocused()
-    await expect(page.locator('#episodes').getByRole('listitem')).toHaveCount(RICK_EPISODES)
+    await expect(page.locator('#episodes').getByRole('listitem')).toHaveCount(
+      MORTY_FIXTURE_EPISODES,
+    )
   })
 
   test('returns to the filtered list it came from', async ({ page }) => {
