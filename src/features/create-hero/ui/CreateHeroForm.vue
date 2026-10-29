@@ -7,6 +7,7 @@ import { toast } from 'vue-sonner'
 import {
   GENDERS,
   genderLabel,
+  HERO_NAME_HINT,
   HERO_NAME_MAX,
   heroInputSchema,
   useHeroesStore,
@@ -87,7 +88,7 @@ function submitOnce(event: Event): void {
       <BaseField
         v-slot="{ id, describedBy, invalid, errorId }"
         label="Name"
-        hint="2 to 60 characters."
+        :hint="HERO_NAME_HINT"
         :error="errors.name"
         class="hero-form__field"
       >
