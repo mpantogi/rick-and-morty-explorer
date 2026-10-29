@@ -21,12 +21,16 @@ export default defineConfig((configEnv) =>
           },
           {
             extends: true,
-            test: { name: 'node', environment: 'node', include: ['build/**/*.test.ts'] },
+            test: {
+              name: 'node',
+              environment: 'node',
+              include: ['build/**/*.test.ts', 'scripts/**/*.test.ts'],
+            },
           },
         ],
         coverage: {
           provider: 'v8',
-          include: ['src/**/*.{ts,vue}', 'build/**/*.ts'],
+          include: ['src/**/*.{ts,vue}', 'build/**/*.ts', 'scripts/budget.ts'],
           exclude: ['**/*.test.ts', '**/index.ts', 'src/app/main.ts', 'build/ssg-options.ts'],
           reporter: ['text', 'html', 'lcov'],
           thresholds: { lines: 85, statements: 85, functions: 85, branches: 80 },

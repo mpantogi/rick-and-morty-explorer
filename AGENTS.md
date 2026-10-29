@@ -8,7 +8,7 @@ Instructions for AI coding agents working in this repository. Humans start with 
 | -------------------------- | ------------------------------------------------------------------------------------ |
 | `src/`                     | The app, in Feature-Sliced Design layers (see Architecture below)                    |
 | `build/`                   | vite-ssg hooks the build runs: per-page CSP, `sitemap.xml`, `robots.txt`, `llms.txt` |
-| `scripts/`                 | `serve-dist`, `check-budget`, `generate-icons`, `record-e2e-fixture`                 |
+| `scripts/`                 | `serve-dist`, `check-budget` + `budget`, `generate-icons`, `record-e2e-fixture`      |
 | `test/`                    | Vitest setup, render helpers, MSW server and handlers, API semantics, fixtures       |
 | `e2e/`                     | Playwright specs, `fixtures.ts` and `support/` (API mock, routes, state probe)       |
 | `public/`                  | Copied into `dist/` as is: `_redirects`, `_headers`, generated brand assets          |

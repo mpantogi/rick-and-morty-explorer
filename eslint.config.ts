@@ -151,7 +151,10 @@ export default withVueTs(
       ],
     },
   },
-  { ...pluginVitest.configs.recommended, files: ['src/**/*.test.ts', 'build/**/*.test.ts'] },
+  {
+    ...pluginVitest.configs.recommended,
+    files: ['src/**/*.test.ts', 'build/**/*.test.ts', 'scripts/**/*.test.ts'],
+  },
   { ...pluginPlaywright.configs['flat/recommended'], files: ['e2e/**/*.ts'] },
   {
     name: 'app/tests',

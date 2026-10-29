@@ -13,6 +13,10 @@ const EPISODE_ID = /\/episode\/(\d+)$/
 const characterListSchema = z.array(z.looseObject({ id: z.int(), episode: z.array(z.string()) }))
 const episodeListSchema = z.array(z.looseObject({ id: z.int() }))
 
+class FixtureError extends Error {
+  override readonly name = 'FixtureError'
+}
+
 async function getJson(path: string): Promise<unknown> {
   const response = await fetch(`${API}${path}`, { headers: { Accept: 'application/json' } })
   if (!response.ok) throw new Error(`GET ${path} answered ${String(response.status)}`)
@@ -23,25 +27,29 @@ function idList(ids: readonly number[]): string {
   return `[${ids.join(',')}]`
 }
 
-const characterIds = Array.from({ length: CHARACTER_COUNT }, (_, index) => index + 1)
-const characters = characterListSchema.parse(await getJson(`/character/${idList(characterIds)}`))
-if (characters.length !== CHARACTER_COUNT) {
-  throw new Error(
-    `Expected ${String(CHARACTER_COUNT)} characters, got ${String(characters.length)}`,
-  )
+function episodeId(url: string): number {
+  const id = EPISODE_ID.exec(url)?.[1]
+  if (id === undefined) throw new FixtureError(`Unexpected episode URL: ${url}`)
+  return Number(id)
 }
 
+// The API drops unknown ids and answers sorted by id, so anything but the requested list is wrong.
+function assertIds(label: string, records: readonly { id: number }[], requested: number[]): void {
+  const received = idList(records.map(({ id }) => id))
+  if (received !== idList(requested)) {
+    throw new FixtureError(`Asked for ${label} ${idList(requested)}, got ${received}`)
+  }
+}
+
+const characterIds = Array.from({ length: CHARACTER_COUNT }, (_, index) => index + 1)
+const characters = characterListSchema.parse(await getJson(`/character/${idList(characterIds)}`))
+assertIds('characters', characters, characterIds)
+
 const episodeIds = [
-  ...new Set(
-    characters.flatMap((character) =>
-      character.episode.flatMap((url) => {
-        const id = EPISODE_ID.exec(url)?.[1]
-        return id === undefined ? [] : [Number(id)]
-      }),
-    ),
-  ),
+  ...new Set(characters.flatMap((character) => character.episode.map(episodeId))),
 ].toSorted((a, b) => a - b)
 const episodes = episodeListSchema.parse(await getJson(`/episode/${idList(episodeIds)}`))
+assertIds('episodes', episodes, episodeIds)
 
 await writeFile(OUTPUT, `${JSON.stringify({ characters, episodes }, null, 2)}\n`)
 process.stdout.write(

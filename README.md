@@ -77,7 +77,7 @@ src/
   entities/   character, episode
   shared/     api (fetch client), config, lib, ui (design system), zod (jitless Zod)
 build/        vite-ssg hooks: per-page CSP, sitemap.xml, robots.txt, llms.txt
-scripts/      serve-dist, check-budget, generate-icons, record-e2e-fixture
+scripts/      serve-dist, check-budget (+ budget logic), generate-icons, record-e2e-fixture
 test/         Vitest setup, MSW handlers, API semantics, fixtures
 e2e/          Playwright specs, fixtures, API mock and state probe
 docs/adr/     architecture decision records
