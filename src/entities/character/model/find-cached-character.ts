@@ -3,8 +3,8 @@ import type { QueryClient } from '@tanstack/vue-query'
 import { characterKeys } from '../api/query-keys'
 import type { ApiCharacter, ApiCharacterPage } from '../api/schemas'
 
-// The list, the favorites and character pages hold full characters, so views built from them are
-// instant: data never changes within a session.
+// Pages, details and favorites lists all hold full characters, and data never changes in a session.
+// Lists go last: findCachedCharacters keeps the last object per id, the one favorite cards render.
 function cachedCharacters(queryClient: QueryClient): ApiCharacter[] {
   const fromPages = queryClient
     .getQueriesData<ApiCharacterPage | null>({ queryKey: characterKeys.apiPages() })
@@ -15,7 +15,7 @@ function cachedCharacters(queryClient: QueryClient): ApiCharacter[] {
   const fromDetails = queryClient
     .getQueriesData<ApiCharacter>({ queryKey: characterKeys.details() })
     .flatMap(([, character]) => character ?? [])
-  return [...fromPages, ...fromLists, ...fromDetails]
+  return [...fromPages, ...fromDetails, ...fromLists]
 }
 
 export function findCachedCharacter(

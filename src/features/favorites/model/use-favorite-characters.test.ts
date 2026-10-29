@@ -199,6 +199,23 @@ describe('useFavoriteCharacters', () => {
     expect(paths).toEqual([])
   })
 
+  it('keeps the other cards as they were when their character page is cached too', async () => {
+    saveFavorites(['api:3', 'api:1', 'api:2'])
+    const { state, store, queryClient } = await setup()
+    await vi.waitFor(() => {
+      expect(state.value).toMatchObject({ kind: 'ready', isUpdating: false })
+    })
+    const [summer, , morty] = items(state.value)
+    queryClient.setQueryData(characterQueries.detail(3).queryKey, record(3))
+
+    store.toggle('api:1')
+    await nextTick()
+
+    const [first, second] = items(state.value)
+    expect(first).toBe(summer)
+    expect(second).toBe(morty)
+  })
+
   it('starts from characters the list already loaded, without a request', async () => {
     saveFavorites(['api:2', 'api:1'])
     const queryClient = createTestQueryClient()
