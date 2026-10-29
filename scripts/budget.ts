@@ -15,7 +15,7 @@ export interface Asset {
   gzipBytes: number
 }
 
-export interface BudgetTotal {
+interface BudgetTotal {
   kind: AssetKind
   bytes: number
   budgetBytes: number
