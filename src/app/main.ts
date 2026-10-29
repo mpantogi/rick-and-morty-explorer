@@ -24,7 +24,7 @@ export const createApp = ViteSSG(
     // SSR-only imports keep the catalogue and its build-time requests out of the client bundle.
     if (import.meta.env.SSR) {
       const { seedRoute } = await import('./ssg/seed-route')
-      await seedRoute(queryClient, routePath)
+      await seedRoute(queryClient, router.resolve(routePath ?? '/'))
       onSSRAppRendered(() => {
         const state = dehydrate(queryClient)
         if (state.queries.length > 0) initialState.vueQuery = state
