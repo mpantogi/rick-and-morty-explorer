@@ -4,15 +4,15 @@ import type { EpisodeView } from '../model/types'
 defineProps<{ episodes: readonly EpisodeView[] }>()
 </script>
 
-<!-- Fixed-height rows with a truncated name keep each row the size of its skeleton. -->
+<!-- Rows keep their skeleton's height for one-line names; a long name wraps to a second line. -->
 <template>
   <ol class="episode-list divide-y divide-line rounded-xl border border-line bg-surface">
     <li
       v-for="episode in episodes"
       :key="episode.id"
-      class="episode-list__item flex h-14 flex-col justify-center px-4"
+      class="episode-list__item flex min-h-14 flex-col justify-center px-4 py-1.5"
     >
-      <p class="episode-list__name truncate font-semibold" :title="episode.name">
+      <p class="episode-list__name line-clamp-2 font-semibold" :title="episode.name">
         {{ episode.name }}
       </p>
       <p class="episode-list__meta text-sm text-muted">

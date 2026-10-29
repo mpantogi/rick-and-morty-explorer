@@ -13,7 +13,7 @@ defineProps<{ count: number }>()
     <li
       v-for="slot in count"
       :key="slot"
-      class="episode-list-skeleton__item flex h-14 flex-col justify-center gap-1.5 px-4"
+      class="episode-list-skeleton__item flex min-h-14 flex-col justify-center gap-1.5 px-4 py-1.5"
     >
       <BaseSkeleton class="episode-list-skeleton__name h-4 w-2/3" />
       <BaseSkeleton class="episode-list-skeleton__meta h-3.5 w-1/3" />
