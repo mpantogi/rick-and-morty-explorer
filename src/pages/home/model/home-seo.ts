@@ -15,12 +15,13 @@ interface HomeListView {
   isOutOfRange: boolean
 }
 
-// Plain pages of the list are indexable on their own URL; filtered views and pages past the last
-// one fold into the home page, so neither is indexed as a page of its own (no soft 404).
+// The host serves every list URL the prerendered home document, so every view keeps its canonical.
+// Filtered views and pages past the last one stay out of the index (search results, no soft 404).
 export function homeSeo({ page, isFiltered, isOutOfRange }: HomeListView): HomeSeo {
-  if (isFiltered || isOutOfRange) {
-    return { title: `Characters – page ${page}`, path: paths.home, robots: 'noindex' }
+  const isVariant = isFiltered || isOutOfRange
+  return {
+    title: page === FIRST_PAGE && !isVariant ? HOME_TITLE : `Characters – page ${String(page)}`,
+    path: paths.home,
+    robots: isVariant ? 'noindex' : 'index',
   }
-  if (page === FIRST_PAGE) return { title: HOME_TITLE, path: paths.home, robots: 'index' }
-  return { title: `Characters – page ${page}`, path: `${paths.home}?page=${page}`, robots: 'index' }
 }

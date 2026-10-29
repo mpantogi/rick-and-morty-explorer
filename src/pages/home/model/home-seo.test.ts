@@ -11,10 +11,10 @@ describe('homeSeo', () => {
     })
   })
 
-  it('indexes a plain page of the list under its own URL', () => {
+  it('keeps a plain page of the list on the home canonical its served HTML declares', () => {
     expect(homeSeo({ page: 3, isFiltered: false, isOutOfRange: false })).toEqual({
       title: 'Characters – page 3',
-      path: '/?page=3',
+      path: '/',
       robots: 'index',
     })
   })

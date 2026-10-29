@@ -43,6 +43,10 @@ Live site: https://rickverse-explorer.netlify.app
   (`’`), so typing `Morty's` with a plain `'` misses them, and there is no accent folding
   (`Martinez` does not find `Martínez`). Working around either would take extra API requests per
   search, or a client-side filter that breaks the API's counts and paging, so both are accepted.
+- **One indexable list URL.** A static host serves every `/?...` URL the prerendered home document,
+  so a paged view keeps that document's canonical `/` and filtered views and pages past the end add
+  `noindex`. Every character page is prerendered and in the sitemap, so crawlers and AI agents reach
+  each character without the list.
 - **One listbox for status, gender and species.** Status and gender use `BaseSelect` and species
   uses a free-text combobox, all on one `BaseListbox` that follows the WAI-ARIA combobox patterns
   (focus stays on the control, `aria-activedescendant` marks the option). The popups of a native

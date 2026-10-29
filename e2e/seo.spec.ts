@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs'
 
 import type { APIRequestContext, Page } from '@playwright/test'
 
-import { expect, test } from './fixtures'
+import { expect, openPage, test } from './fixtures'
 
 const TITLE_MAX = 60
 const DESCRIPTION_MAX = 155
@@ -106,6 +106,20 @@ test.describe('prerendered SEO', () => {
       expect(head.hasCspMeta).toBe(true)
     })
   }
+
+  // A static host ignores the query, so /?page=3 is served the home document and the app must agree.
+  test('keeps a plain list page on the canonical and robots of the HTML it is served', async ({
+    page,
+    request,
+  }) => {
+    const served = await readHead(page, request, '/?page=3')
+
+    await openPage(page, '/?page=3')
+    await expect(page.locator('#results [data-state="ready"]')).toBeVisible()
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', served.canonical)
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', served.robots)
+  })
 
   test('gives every indexed page a title of its own', async ({ page, request }) => {
     const titles = await Promise.all(
