@@ -32,7 +32,7 @@ function isAbortError(error: unknown): boolean {
 // Regions render their own in-place state. This adds the de-duplicated toast, and reports what a
 // developer must see: API contract drift, and any non-ApiError (a bug inside a query function).
 function notifyQueryError(error: unknown): void {
-  if (import.meta.env.SSR || error instanceof CancelledError || isAbortError(error)) return
+  if (error instanceof CancelledError || isAbortError(error)) return
   if (!(error instanceof ApiError)) reportError(error, 'query')
   else if (error.kind === 'parse') reportError(error, 'api-contract')
   const errorCase = toErrorCase(error)

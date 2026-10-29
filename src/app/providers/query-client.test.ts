@@ -166,13 +166,4 @@ describe('central query error policy', () => {
 
     expect(consoleError).not.toHaveBeenCalled()
   })
-
-  it('never toasts while prerendering', async () => {
-    vi.stubEnv('SSR', true)
-    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
-
-    await failQuery(new ApiError('http', 'down', { status: 503 }))
-
-    expect(toastError).not.toHaveBeenCalled()
-  })
 })
