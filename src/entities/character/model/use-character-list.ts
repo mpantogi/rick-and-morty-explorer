@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { storeToRefs } from 'pinia'
-import { computed, type ComputedRef, type Ref, watch } from 'vue'
+import { computed, type ComputedRef, type Ref, toRaw, watch } from 'vue'
 
 import { type ErrorCase, toErrorCase } from '@/shared/api'
 import { ignorePrefetchError } from '@/shared/lib'
@@ -54,16 +54,26 @@ export function useCharacterList(
     enabled: !import.meta.env.SSR,
   }))
 
+  // vue-query applies new options in a watcher, so for a moment its data still answers the
+  // previous search: only data cached under the current key is this search's own.
+  const isSettled = computed(
+    () =>
+      !query.isPlaceholderData.value &&
+      queryClient.getQueryData(windowQuery(page.value).queryKey) === toRaw(query.data.value),
+  )
+  // Until then the previous page stays exactly as it was, never this search's heroes beside it.
+  const listPage = computed<ListPage | undefined>((previous) => {
+    const data = query.data.value
+    if (data === undefined) return undefined
+    return isSettled.value ? buildListPage(page.value, localMatches.value, data) : previous
+  })
+
   const state = computed<ListState>(() => {
     if (query.status.value === 'error') {
       return { kind: 'error', errorCase: toErrorCase(query.error.value) }
     }
-    const data = query.data.value
-    if (data === undefined) return LOADING
-    return toListState(
-      buildListPage(page.value, localMatches.value, data),
-      query.isPlaceholderData.value,
-    )
+    if (listPage.value === undefined) return LOADING
+    return toListState(listPage.value, !isSettled.value)
   })
 
   watch(state, (current) => {

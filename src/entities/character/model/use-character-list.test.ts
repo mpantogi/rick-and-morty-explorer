@@ -330,6 +330,29 @@ describe('useCharacterList', () => {
       expect(readyPage(state)).toMatchObject({ total: 1, totalPages: 1 })
     })
 
+    it('keeps the previous page exactly while a search that matches a hero loads', async () => {
+      saveHeroes()
+      const { state, filters } = await setup({ filters: { status: 'alive' } })
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      const previous = readyPage(state)
+      const release = holdListResponses()
+
+      filters.value = { ...EMPTY_FILTERS, name: 'quantum' }
+
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject({ kind: 'ready', isUpdating: true })
+      })
+      expect(readyPage(state)).toEqual(previous)
+      expect(names(state)).not.toContain('Quantum Quinn')
+      release()
+      await vi.waitFor(() => {
+        expect(state.value).toMatchObject(READY)
+      })
+      expect(names(state)).toEqual(['Quantum Quinn'])
+    })
+
     it('puts a newly created hero first without a reload', async () => {
       const { state, heroes } = await setup()
       await vi.waitFor(() => {

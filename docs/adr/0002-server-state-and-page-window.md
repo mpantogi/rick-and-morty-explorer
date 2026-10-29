@@ -29,7 +29,8 @@ Status: accepted
 - Loading API pages: when a cached page for the same filters already gives the page count, every
   in-range page is requested in parallel. Otherwise the first planned page goes first and the rest
   follow, so no request goes past the last page.
-- `placeholderData: keepPreviousData` keeps the previous page on screen, marked as updating. The
+- `placeholderData: keepPreviousData` keeps the previous page on screen exactly as it was, its
+  own heroes included, marked as updating; a new search's heroes wait for its API results. The
   next UI page is prefetched once the current one is ready. A detail page starts from the
   character the list or the favorites already cached, and the favorites list from the characters
   the cache already holds (`initialData`); it requests only when one of them is missing.
