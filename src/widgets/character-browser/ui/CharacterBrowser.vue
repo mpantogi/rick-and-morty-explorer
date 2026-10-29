@@ -38,8 +38,7 @@ function focusHeading(): void {
 }
 
 // WebKit's focus() leaves an off-screen heading off screen, so it scrolls into view explicitly.
-function revealHeading(): void {
-  focusHeading()
+function scrollToHeading(): void {
   heading.value?.scrollIntoView({ block: 'nearest' })
 }
 
@@ -53,21 +52,28 @@ watch([controller.page, controller.filters], ([page, filters], [previousPage, pr
   if (page !== previousPage && sameFilters(filters, previousFilters)) void nextTick(focusHeading)
 })
 
-// Both resets and the retry remove their own button, so focus moves to the results heading.
+// Both resets and the retry remove their own button, so focus moves to the results heading. A
+// reset also removes the form's Reset above it, so its scroll waits until that has rendered.
+function focusAfterReset(): void {
+  focusHeading()
+  watch(controller.filters, scrollToHeading, { flush: 'post', once: true })
+}
+
 function resetFromEmpty(): void {
   controller.reset()
-  revealHeading()
+  focusAfterReset()
 }
 
 function retryInPlace(): void {
-  revealHeading()
+  focusHeading()
+  scrollToHeading()
   void retry()
 }
 </script>
 
 <template>
   <section aria-labelledby="results-heading" class="character-browser flex flex-col gap-6">
-    <CharacterFiltersForm :controller @reset="revealHeading" />
+    <CharacterFiltersForm :controller @reset="focusAfterReset" />
 
     <div
       class="character-browser__header flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"

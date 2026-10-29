@@ -288,7 +288,8 @@ test.describe('character list', { tag: '@journey' }, () => {
     consoleGuard.allowHttpErrors(NO_MATCH_URL)
     await page.setViewportSize(SHORT_PHONE_VIEWPORT)
     await openPage(page, '/?name=zzzz')
-    await page.addStyleTag({ content: 'html { font-size: 200%; }' })
+    // Scroll anchoring can hide a late layout shift, and not every engine applies it, so it is off.
+    await page.addStyleTag({ content: 'html { font-size: 200%; } * { overflow-anchor: none; }' })
     const heading = page.getByRole('heading', { level: 2, name: 'Results' })
     const reset = page.locator('#results').getByRole('button', { name: 'Reset filters' })
     await reset.evaluate((button) => {
