@@ -5,7 +5,7 @@ A Vue 3 app for browsing the characters of Rick and Morty through the public
 character's page, save favorites and create a hero of your own. Pages are statically generated with
 vite-ssg. Unofficial fan project.
 
-Live site: https://rickverse-explorer.netlify.app (deploying soon).
+Live site: https://rickverse-explorer.netlify.app
 
 ## Project status
 
@@ -21,7 +21,7 @@ scripts, and `public/_headers` adds the security and caching headers. `netlify.t
 Netlify build settings. A budget check keeps the JavaScript and CSS the home page loads up front
 under 150 KiB and 30 KiB gzipped, and the character page's code loads while the browser is idle.
 End-to-end tests cover the SEO tags and crawler files, the security headers and CSP, and keyboard
-use. Next: CI and the deployed site.
+use. Next: CI.
 
 ## Tech stack
 
@@ -106,3 +106,14 @@ app fail fast if either is not an `https:` URL. Set them in the shell or in an u
 | ------------------- | ---------------------------------------- | -------------------------------------- |
 | `VITE_SITE_URL`     | `https://rickverse-explorer.netlify.app` | Canonical URLs, social tags, SEO files |
 | `VITE_API_BASE_URL` | `https://rickandmortyapi.com/api`        | Base URL of the Rick and Morty API     |
+
+## Deploy
+
+The site is static: Netlify serves `dist/` as built, including `public/_redirects` (the hero page
+rewrites) and `public/_headers` (security and cache headers).
+
+- **Netlify CLI:** `yarn build`, then `netlify deploy --prod --dir=dist` (without a global install:
+  `yarn dlx netlify-cli deploy --prod --dir=dist`).
+- **Git-connected:** link the repository to a Netlify site. Netlify reads `netlify.toml` (build
+  command `yarn build`, publish directory `dist`, Node 24 and the production `VITE_SITE_URL`) and
+  builds on every push to the production branch.
