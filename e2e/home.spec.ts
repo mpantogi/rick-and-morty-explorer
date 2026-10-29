@@ -19,6 +19,8 @@ const RICK_SEARCH_URL = /\/api\/character\?name=rick/
 const VISIBLE_RING_PIXELS = 500
 // UI page 999 starts at item 11,976, which the window asks for on API page 599.
 const PAST_LAST_API_PAGE_URL = /\/api\/character\?page=599$/
+// With text at 200%, the empty state outgrows this screen, so its Reset sits far below the heading.
+const SHORT_PHONE_VIEWPORT = { width: 320, height: 480 }
 
 // Safari on macOS tabs past links unless Option is held, which is how its keyboard users reach them.
 function tabToLinkKey(browserName: string): string {
@@ -263,7 +265,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(status).toBeFocused()
   })
 
-  test('resets every filter and returns focus to the search box', async ({ page }) => {
+  test('resets every filter and moves focus to the results heading', async ({ page }) => {
     await openPage(page, '/?name=rick&status=alive')
     await expect(summary(page)).toHaveText('Showing 1–2 of 2 characters')
 
@@ -271,7 +273,28 @@ test.describe('character list', { tag: '@journey' }, () => {
 
     await expect(page).toHaveURL('/')
     await expect(cards(page)).toHaveCount(12)
-    await expect(page.getByRole('searchbox', { name: 'Name' })).toBeFocused()
+    await expect(page.getByRole('heading', { level: 2, name: 'Results' })).toBeFocused()
+  })
+
+  test('scrolls the results heading into view when a reset far down the empty state focuses it', async ({
+    page,
+    consoleGuard,
+  }) => {
+    consoleGuard.allowHttpErrors(NO_MATCH_URL)
+    await page.setViewportSize(SHORT_PHONE_VIEWPORT)
+    await openPage(page, '/?name=zzzz')
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' })
+    const heading = page.getByRole('heading', { level: 2, name: 'Results' })
+    const reset = page.locator('#results').getByRole('button', { name: 'Reset filters' })
+    await reset.evaluate((button) => {
+      button.scrollIntoView({ block: 'end' })
+    })
+    await expect(heading).not.toBeInViewport()
+
+    await reset.click()
+
+    await expect(heading).toBeFocused()
+    await expect(heading).toBeInViewport()
   })
 
   test('shows the empty state when nothing matches', async ({ page, consoleGuard }) => {

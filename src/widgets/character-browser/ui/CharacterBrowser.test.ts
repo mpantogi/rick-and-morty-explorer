@@ -104,7 +104,24 @@ describe('CharacterBrowser', () => {
     })
   })
 
-  it('offers a reset when nothing matches, and returns focus to the search box', async () => {
+  it('moves focus to the results heading when the form resets the filters', async () => {
+    const { user, summary, router } = await setup('/?name=morty')
+    await vi.waitFor(() => {
+      expect(summary()).toHaveTextContent('Showing 1–4 of 4 characters')
+    })
+
+    await user.click(
+      within(screen.getByRole('search')).getByRole('button', { name: 'Reset filters' }),
+    )
+
+    await vi.waitFor(() => {
+      expect(screen.getAllByRole('article')).toHaveLength(12)
+    })
+    expect(router.currentRoute.value.fullPath).toBe('/')
+    expect(screen.getByRole('heading', { level: 2, name: 'Results' })).toHaveFocus()
+  })
+
+  it('offers a reset when nothing matches, and moves focus to the results heading', async () => {
     const { user, results, summary, router } = await setup('/?name=zzzz')
     await vi.waitFor(() => {
       expect(results().getByText('No characters match these filters.')).toBeInTheDocument()
@@ -118,7 +135,7 @@ describe('CharacterBrowser', () => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
     })
     expect(router.currentRoute.value.fullPath).toBe('/')
-    expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveFocus()
+    expect(screen.getByRole('heading', { level: 2, name: 'Results' })).toHaveFocus()
   })
 
   it('explains a page past the last one and links back to the first', async () => {

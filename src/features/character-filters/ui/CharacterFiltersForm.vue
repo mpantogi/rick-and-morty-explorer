@@ -17,6 +17,7 @@ import type { CharacterFiltersController } from '../model/use-character-filters'
 import SpeciesCombobox from './SpeciesCombobox.vue'
 
 const { controller } = defineProps<{ controller: CharacterFiltersController }>()
+const emit = defineEmits<{ reset: [] }>()
 
 const PANEL_ID = 'filters-panel'
 const STATUS_OPTIONS = [
@@ -36,23 +37,16 @@ const form = useTemplateRef<HTMLFormElement>('form')
 const isPanelOpen = ref(false)
 const panelCount = computed(() => countActiveFilters(controller.filters.value, PANEL_FIELDS))
 
-function focusName(): void {
-  const name = form.value?.elements.namedItem('name')
-  if (name instanceof HTMLInputElement) name.focus()
-}
-
-// Reset removes its own button, so focus moves to the search box instead of the page body.
+// Reset removes its own button, so the parent moves focus once the filters clear.
 function resetFilters(): void {
   controller.reset()
-  focusName()
+  emit('reset')
 }
 
 // Filters apply as they change, so there is no submit button: Enter applies typed text at once.
 function submitOnEnter(event: KeyboardEvent): void {
   if (!event.isComposing && !event.defaultPrevented) form.value?.requestSubmit()
 }
-
-defineExpose({ focusName })
 </script>
 
 <template>

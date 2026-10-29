@@ -162,12 +162,4 @@ describe('CharacterFiltersForm', () => {
     expect(screen.queryByRole('button', { name: 'Reset filters' })).not.toBeInTheDocument()
     expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveValue('')
   })
-
-  it('moves focus to the name search when Reset filters disappears', async () => {
-    const { user } = await setup('/?species=alien')
-
-    await user.click(screen.getByRole('button', { name: 'Reset filters' }))
-
-    expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveFocus()
-  })
 })

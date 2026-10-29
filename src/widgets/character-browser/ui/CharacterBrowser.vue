@@ -20,7 +20,6 @@ const controller = useCharacterFilters()
 const { state, retry } = useCharacterList(controller.filters, controller.page)
 
 const heading = useTemplateRef<HTMLHeadingElement>('heading')
-const filtersForm = useTemplateRef<InstanceType<typeof CharacterFiltersForm>>('filters')
 
 // The stale page fades only once an update outlasts 300 ms, so a cached response never flickers.
 const isUpdating = computed(() => state.value.kind === 'ready' && state.value.isUpdating)
@@ -38,6 +37,12 @@ function focusHeading(): void {
   heading.value?.focus({ preventScroll: true })
 }
 
+// WebKit's focus() leaves an off-screen heading off screen, so it scrolls into view explicitly.
+function revealHeading(): void {
+  focusHeading()
+  heading.value?.scrollIntoView({ block: 'nearest' })
+}
+
 function pagesLine(totalPages: number): string {
   return `This search has ${totalPages} ${totalPages === 1 ? 'page' : 'pages'}.`
 }
@@ -48,21 +53,21 @@ watch([controller.page, controller.filters], ([page, filters], [previousPage, pr
   if (page !== previousPage && sameFilters(filters, previousFilters)) void nextTick(focusHeading)
 })
 
-// Both controls below remove themselves, so focus moves somewhere meaningful first.
+// Both resets and the retry remove their own button, so focus moves to the results heading.
 function resetFromEmpty(): void {
   controller.reset()
-  filtersForm.value?.focusName()
+  revealHeading()
 }
 
 function retryInPlace(): void {
-  focusHeading()
+  revealHeading()
   void retry()
 }
 </script>
 
 <template>
   <section aria-labelledby="results-heading" class="character-browser flex flex-col gap-6">
-    <CharacterFiltersForm ref="filters" :controller />
+    <CharacterFiltersForm :controller @reset="revealHeading" />
 
     <div
       class="character-browser__header flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
