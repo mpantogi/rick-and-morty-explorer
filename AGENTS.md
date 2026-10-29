@@ -192,3 +192,6 @@ one-day `npmMinimalAgeGate` refuses releases younger than 24 hours.
   Typecheck, tests and the build are not in the hook, so run them before committing.
 - When a change alters something `README.md` or `AGENTS.md` describes (scripts, commands, folders,
   features, decisions, conventions), update them in the same commit.
+- Architecture decisions live in `docs/adr/` (context, decision, consequences; one page each). A
+  change that reverses or extends a decision updates its ADR, or adds the next number, in the same
+  commit.
