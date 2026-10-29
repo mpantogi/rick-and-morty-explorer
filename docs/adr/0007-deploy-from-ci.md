@@ -16,8 +16,9 @@ Status: accepted
   downloads the `dist` artifact and publishes it with
   `netlify deploy --prod --no-build --dir=dist`, so what goes live is what the tests ran against.
   Pull requests never deploy.
-- `netlify-cli` is pinned to an exact version and authenticates with a personal access token from
-  the `NETLIFY_AUTH_TOKEN` repository secret. The site ID is not a secret, so it is in the
+- `netlify-cli` is pinned to an exact version (its own dependencies resolve when the job runs,
+  outside `yarn.lock`) and authenticates with a personal access token from the
+  `NETLIFY_AUTH_TOKEN` repository secret. The site ID is not a secret, so it is in the
   workflow.
 - The job targets the `production` GitHub environment, so the repository lists each deploy with
   the live URL.

@@ -24,7 +24,9 @@ Status: accepted
   script is exactly `window.__INITIAL_STATE__=` and one JSON string literal holding a JSON object
   (both levels are parsed), with an optional trailing `;`.
 - `public/_headers` carries what a meta tag cannot: `frame-ancestors 'none'`, `X-Frame-Options`,
-  HSTS, COOP, `Referrer-Policy`, `Permissions-Policy` and `nosniff`.
+  HSTS, COOP, `Referrer-Policy`, `Permissions-Policy` and `nosniff`. Its CSP also repeats
+  `base-uri`, `object-src` and `form-action`, as a fallback for any response without the meta tag;
+  both policies apply, so tightening one of these means changing it in both places.
 - `style-src` allows `'unsafe-inline'`: vue-sonner sets inline styles, and VueUse's `useColorMode`
   inserts a short-lived `<style>` that turns transitions off while the theme switches.
 - No `upgrade-insecure-requests`: it breaks WebKit against the `http://localhost` E2E server, and
