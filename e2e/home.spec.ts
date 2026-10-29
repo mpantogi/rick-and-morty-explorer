@@ -6,6 +6,8 @@ import { captureAround, countChangedPixels } from './support/pixels'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 const SERVER_ERROR = 500
+// Just inside the 300 ms pause before stale results start to fade.
+const PAUSE_PROBE_MS = 250
 // A 2 px ring around a card repaints over a thousand pixels; a clipped one repaints none.
 const VISIBLE_RING_PIXELS = 500
 // UI page 999 starts at item 11,976, which the window asks for on API page 599.
@@ -32,6 +34,55 @@ function summary(page: Page) {
 async function openFilters(page: Page): Promise<void> {
   const toggle = page.getByRole('button', { name: /^Filters/ })
   if (await toggle.isVisible()) await toggle.click()
+}
+
+interface PauseProbe {
+  min: number
+  done: boolean
+}
+
+// Holds every search for "rick" until the returned function releases it.
+async function holdRickSearch(page: Page): Promise<() => void> {
+  let release: () => void = () => undefined
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route(/\/api\/character\?name=rick/, async (route) => {
+    await gate
+    await route.fallback()
+  })
+  return release
+}
+
+// Samples the results' opacity every frame for the first windowMs after they turn busy. The window
+// is timed in the page from the busy change itself, so a slow runner cannot stretch it.
+function installPauseProbe(page: Page, windowMs: number): Promise<void> {
+  return page.evaluate((limit) => {
+    const results = document.getElementById('results')
+    const probe: PauseProbe = { min: 1, done: false }
+    let busyAt: number | undefined
+    Object.assign(window, { pauseProbe: probe })
+    new MutationObserver(() => {
+      if (busyAt === undefined && results?.getAttribute('aria-busy') === 'true') {
+        busyAt = performance.now()
+      }
+    }).observe(results ?? document.body, { attributes: true, attributeFilter: ['aria-busy'] })
+    const sample = () => {
+      if (busyAt !== undefined && performance.now() - busyAt >= limit) {
+        probe.done = true
+        return
+      }
+      if (busyAt !== undefined && results) {
+        probe.min = Math.min(probe.min, Number(getComputedStyle(results).opacity))
+      }
+      requestAnimationFrame(sample)
+    }
+    requestAnimationFrame(sample)
+  }, windowMs)
+}
+
+function readPauseProbe(page: Page): Promise<PauseProbe | undefined> {
+  return page.evaluate(() => (window as Window & { pauseProbe?: PauseProbe }).pauseProbe)
 }
 
 test.describe('character list', { tag: '@journey' }, () => {
@@ -277,6 +328,36 @@ test.describe('character list', { tag: '@journey' }, () => {
 
     expect(overlap).toBe(false)
     expect(statesOf(log, '#results')).toEqual(['loading', 'ready'])
+  })
+
+  test('fades the stale results while a slow search loads, then restores them', async ({
+    page,
+  }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    const release = await holdRickSearch(page)
+
+    await page.getByRole('searchbox', { name: 'Name' }).fill('rick')
+
+    await expect(page.locator('#results')).toHaveAttribute('aria-busy', 'true')
+    await expect(page.locator('#results')).toHaveCSS('opacity', '0.6')
+    release()
+    await expect(summary(page)).toHaveText('Showing 1–7 of 7 characters')
+    await expect(page.locator('#results')).toHaveCSS('opacity', '1')
+  })
+
+  test('never fades the results while an update is still inside the pause', async ({ page }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    const release = await holdRickSearch(page)
+    await installPauseProbe(page, PAUSE_PROBE_MS)
+
+    await page.getByRole('searchbox', { name: 'Name' }).fill('rick')
+    await expect.poll(async () => (await readPauseProbe(page))?.done).toBe(true)
+
+    expect((await readPauseProbe(page))?.min).toBe(1)
+    release()
+    await expect(summary(page)).toHaveText('Showing 1–7 of 7 characters')
   })
 
   test('shows loading, not a stale empty state, when a search follows an empty one', async ({

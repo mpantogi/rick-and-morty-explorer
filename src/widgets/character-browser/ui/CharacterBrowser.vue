@@ -21,6 +21,7 @@ const { state, retry } = useCharacterList(controller.filters, controller.page)
 const heading = useTemplateRef<HTMLHeadingElement>('heading')
 const filtersForm = useTemplateRef<InstanceType<typeof CharacterFiltersForm>>('filters')
 
+// The stale page fades only once an update outlasts 300 ms, so a cached response never flickers.
 const isUpdating = computed(() => state.value.kind === 'ready' && state.value.isUpdating)
 const summary = computed(() => resultsSummary(state.value, controller.page.value))
 const filtersKey = computed(() => JSON.stringify(controller.filters.value))
@@ -79,12 +80,11 @@ function retryInPlace(): void {
       </p>
     </div>
 
-    <div id="results" :aria-busy="isUpdating" class="character-browser__results relative">
-      <div
-        v-if="isUpdating"
-        aria-hidden="true"
-        class="character-browser__progress absolute inset-x-0 -top-3 h-0.5 rounded-full bg-accent motion-safe:animate-pulse"
-      />
+    <div
+      id="results"
+      :aria-busy="isUpdating"
+      class="character-browser__results transition-opacity duration-200 aria-busy:opacity-60 aria-busy:delay-300 motion-reduce:duration-0"
+    >
       <div
         v-if="state.kind === 'ready'"
         data-state="ready"

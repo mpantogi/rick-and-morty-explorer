@@ -14,6 +14,7 @@ const { state, savedCount, retry } = useFavoriteCharacters()
 const skeletonCount = computed(() =>
   import.meta.env.SSR ? SSR_SKELETON_COUNT : Math.min(savedCount.value, UI_PAGE_SIZE),
 )
+// The stale list fades only once an update outlasts 300 ms, so a cached response never flickers.
 const isUpdating = computed(() => state.value.kind === 'ready' && state.value.isUpdating)
 const count = computed(() => {
   if (state.value.kind !== 'ready') return ''
@@ -45,7 +46,11 @@ function retryInPlace(): void {
       <template v-else>{{ count }}</template>
     </p>
 
-    <div id="favorites" :aria-busy="isUpdating" class="favorites-list__results">
+    <div
+      id="favorites"
+      :aria-busy="isUpdating"
+      class="favorites-list__results transition-opacity duration-200 aria-busy:opacity-60 aria-busy:delay-300 motion-reduce:duration-0"
+    >
       <CharacterGrid
         v-if="state.kind === 'ready'"
         data-state="ready"

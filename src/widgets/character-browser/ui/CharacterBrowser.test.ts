@@ -191,17 +191,12 @@ describe('CharacterBrowser', () => {
     })
     expect(summary()).toHaveTextContent('Updating results…')
     expect(screen.getByRole('heading', { level: 3, name: 'Rick Sanchez' })).toBeInTheDocument()
-    expect(container.querySelector('.character-browser__progress')).toHaveAttribute(
-      'aria-hidden',
-      'true',
-    )
 
     release()
 
     await vi.waitFor(() => {
       expect(region).toHaveAttribute('aria-busy', 'false')
     })
-    expect(container.querySelector('.character-browser__progress')).not.toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(4)
   })
 })
