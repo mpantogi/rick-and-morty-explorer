@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { SlidersHorizontal } from '@lucide/vue'
-import { ref, useTemplateRef } from 'vue'
+import { computed, ref, useTemplateRef } from 'vue'
 
 import {
+  type CharacterFilters,
+  countActiveFilters,
   FILTER_MAX_LENGTH,
   GENDERS,
   genderLabel,
@@ -27,9 +29,13 @@ const GENDER_OPTIONS = [
   ...GENDERS.map((gender) => ({ value: gender, label: genderLabel(gender) })),
 ] as const
 
+// Name stays outside the panel, so the toggle counts only what the panel hides.
+const PANEL_FIELDS: readonly (keyof CharacterFilters)[] = ['status', 'species', 'type', 'gender']
+
 const form = useTemplateRef<HTMLFormElement>('form')
 // Below md the extra filters fold behind a toggle; from md up the panel is always shown.
 const isPanelOpen = ref(false)
+const panelCount = computed(() => countActiveFilters(controller.filters.value, PANEL_FIELDS))
 
 function focusName(): void {
   const name = form.value?.elements.namedItem('name')
@@ -75,13 +81,9 @@ defineExpose({ focusName })
       >
         <SlidersHorizontal aria-hidden="true" class="filters__toggle-icon size-4" />
         Filters
-        <template v-if="controller.activeCount.value > 0">
-          <span class="filters__count" aria-hidden="true">
-            ({{ controller.activeCount.value }})
-          </span>
-          <span class="filters__count-label sr-only">
-            {{ controller.activeCount.value }} active
-          </span>
+        <template v-if="panelCount > 0">
+          <span class="filters__count" aria-hidden="true">({{ panelCount }})</span>
+          <span class="filters__count-label sr-only">{{ panelCount }} active</span>
         </template>
       </BaseButton>
     </div>

@@ -72,6 +72,9 @@ export function sameFilters(a: CharacterFilters, b: CharacterFilters): boolean {
   return FILTER_FIELDS.every((field) => a[field] === b[field])
 }
 
-export function countActiveFilters(filters: CharacterFilters): number {
-  return FILTER_FIELDS.filter((field) => filters[field].trim() !== '').length
+export function countActiveFilters(
+  filters: CharacterFilters,
+  fields: readonly FilterField[] = FILTER_FIELDS,
+): number {
+  return fields.filter((field) => filters[field].trim() !== '').length
 }

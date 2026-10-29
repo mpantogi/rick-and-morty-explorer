@@ -106,6 +106,13 @@ describe('countActiveFilters', () => {
     expect(countActiveFilters(EMPTY_FILTERS)).toBe(0)
     expect(countActiveFilters(filters({ name: 'rick', status: 'alive', type: '  ' }))).toBe(2)
   })
+
+  it('counts only the fields it is given', () => {
+    const applied = filters({ name: 'rick', status: 'alive', gender: 'male' })
+
+    expect(countActiveFilters(applied, ['status', 'species', 'type', 'gender'])).toBe(2)
+    expect(countActiveFilters(filters({ name: 'rick' }), ['status', 'gender'])).toBe(0)
+  })
 })
 
 describe('sameFilters', () => {

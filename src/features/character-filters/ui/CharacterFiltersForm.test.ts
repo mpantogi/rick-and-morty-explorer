@@ -78,10 +78,17 @@ describe('CharacterFiltersForm', () => {
     expect(panel).not.toHaveClass('hidden')
   })
 
-  it('names how many filters are active on the toggle', async () => {
-    await setup('/?name=rick&status=dead')
+  it('counts only the filters inside its panel on the toggle', async () => {
+    await setup('/?name=rick&status=dead&type=parasite')
 
-    expect(screen.getByRole('button', { name: 'Filters 2 active' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Filters 2 active' })).toHaveTextContent('(2)')
+  })
+
+  it('shows no count on the toggle for a name search, yet offers Reset filters', async () => {
+    await setup('/?name=zzzz')
+
+    expect(screen.getByRole('button', { name: 'Filters' })).not.toHaveTextContent(/\(\d+\)/)
+    expect(screen.getByRole('button', { name: 'Reset filters' })).toBeInTheDocument()
   })
 
   it('applies a status at once', async () => {
