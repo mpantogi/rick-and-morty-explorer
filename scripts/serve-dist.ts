@@ -5,6 +5,7 @@ import { createReadStream } from 'node:fs'
 import { readFile, stat } from 'node:fs/promises'
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http'
 import { extname, join, resolve, sep } from 'node:path'
+import { pipeline } from 'node:stream/promises'
 import { parseArgs } from 'node:util'
 
 const DIST = resolve(import.meta.dirname, '..', 'dist')
@@ -139,11 +140,8 @@ async function send(
   }
   const stream = createReadStream(file)
   await once(stream, 'open')
-  stream.on('error', (error) => {
-    res.destroy(error)
-  })
   res.writeHead(status, head)
-  stream.pipe(res)
+  await pipeline(stream, res)
 }
 
 // A build without 404.html still answers unknown paths with a 404.
