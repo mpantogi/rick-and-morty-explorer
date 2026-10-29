@@ -21,7 +21,7 @@ import ImagePreview from './ImagePreview.vue'
 const FIELDS = heroInputSchema.keyof().options
 const GENDER_OPTIONS = GENDERS.map((value) => ({ value, label: genderLabel(value) }))
 // Bound rather than static: vue-tsc 3.3 loses the slot scope after a static value holding "//".
-const IMAGE_HINT = 'A direct link to an image, starting with https://.'
+const IMAGE_HINT = 'A direct link to an image, starting with https:// and a domain name.'
 const IMAGE_PLACEHOLDER = 'https://…'
 
 type HeroField = (typeof FIELDS)[number]

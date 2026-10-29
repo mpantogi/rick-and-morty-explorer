@@ -9,7 +9,7 @@ const IMAGE = 'https://rickandmortyapi.com/api/character/avatar/7.jpeg'
 const BROKEN_IMAGE = 'https://images.example.com/missing.png'
 const INSECURE_IMAGE = 'http://example.com/pete.png'
 const NOT_FOUND = 404
-const SECURE_URL_ERROR = 'Enter a secure image URL starting with https://.'
+const SECURE_URL_ERROR = 'Enter a secure image URL: https:// and a domain name, not an IP address.'
 const UNKNOWN_HERO_PATH = '/heroes/0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
 
 function form(page: Page) {

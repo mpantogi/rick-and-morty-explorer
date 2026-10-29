@@ -15,7 +15,8 @@ export const heroInputSchema = z.object({
     .min(NAME_MIN, 'Use at least 2 characters.')
     .max(HERO_NAME_MAX, 'Use 60 characters or fewer.'),
   gender: z.enum(GENDERS, { error: 'Choose a gender.' }),
-  // https on a public domain only: every visit loads this URL from the visitor's browser.
+  // https and a domain name, never an IP address or localhost: every visit loads this URL from the
+  // visitor's browser.
   image: z
     .string()
     .trim()
@@ -25,12 +26,16 @@ export const heroInputSchema = z.object({
       z.url({
         protocol: /^https$/,
         hostname: z.regexes.domain,
-        error: 'Enter a secure image URL starting with https://.',
+        error: 'Enter a secure image URL: https:// and a domain name, not an IP address.',
       }),
     ),
 })
 
-export const heroSchema = heroInputSchema.extend({ id: z.uuid(), createdAt: z.iso.datetime() })
+// crypto.randomUUID gives lowercase v4 ids, the only hero ids a favorites key accepts.
+export const heroSchema = heroInputSchema.extend({
+  id: z.uuidv4().lowercase(),
+  createdAt: z.iso.datetime(),
+})
 
 export type HeroInput = z.output<typeof heroInputSchema>
 export type Hero = z.output<typeof heroSchema>

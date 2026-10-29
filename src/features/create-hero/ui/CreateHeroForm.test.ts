@@ -15,8 +15,8 @@ const VALIDATION_SETTLE_MS = 50
 const IMAGE = 'https://example.com/pete.png'
 const NAME_HINT = '2 to 60 characters.'
 const NAME_TOO_SHORT = 'Use at least 2 characters.'
-const IMAGE_HINT = 'A direct link to an image, starting with https://.'
-const SECURE_URL_ERROR = 'Enter a secure image URL starting with https://.'
+const IMAGE_HINT = 'A direct link to an image, starting with https:// and a domain name.'
+const SECURE_URL_ERROR = 'Enter a secure image URL: https:// and a domain name, not an IP address.'
 
 async function setup() {
   const rendered = await renderWithApp(CreateHeroForm, { route: '/heroes/new' })

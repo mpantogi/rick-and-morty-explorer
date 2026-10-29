@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
+import { heroKey, isCharacterKey } from './character-key'
 import { heroInputSchema, heroSchema } from './hero-schema'
 
 const VALID = { name: 'Portal Pete', gender: 'male', image: 'https://example.com/pete.png' }
 const URL_MAX = 2048
-const SECURE_URL_ERROR = 'Enter a secure image URL starting with https://.'
+const SECURE_URL_ERROR = 'Enter a secure image URL: https:// and a domain name, not an IP address.'
 
 type Field = keyof typeof VALID
 
@@ -53,6 +54,8 @@ describe('heroInputSchema', () => {
     ['ftp://example.com/pete.png', SECURE_URL_ERROR],
     ['http://example.com/pete.png', SECURE_URL_ERROR],
     ['https://localhost/pete.png', SECURE_URL_ERROR],
+    ['https://192.168.0.10/pete.png', SECURE_URL_ERROR],
+    ['https://[::1]/pete.png', SECURE_URL_ERROR],
     ['example.com/pete.png', SECURE_URL_ERROR],
     [`https://example.com/${'a'.repeat(URL_MAX)}`, 'Use a URL of 2,048 characters or fewer.'],
   ])('rejects the image URL %j with %j', (image, message) => {
@@ -78,9 +81,17 @@ describe('heroSchema', () => {
     expect(heroSchema.parse(stored)).toEqual(stored)
   })
 
+  it('accepts the ids crypto.randomUUID gives, each a key the favorites accept', () => {
+    const { id } = heroSchema.parse({ ...stored, id: crypto.randomUUID() })
+
+    expect(isCharacterKey(heroKey(id))).toBe(true)
+  })
+
   it.each([
     ['a missing id', { ...stored, id: undefined }],
     ['an id that is not a uuid', { ...stored, id: 'pete' }],
+    ['a uuid that is not version 4', { ...stored, id: '0b4f3a52-8f1e-1a5b-9c7d-2e6f1a3b4c5d' }],
+    ['an uppercase uuid', { ...stored, id: '0B4F3A52-8F1E-4A5B-9C7D-2E6F1A3B4C5D' }],
     ['a creation time that is not ISO', { ...stored, createdAt: 'yesterday' }],
     ['an insecure image', { ...stored, image: 'http://example.com/pete.png' }],
   ])('rejects %s', (_, value) => {
