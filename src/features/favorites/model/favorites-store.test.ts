@@ -1,5 +1,5 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { toast } from 'vue-sonner'
 
@@ -108,6 +108,35 @@ describe('useFavoritesStore', () => {
     expect(toastError).toHaveBeenCalledWith("Couldn't save in this browser", {
       id: 'storage-error',
       description: 'Storage is full or blocked.',
+    })
+  })
+
+  describe('when the browser blocks site data', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('reports it once and keeps favorites in memory for this visit', async () => {
+      const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const blocked = new DOMException('The operation is insecure.', 'SecurityError')
+      vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+        throw blocked
+      })
+
+      const favorites = freshStore()
+
+      expect(favorites.toggle('api:1')).toBe(true)
+      expect(favorites.toggle('api:2')).toBe(true)
+      expect(favorites.toggle('api:1')).toBe(true)
+      await nextTick()
+      expect(favorites.keys).toEqual(['api:2'])
+      expect(favorites.isFavorite('api:2')).toBe(true)
+      expect(consoleError).toHaveBeenCalledExactlyOnceWith('[storage]', blocked)
+      expect(toastError).toHaveBeenCalledExactlyOnceWith("Couldn't save in this browser", {
+        id: 'storage-error',
+        description: 'Storage is full or blocked.',
+      })
     })
   })
 })

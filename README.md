@@ -43,10 +43,11 @@ Live site: https://rickverse-explorer.netlify.app
   (`’`), so typing `Morty's` with a plain `'` misses them, and there is no accent folding
   (`Martinez` does not find `Martínez`). Working around either would take extra API requests per
   search, or a client-side filter that breaks the API's counts and paging, so both are accepted.
-- **Local persistence.** Favorites and heroes are Pinia stores backed by VueUse
-  `useLocalStorage`, with versioned keys, a Zod check on every read and caps of 2,000 favorites and
-  500 heroes. pinia-plugin-persistedstate is not used because `useLocalStorage`, from a library the
-  app already depends on, already gives each store a validated, cross-tab-synced ref.
+- **Local persistence.** Favorites and heroes are Pinia stores backed by VueUse `useStorage`,
+  with versioned keys, a Zod check on every read and caps of 2,000 favorites and 500 heroes. When
+  the browser blocks site data, the app says so once and keeps them in memory for the visit.
+  pinia-plugin-persistedstate is not used because `useStorage`, from a library the app already
+  depends on, already gives each store a validated, cross-tab-synced ref.
   [ADR 0006](docs/adr/0006-local-persistence-with-vueuse.md)
 - **Errors.** The query client raises one toast per kind of failure, and each region shows its own
   error with a retry. A missing character or route gets a full error page; 404s from filters are an

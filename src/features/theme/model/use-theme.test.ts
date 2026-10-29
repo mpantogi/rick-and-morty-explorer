@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { effectScope, nextTick } from 'vue'
+import { toast } from 'vue-sonner'
 
 import { STORAGE_KEYS } from '@/shared/config'
 
@@ -41,6 +42,7 @@ describe('useTheme', () => {
   afterEach(() => {
     stop()
     vi.unstubAllGlobals()
+    vi.restoreAllMocks()
   })
 
   it('defaults to the light theme', async () => {
@@ -86,6 +88,25 @@ describe('useTheme', () => {
     await nextTick()
 
     expect(started.theme.isDark.value).toBe(true)
+  })
+
+  it('reports blocked storage once and still switches the theme for this visit', async () => {
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const blocked = new DOMException('The operation is insecure.', 'SecurityError')
+    vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+      throw blocked
+    })
+    const started = startTheme()
+    stop = started.stop
+
+    started.theme.toggle()
+    await nextTick()
+
+    expect(started.theme.isDark.value).toBe(true)
+    expect(document.documentElement).toHaveClass('dark')
+    expect(consoleError).toHaveBeenCalledExactlyOnceWith('[storage]', blocked)
+    expect(toastError).toHaveBeenCalledOnce()
   })
 
   it('shares one theme state between callers', () => {

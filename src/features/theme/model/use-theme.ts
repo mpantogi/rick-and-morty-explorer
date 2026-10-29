@@ -1,11 +1,18 @@
-import { createSharedComposable, useColorMode } from '@vueuse/core'
+import { createSharedComposable, useColorMode, useStorage } from '@vueuse/core'
 import { computed } from 'vue'
 
 import { STORAGE_KEYS } from '@/shared/config'
+import { reportStorageError } from '@/shared/lib'
+
+type ThemeMode = 'light' | 'dark'
 
 // Writes the literal mode ('light' | 'dark'): useDark would store 'auto', which the head script ignores.
 export const useTheme = createSharedComposable(() => {
-  const mode = useColorMode({ storageKey: STORAGE_KEYS.theme, initialValue: 'light' })
+  // useColorMode passes no onError to its storage, so blocked storage would log outside reportError.
+  const stored = useStorage<ThemeMode>(STORAGE_KEYS.theme, 'light', undefined, {
+    onError: reportStorageError,
+  })
+  const mode = useColorMode({ storageRef: stored })
   const isDark = computed({
     get: () => mode.value === 'dark',
     set: (dark: boolean) => {

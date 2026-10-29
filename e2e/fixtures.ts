@@ -18,6 +18,8 @@ export type Theme = 'light' | 'dark'
 export interface ConsoleGuard {
   // Tolerates the browser's "Failed to load resource" error for responses whose URL matches.
   allowHttpErrors(...patterns: RegExp[]): void
+  // Tolerates errors the app reports on purpose (reportError), matched against the message text.
+  allowConsoleErrors(...patterns: RegExp[]): void
 }
 
 interface Fixtures {
@@ -26,10 +28,17 @@ interface Fixtures {
   makeAxeBuilder: () => AxeBuilder
 }
 
-function isAllowedHttpError(message: ConsoleMessage, allowed: readonly RegExp[]): boolean {
-  if (!message.text().startsWith('Failed to load resource')) return false
+interface AllowedErrors {
+  readonly http: RegExp[]
+  readonly console: RegExp[]
+}
+
+function isAllowedError(message: ConsoleMessage, allowed: AllowedErrors): boolean {
+  const text = message.text()
+  if (allowed.console.some((pattern) => pattern.test(text))) return true
+  if (!text.startsWith('Failed to load resource')) return false
   const { url } = message.location()
-  return allowed.some((pattern) => pattern.test(url))
+  return allowed.http.some((pattern) => pattern.test(url))
 }
 
 export const test = base.extend<Fixtures>({
@@ -44,7 +53,7 @@ export const test = base.extend<Fixtures>({
   consoleGuard: [
     async ({ page }, use) => {
       const problems: string[] = []
-      const allowed: RegExp[] = []
+      const allowed: AllowedErrors = { http: [], console: [] }
       await page.exposeFunction('reportCspViolation', (violation: string) => {
         problems.push(`CSP violation: ${violation}`)
       })
@@ -54,7 +63,7 @@ export const test = base.extend<Fixtures>({
         })
       })
       page.on('console', (message) => {
-        if (message.type() === 'error' && !isAllowedHttpError(message, allowed)) {
+        if (message.type() === 'error' && !isAllowedError(message, allowed)) {
           problems.push(message.text())
         }
       })
@@ -64,7 +73,10 @@ export const test = base.extend<Fixtures>({
 
       await use({
         allowHttpErrors: (...patterns) => {
-          allowed.push(...patterns)
+          allowed.http.push(...patterns)
+        },
+        allowConsoleErrors: (...patterns) => {
+          allowed.console.push(...patterns)
         },
       })
 

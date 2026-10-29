@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -10,7 +10,9 @@ import { heroToView } from './mappers'
 
 // Newest first. The serializer validates every read, including changes made in another tab.
 export const useHeroesStore = defineStore('heroes', () => {
-  const heroes = useLocalStorage<Hero[]>(STORAGE_KEYS.heroes, [], {
+  // No storage argument: useStorage then reads localStorage inside a try, so blocked site data
+  // reaches onError and the list lives in memory (useLocalStorage reads it unguarded).
+  const heroes = useStorage<Hero[]>(STORAGE_KEYS.heroes, [], undefined, {
     serializer: createZodSerializer(heroSchema, { max: MAX_HEROES }),
     writeDefaults: false,
     onError: reportStorageError,

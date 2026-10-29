@@ -155,4 +155,31 @@ describe('useHeroesStore', () => {
       description: 'Storage is full or blocked.',
     })
   })
+
+  describe('when the browser blocks site data', () => {
+    afterEach(() => {
+      vi.restoreAllMocks()
+    })
+
+    it('reports it once and keeps heroes in memory for this visit', async () => {
+      const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+      const blocked = new DOMException('The operation is insecure.', 'SecurityError')
+      vi.spyOn(window, 'localStorage', 'get').mockImplementation(() => {
+        throw blocked
+      })
+
+      const heroes = freshStore()
+      const pete = heroes.add(PETE)
+      await nextTick()
+
+      expect(heroes.heroes).toEqual([pete])
+      expect(heroes.getById(String(pete?.id))).toEqual(pete)
+      expect(consoleError).toHaveBeenCalledExactlyOnceWith('[storage]', blocked)
+      expect(toastError).toHaveBeenCalledExactlyOnceWith("Couldn't save in this browser", {
+        id: 'storage-error',
+        description: 'Storage is full or blocked.',
+      })
+    })
+  })
 })

@@ -61,6 +61,9 @@ uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that bui
   (`test/api-semantics.ts`), and avatars with an inline SVG. An endpoint the mock does not serve
   answers 501, which the console guard turns into a failure. A test that needs a different answer
   registers its own `page.route` after the fixture's.
+- A test that makes the app report an error on purpose (`reportError`, for example blocked storage
+  in `storage.spec.ts`) declares the narrowest message pattern with
+  `consoleGuard.allowConsoleErrors(pattern)`.
 - `e2e/support/routes.ts` lists the routes the a11y and responsive specs visit, each with the
   selector that marks it settled and, where it matters, the favorites and created heroes the
   browser holds and a step that brings the page into the state under test; `openRoute` opens one.
@@ -193,8 +196,11 @@ together.
 
 Stored lists are capped (`src/shared/config/limits.ts`): the store refuses an addition at the cap
 (favorites `toggle` returns `false`, heroes `add` returns `null`), and the calling component shows
-the limit toast. A failed write (storage full or blocked) goes to `reportStorageError`
-(`reportError` plus a toast), and the in-memory state carries on.
+the limit toast. Storage that is full or blocked goes to `reportStorageError` (`reportError` plus
+a toast), and the in-memory state carries on. The stores and the theme call VueUse `useStorage`
+without a storage argument, so it resolves `localStorage` inside a `try`; never use
+`useLocalStorage`, which reads `window.localStorage` unguarded and crashes the app when the browser
+blocks site data. Pass `onError: reportStorageError` too (VueUse's default logs on its own).
 
 Favorites hold API characters (`api:<id>`) and created heroes (`hero:<uuid>`). The favorites list
 resolves heroes through the heroes store; a key whose character is missing is hidden, never

@@ -1,4 +1,4 @@
-import { useLocalStorage } from '@vueuse/core'
+import { useStorage } from '@vueuse/core'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { computed } from 'vue'
 
@@ -8,7 +8,9 @@ import { createZodSerializer, reportStorageError } from '@/shared/lib'
 
 // Newest first. The serializer validates every read, including changes made in another tab.
 export const useFavoritesStore = defineStore('favorites', () => {
-  const keys = useLocalStorage<CharacterKey[]>(STORAGE_KEYS.favorites, [], {
+  // No storage argument: useStorage then reads localStorage inside a try, so blocked site data
+  // reaches onError and the list lives in memory (useLocalStorage reads it unguarded).
+  const keys = useStorage<CharacterKey[]>(STORAGE_KEYS.favorites, [], undefined, {
     serializer: createZodSerializer(characterKeySchema, { max: MAX_FAVORITES }),
     writeDefaults: false,
     onError: reportStorageError,
