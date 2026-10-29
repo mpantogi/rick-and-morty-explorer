@@ -8,7 +8,7 @@ import { ApiError } from './api-error'
 import { buildApiUrl, getJson } from './http-client'
 
 const API = 'https://rickandmortyapi.com/api'
-const DEFAULT_TIMEOUT_MS = 10_000
+const REQUEST_TIMEOUT_MS = 10_000
 const itemSchema = z.object({ id: z.number() })
 
 function respondWith(resolver: () => Response | Promise<Response>) {
@@ -142,7 +142,7 @@ describe('getJson', () => {
     expect(error).toBe(controller.signal.reason)
   })
 
-  it('aborts a request that exceeds the default timeout with a retryable timeout error', async () => {
+  it('aborts a request that exceeds the request timeout with a retryable timeout error', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     respondWith(async () => {
       await delay('infinite')
@@ -150,7 +150,7 @@ describe('getJson', () => {
     })
 
     const request = captureError(getJson({ path: '/character/1', schema: itemSchema }))
-    await vi.advanceTimersByTimeAsync(DEFAULT_TIMEOUT_MS)
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS)
 
     expect(await request).toMatchObject({ kind: 'timeout', isRetryable: true })
   })
@@ -165,7 +165,7 @@ describe('getJson', () => {
 
     await getJson({ path: '/character/1', schema: itemSchema, signal })
 
-    const timeoutCall = setTimer.mock.calls.findIndex(([, ms]) => ms === DEFAULT_TIMEOUT_MS)
+    const timeoutCall = setTimer.mock.calls.findIndex(([, ms]) => ms === REQUEST_TIMEOUT_MS)
     expect(timeoutCall).toBeGreaterThanOrEqual(0)
     expect(clearTimer).toHaveBeenCalledWith(setTimer.mock.results[timeoutCall]?.value)
     const onAbort = addListener.mock.calls.find(([type]) => type === 'abort')?.[1]

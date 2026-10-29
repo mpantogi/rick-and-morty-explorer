@@ -4,7 +4,7 @@ import { env } from '@/shared/config'
 
 import { ApiError } from './api-error'
 
-const DEFAULT_TIMEOUT_MS = 10_000
+const REQUEST_TIMEOUT_MS = 10_000
 
 type Query = Readonly<Record<string, string>>
 
@@ -13,7 +13,6 @@ export interface GetJsonOptions<T> {
   query?: Query
   schema: z.ZodType<T>
   signal?: AbortSignal
-  timeoutMs?: number
 }
 
 interface RequestScope {
@@ -32,16 +31,13 @@ export function buildApiUrl(path: string, query: Query = {}): string {
 }
 
 // Manual signal chaining: AbortSignal.any is missing in Safari 16.4, inside the build target.
-function createRequestScope(
-  callerSignal: AbortSignal | undefined,
-  timeoutMs: number,
-): RequestScope {
+function createRequestScope(callerSignal: AbortSignal | undefined): RequestScope {
   const controller = new AbortController()
   let timedOut = false
   const timer = setTimeout(() => {
     timedOut = true
     controller.abort()
-  }, timeoutMs)
+  }, REQUEST_TIMEOUT_MS)
   const onCallerAbort = () => {
     controller.abort(callerSignal?.reason)
   }
@@ -54,7 +50,7 @@ function createRequestScope(
       // A caller abort passes through untouched so vue-query treats it as a cancellation.
       if (callerSignal?.aborted) return error
       if (timedOut)
-        return new ApiError('timeout', `Timed out after ${timeoutMs} ms`, { cause: error })
+        return new ApiError('timeout', `Timed out after ${REQUEST_TIMEOUT_MS} ms`, { cause: error })
       return fallback()
     },
     dispose() {
@@ -91,8 +87,8 @@ async function readJson(response: Response, scope: RequestScope): Promise<unknow
 }
 
 export async function getJson<T>(options: GetJsonOptions<T>): Promise<T> {
-  const { path, query, schema, signal, timeoutMs = DEFAULT_TIMEOUT_MS } = options
-  const scope = createRequestScope(signal, timeoutMs)
+  const { path, query, schema, signal } = options
+  const scope = createRequestScope(signal)
   try {
     const response = await send(buildApiUrl(path, query), scope)
     if (!response.ok) {
