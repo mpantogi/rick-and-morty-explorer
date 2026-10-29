@@ -15,8 +15,8 @@ export const heroInputSchema = z.object({
     .min(NAME_MIN, 'Use at least 2 characters.')
     .max(HERO_NAME_MAX, 'Use 60 characters or fewer.'),
   gender: z.enum(GENDERS, { error: 'Choose a gender.' }),
-  // https and a domain name, never an IP address or localhost: every visit loads this URL from the
-  // visitor's browser.
+  // https and a dotted domain name, never an IP address or a bare localhost: every visit loads this
+  // URL from the visitor's browser.
   image: z
     .string()
     .trim()
