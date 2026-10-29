@@ -16,7 +16,7 @@ const { mix, rest } = useBemMix()
     :class="[
       'input',
       mix(),
-      'h-11 w-full rounded-lg border border-line-strong bg-field px-3 text-fg placeholder:text-muted focus-visible:-outline-offset-2',
+      'h-11 w-full rounded-lg border border-line-strong bg-field px-3 text-fg placeholder:text-muted focus-visible:-outline-offset-2 aria-invalid:border-danger',
     ]"
   />
 </template>
