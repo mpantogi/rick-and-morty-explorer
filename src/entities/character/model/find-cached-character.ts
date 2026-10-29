@@ -25,11 +25,13 @@ export function findCachedCharacter(
   return cachedCharacters(queryClient).find((character) => character.id === id)
 }
 
-// All or nothing: with static data a partial list would never be completed by a refetch.
+// All or nothing: with static data a partial list would never be completed by a refetch. An empty
+// request gets no answer, so a disabled query stays empty and never reaches the prerendered page.
 export function findCachedCharacters(
   queryClient: QueryClient,
   ids: readonly number[],
 ): ApiCharacter[] | undefined {
+  if (ids.length === 0) return undefined
   const byId = new Map(cachedCharacters(queryClient).map((character) => [character.id, character]))
   const found = ids.flatMap((id) => byId.get(id) ?? [])
   return found.length === ids.length ? found : undefined

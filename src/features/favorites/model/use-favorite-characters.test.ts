@@ -2,7 +2,7 @@ import { http } from 'msw/http'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, watch } from 'vue'
 
-import type { QueryClient } from '@tanstack/vue-query'
+import { dehydrate, type QueryClient } from '@tanstack/vue-query'
 
 import { type CharacterView, characterQueries, fetchCharacterPage } from '@/entities/character'
 import { STORAGE_KEYS } from '@/shared/config'
@@ -298,6 +298,13 @@ describe('useFavoriteCharacters', () => {
     await vi.waitFor(() => {
       expect(state.value.kind).toBe('ready')
     })
+  })
+
+  it('leaves no query to embed in the prerendered page when nothing is saved', async () => {
+    vi.stubEnv('SSR', true)
+    const { queryClient } = await setup()
+
+    expect(dehydrate(queryClient).queries).toEqual([])
   })
 
   it('stays loading without a request while prerendering', async () => {
