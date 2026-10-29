@@ -24,7 +24,7 @@ Live site: https://rickverse-explorer.netlify.app
 | Server state           | TanStack Vue Query for every API request; Pinia only for favorites and heroes                   | [ADR 0002](docs/adr/0002-server-state-and-page-window.md) |
 | Performance, semantics | Code splitting, idle prefetch, prioritised images, a bundle budget; landmarks, live regions     | `scripts/check-budget.ts`, `src/app/lib`                  |
 | SEO, security          | Titles, canonicals, social tags, JSON-LD, sitemap, robots, `llms.txt`; per-page CSP and headers | `build/`, `public/_headers`                               |
-| Deployment             | Static site on Netlify                                                                          | [Deploy](#deploy)                                         |
+| Deployment             | Static site on Netlify, deployed by CI once the E2E suite passes                                | [Deploy](#deploy)                                         |
 
 ## Decisions and trade-offs
 
@@ -62,6 +62,9 @@ Live site: https://rickverse-explorer.netlify.app
   show an error with a retry. Requests time out after 10 s and network or server errors are retried
   twice. The next step would be a static snapshot: the build already loads every character and
   episode, and publishing that data with the site would give the list a fallback.
+- **Deploys from CI.** A push to `main` goes live only after `verify` and `e2e` pass: the `deploy`
+  job publishes the `dist` artifact those jobs built and tested, and Netlify never builds, because
+  a Git-connected build would not wait for the tests. [ADR 0007](docs/adr/0007-deploy-from-ci.md)
 
 ## Architecture
 
@@ -190,15 +193,16 @@ yarn test:e2e --project=chromium   # Chromium only
 
 GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests: a
 dependency audit, format, lint, typecheck, coverage, build and budget, then the whole Playwright
-matrix against that build.
+matrix against that build. On a push to `main` that passes both, it then deploys that same build
+([Deploy](#deploy)).
 
 ## Configuration
 
 Both variables are optional. Their defaults are `SITE.defaultUrl` and `SITE.apiBaseUrl` in
 `src/shared/config/site.ts`, and `src/shared/config/parse-env.ts` validates them: the build and the
 app fail fast if either is not an `https:` URL. Set them in the shell or in an untracked
-`.env.local`. Netlify builds with `netlify.toml`, which sets Node 24 and the production
-`VITE_SITE_URL`.
+`.env.local`. CI builds with the defaults; `netlify.toml` sets Node 24 and the production
+`VITE_SITE_URL` for a build that runs on Netlify.
 
 | Variable            | Default                                  | Used for                               |
 | ------------------- | ---------------------------------------- | -------------------------------------- |
@@ -210,11 +214,18 @@ app fail fast if either is not an `https:` URL. Set them in the shell or in an u
 The site is static: Netlify serves `dist/` as built, including `public/_redirects` (the hero page
 rewrites) and `public/_headers` (security and cache headers, and the web manifest's media type).
 
-- **Netlify CLI:** `yarn build`, then `netlify deploy --prod --dir=dist` (without a global install:
-  `yarn dlx netlify-cli deploy --prod --dir=dist`).
-- **Git-connected:** link the repository to a Netlify site. Netlify reads `netlify.toml` (build
-  command `yarn build`, publish directory `dist`, Node 24 and the production `VITE_SITE_URL`) and
-  builds on every push to the production branch.
+- **From CI (the live site):** on a push to `main`, once `verify` and `e2e` pass, the `deploy` job
+  publishes the `dist` artifact they built and tested with
+  `netlify deploy --prod --no-build --dir=dist`. It needs a Netlify personal access token (User
+  settings > Applications > Personal access tokens) in the repository secret `NETLIFY_AUTH_TOKEN`;
+  the site ID is set in the workflow. Pull requests never deploy.
+  [ADR 0007](docs/adr/0007-deploy-from-ci.md)
+- **By hand:** `yarn build`, then `netlify deploy --prod --no-build --dir=dist`, which uploads that
+  build instead of building again (without a global install:
+  `yarn dlx netlify-cli deploy --prod --no-build --dir=dist`).
+- **Git-connected:** link the repository to a Netlify site instead. Netlify reads `netlify.toml`
+  (build command `yarn build`, publish directory `dist`, Node 24 and the production
+  `VITE_SITE_URL`) and builds on every push to the production branch, without waiting for CI.
 
 A new Netlify project on the Free plan injects a "Powered by Netlify" badge into the pages it
 serves. The badge's `srcdoc` iframe inherits each page's meta CSP, so turn it off under Project

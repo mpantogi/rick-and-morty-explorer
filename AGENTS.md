@@ -13,7 +13,7 @@ Instructions for AI coding agents working in this repository. Humans start with 
 | `e2e/`                     | Playwright specs, `fixtures.ts` and `support/` (API mock, routes, state probe)       |
 | `public/`                  | Copied into `dist/` as is: `_redirects`, `_headers`, generated brand assets          |
 | `docs/adr/`                | Architecture decision records                                                        |
-| `.github/workflows/ci.yml` | CI                                                                                   |
+| `.github/workflows/ci.yml` | CI and the production deploy                                                         |
 
 `scripts/` run directly in Node 24 with type stripping, and `build/` loads through the Vite config.
 Both use erasable TypeScript only and import with `.ts` extensions, including the `src/` modules
@@ -45,6 +45,7 @@ Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `te
 CI (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests: the `verify`
 job audits dependencies (`yarn npm audit --all --recursive`), then runs the `verify` steps and
 uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that build. Keep both green.
+On a push to `main`, the `deploy` job then publishes that same `dist/` (see Deploy below).
 Every action is pinned to a full commit SHA with its version in a comment
 (`actions/checkout@<sha> # v7.0.1`); to update one, resolve the new tag's commit and change both.
 
@@ -85,9 +86,14 @@ Every action is pinned to a full commit SHA with its version in a comment
 
 ### Deploy
 
-Netlify builds with `netlify.toml`: `yarn build`, publish `dist`, Node 24 and the production
-`VITE_SITE_URL`; the README lists the deploy steps. `public/_redirects` and `public/_headers` ship
-inside `dist`; keep `scripts/serve-dist.ts` in step with any rule added there.
+The `deploy` job publishes the tested `dist` artifact with a pinned `netlify-cli` and
+`--no-build`. It reads the token from the `NETLIFY_AUTH_TOKEN` repository secret, and the site ID
+is in the workflow (ADR 0007). Every green push to `main` is a production deploy, which spends
+Netlify Free-plan credits (the sites pause when they run out), so push related commits together.
+`netlify.toml` (`yarn build`, publish `dist`, Node 24, the production `VITE_SITE_URL`) only
+applies to a build that runs on Netlify; the README lists the deploy steps. `public/_redirects` and
+`public/_headers` ship inside `dist`; keep `scripts/serve-dist.ts` in step with any rule added
+there.
 
 ## Architecture: Feature-Sliced Design
 
