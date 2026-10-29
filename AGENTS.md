@@ -208,8 +208,9 @@ together.
 Stored lists are capped (`src/shared/config/limits.ts`): the store refuses an addition at the cap
 (favorites `toggle` returns `false`, heroes `add` returns `null`), and the calling component shows
 the limit toast. Storage that is full or blocked goes to `reportStorageError` (`reportError` plus
-a toast), and the in-memory state carries on. The stores and the theme call VueUse `useStorage`
-without a storage argument, so it resolves `localStorage` inside a `try`; never use
+a toast), and the in-memory state carries on. The stores persist through `useStoredList`
+(`src/shared/lib/storage`) and the theme calls VueUse `useStorage`, both without a storage
+argument, so it resolves `localStorage` inside a `try`; never use
 `useLocalStorage`, which reads `window.localStorage` unguarded and crashes the app when the browser
 blocks site data. Pass `onError: reportStorageError` too (VueUse's default logs on its own).
 

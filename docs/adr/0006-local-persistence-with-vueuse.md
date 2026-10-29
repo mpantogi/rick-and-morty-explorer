@@ -11,10 +11,11 @@ Status: accepted
 ## Decision
 
 - Two Pinia setup stores hold the persisted lists: `useFavoritesStore` (`features/favorites`) and
-  `useHeroesStore` (`entities/character`). Each is backed by VueUse `useStorage` with
-  `writeDefaults: false`, so nothing is written until the visitor saves something. No storage is
-  passed in: `useStorage` then resolves `localStorage` inside a `try`, whereas `useLocalStorage`
-  reads the getter unguarded, which throws when the browser blocks site data.
+  `useHeroesStore` (`entities/character`). Both persist through `useStoredList`
+  (`shared/lib/storage`), a VueUse `useStorage` with `writeDefaults: false`, so nothing is written
+  until the visitor saves something. No storage is passed in: `useStorage` then resolves
+  `localStorage` inside a `try`, whereas `useLocalStorage` reads the getter unguarded, which throws
+  when the browser blocks site data.
 - Keys are versioned (`rme:favorites:v1`, `rme:heroes:v1` in `shared/config/storage-keys.ts`). An
   incompatible shape change bumps the version, so old data is ignored, never misread.
 - `createZodSerializer(itemSchema, { max })` validates every read entry by entry: invalid entries
