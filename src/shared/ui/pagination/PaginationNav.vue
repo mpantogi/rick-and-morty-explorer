@@ -12,8 +12,7 @@ const { current, total, to } = defineProps<{
   to: (page: number) => RouteLocationRaw
 }>()
 
-const SIBLINGS = 1
-const items = computed(() => getPageItems(current, total, SIBLINGS))
+const items = computed(() => getPageItems(current, total))
 </script>
 
 <!-- RouterLink compares params but not the query, so every page link would claim
