@@ -5,7 +5,7 @@ import { type ComputedRef, nextTick, ref, watch } from 'vue'
 import { STORAGE_KEYS } from '@/shared/config'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { holdListResponses, server } from '../../../../test/msw/server'
 import { renderComposable } from '../../../../test/render'
 import { characterKeys } from '../api/query-keys'
 import { EMPTY_FILTERS } from './filters'
@@ -46,20 +46,6 @@ function trackListRequests(): URL[] {
     }),
   )
   return urls
-}
-
-// Holds every list response until released, so in-between states can be observed.
-function holdListResponses(): () => void {
-  let release: () => void = () => undefined
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  server.use(
-    http.get(`${API}/character`, async () => {
-      await gate
-    }),
-  )
-  return release
 }
 
 async function setup(initial: { filters?: Partial<CharacterFilters>; page?: number } = {}) {

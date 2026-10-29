@@ -98,31 +98,26 @@ export async function openPage(page: Page, path: string) {
   return response
 }
 
+// Writes one localStorage entry before any page script runs.
+async function seedLocalStorage(page: Page, key: string, value: string): Promise<void> {
+  await page.addInitScript(
+    ([storageKey, storageValue]) => {
+      localStorage.setItem(storageKey, storageValue)
+    },
+    [key, value] as const,
+  )
+}
+
 export async function useStoredTheme(page: Page, theme: Theme): Promise<void> {
-  await page.addInitScript(
-    ([key, value]) => {
-      localStorage.setItem(key, value)
-    },
-    [STORAGE_KEYS.theme, theme] as const,
-  )
+  await seedLocalStorage(page, STORAGE_KEYS.theme, theme)
 }
 
-// Seeds this browser's favorites (newest first) before any page script runs.
+// Seeds this browser's favorites (newest first).
 export async function useStoredFavorites(page: Page, keys: readonly string[]): Promise<void> {
-  await page.addInitScript(
-    ([key, value]) => {
-      localStorage.setItem(key, value)
-    },
-    [STORAGE_KEYS.favorites, JSON.stringify(keys)] as const,
-  )
+  await seedLocalStorage(page, STORAGE_KEYS.favorites, JSON.stringify(keys))
 }
 
-// Seeds the heroes this browser created (newest first) before any page script runs.
+// Seeds the heroes this browser created (newest first).
 export async function useStoredHeroes(page: Page, heroes: readonly Hero[]): Promise<void> {
-  await page.addInitScript(
-    ([key, value]) => {
-      localStorage.setItem(key, value)
-    },
-    [STORAGE_KEYS.heroes, JSON.stringify(heroes)] as const,
-  )
+  await seedLocalStorage(page, STORAGE_KEYS.heroes, JSON.stringify(heroes))
 }

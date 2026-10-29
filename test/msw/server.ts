@@ -16,3 +16,17 @@ export function recordRequests(route = '*'): string[] {
   )
   return seen
 }
+
+// Holds every list response until released, so in-between states can be observed.
+export function holdListResponses(): () => void {
+  let release: () => void = () => undefined
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  server.use(
+    http.get(`${API}/character`, async () => {
+      await gate
+    }),
+  )
+  return release
+}

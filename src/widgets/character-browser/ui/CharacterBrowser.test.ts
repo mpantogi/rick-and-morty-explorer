@@ -3,7 +3,7 @@ import { http } from 'msw/http'
 import { describe, expect, it, vi } from 'vitest'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { holdListResponses, server } from '../../../../test/msw/server'
 import { renderWithApp } from '../../../../test/render'
 import CharacterBrowser from './CharacterBrowser.vue'
 
@@ -27,19 +27,6 @@ function trackStates(root: Element) {
       observer.disconnect()
     },
   }
-}
-
-function holdListResponses(): () => void {
-  let release: () => void = () => undefined
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  server.use(
-    http.get(`${API}/character`, async () => {
-      await gate
-    }),
-  )
-  return release
 }
 
 async function setup(route = '/') {
