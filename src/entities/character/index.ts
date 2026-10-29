@@ -10,6 +10,7 @@ export {
   normalizeFilters,
   sameFilters,
 } from './model/filters'
+export { findCachedCharacters } from './model/find-cached-character'
 export { HERO_NAME_MAX, heroInputSchema } from './model/hero-schema'
 export { useHeroesStore } from './model/heroes-store'
 export { displayValue, genderLabel, statusLabel } from './model/labels'

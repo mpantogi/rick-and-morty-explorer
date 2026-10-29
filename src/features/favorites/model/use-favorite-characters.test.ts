@@ -2,11 +2,15 @@ import { http } from 'msw/http'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick, watch } from 'vue'
 
+import type { QueryClient } from '@tanstack/vue-query'
+
+import { type CharacterView, characterQueries, fetchCharacterPage } from '@/entities/character'
 import { STORAGE_KEYS } from '@/shared/config'
 
+import { CHARACTERS } from '../../../../test/fixtures/characters'
 import { API, apiJson } from '../../../../test/msw/handlers'
 import { recordRequests, server } from '../../../../test/msw/server'
-import { renderComposable } from '../../../../test/render'
+import { createTestQueryClient, renderComposable } from '../../../../test/render'
 import { useFavoritesStore } from './favorites-store'
 import { type ListLikeState, useFavoriteCharacters } from './use-favorite-characters'
 
@@ -28,19 +32,32 @@ function saveHeroes(heroes: readonly object[]): void {
   localStorage.setItem(STORAGE_KEYS.heroes, JSON.stringify(heroes))
 }
 
-async function setup() {
-  const rendered = await renderComposable(() => {
-    const favorites = useFavoriteCharacters()
-    const store = useFavoritesStore()
-    return { favorites, store }
-  })
+async function setup(queryClient?: QueryClient) {
+  const rendered = await renderComposable(
+    () => {
+      const favorites = useFavoriteCharacters()
+      const store = useFavoritesStore()
+      return { favorites, store }
+    },
+    { queryClient },
+  )
   const { favorites, store } = rendered.result
   return { ...rendered, state: favorites.state, favorites, store }
 }
 
-function names(state: ListLikeState): string[] {
+function items(state: ListLikeState): CharacterView[] {
   if (state.kind !== 'ready') throw new Error(`Expected ready favorites, got ${state.kind}`)
-  return state.items.map((item) => item.name)
+  return state.items
+}
+
+function names(state: ListLikeState): string[] {
+  return items(state).map((item) => item.name)
+}
+
+function record(id: number) {
+  const character = CHARACTERS.find((candidate) => candidate.id === id)
+  if (!character) throw new Error(`Character ${String(id)} is missing from the fixture`)
+  return character
 }
 
 describe('useFavoriteCharacters', () => {
@@ -159,6 +176,72 @@ describe('useFavoriteCharacters', () => {
     stop()
     expect(kinds).toEqual([])
     expect(names(state.value)).toEqual(['Morty Smith'])
+  })
+
+  it('answers a removal from the cache and keeps the other cards as they were', async () => {
+    saveFavorites(['api:3', 'api:1', 'api:2'])
+    const { state, store, queryClient } = await setup()
+    await vi.waitFor(() => {
+      expect(state.value).toMatchObject({ kind: 'ready', isUpdating: false })
+    })
+    const [summer, , morty] = items(state.value)
+    const paths = recordRequests('character/:ids')
+
+    store.toggle('api:1')
+    await nextTick()
+
+    expect(state.value).toMatchObject({ kind: 'ready', isUpdating: false })
+    expect(queryClient.isFetching()).toBe(0)
+    const [first, second] = items(state.value)
+    expect(first).toBe(summer)
+    expect(second).toBe(morty)
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(paths).toEqual([])
+  })
+
+  it('starts from characters the list already loaded, without a request', async () => {
+    saveFavorites(['api:2', 'api:1'])
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(
+      characterQueries.apiPage({}, 1).queryKey,
+      await fetchCharacterPage({}, 1),
+    )
+    const paths = recordRequests('character/:ids')
+
+    const { state } = await setup(queryClient)
+
+    expect(state.value).toMatchObject({ kind: 'ready', isUpdating: false })
+    expect(names(state.value)).toEqual(['Morty Smith', 'Rick Sanchez'])
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(paths).toEqual([])
+  })
+
+  it('starts from a character page already in the cache, without a request', async () => {
+    saveFavorites(['api:3'])
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(characterQueries.detail(3).queryKey, record(3))
+    const paths = recordRequests('character/:ids')
+
+    const { state } = await setup(queryClient)
+
+    expect(names(state.value)).toEqual(['Summer Smith'])
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(paths).toEqual([])
+  })
+
+  it('requests the whole list when one favorite is not cached yet', async () => {
+    saveFavorites(['api:22', 'api:1'])
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(characterQueries.detail(1).queryKey, record(1))
+    const paths = recordRequests('character/:ids')
+
+    const { state } = await setup(queryClient)
+
+    expect(state.value).toEqual({ kind: 'loading' })
+    await vi.waitFor(() => {
+      expect(names(state.value)).toEqual(['Aqua Rick', 'Rick Sanchez'])
+    })
+    expect(paths).toEqual(['/api/character/[1,22]'])
   })
 
   it('becomes empty when the last favorite is removed', async () => {

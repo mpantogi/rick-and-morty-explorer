@@ -6,7 +6,7 @@ import { defineComponent, h } from 'vue'
 import { STORAGE_KEYS } from '@/shared/config'
 
 import { API, apiJson } from '../../../../test/msw/handlers'
-import { server } from '../../../../test/msw/server'
+import { recordRequests, server } from '../../../../test/msw/server'
 import { renderWithApp } from '../../../../test/render'
 import FavoritesList from './FavoritesList.vue'
 
@@ -110,15 +110,16 @@ describe('FavoritesList', () => {
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(2)
     })
+    const paths = recordRequests()
 
     await user.click(screen.getByRole('button', { name: 'Favorite Beth Smith' }))
 
     expect(cardNames()).toEqual(['Rick Sanchez'])
     expect(status()).toHaveTextContent('1 favorite')
     expect(screen.getByRole('heading', { level: 1, name: 'Favorites' })).toHaveFocus()
-    await vi.waitFor(() => {
-      expect(container.querySelector('#favorites')).toHaveAttribute('aria-busy', 'false')
-    })
+    expect(container.querySelector('#favorites')).toHaveAttribute('aria-busy', 'false')
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(paths).toEqual([])
   })
 
   it('shows the failure in place with a retry that refetches', async () => {

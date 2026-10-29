@@ -25,8 +25,10 @@ Status: accepted
 - Storage that is blocked, full or failing goes to `reportStorageError` (the console through
   `reportError`, plus a toast); the in-memory state carries on for the visit.
 - Favorites store keys, `api:<id>` or `hero:<uuid>`. The favorites page resolves API ids in one
-  `/character/[ids]` request and heroes through the heroes store. A key whose character is missing
-  is hidden, never deleted.
+  `/character/[ids]` request and heroes through the heroes store. When the cache already holds
+  every saved character (from the list, a character page or the favorites list itself, as after a
+  removal), it answers without a request. A key whose character is missing is hidden, never
+  deleted.
 - The theme is not a store: `useColorMode` writes the literal `'light'` or `'dark'` to `rme:theme`
   (`useDark` would store `'auto'` for a choice that matches the OS) through a `useStorage` ref with
   the same `onError`, and an inline script in `index.html` adds the `dark` class before first paint.
@@ -42,3 +44,7 @@ Status: accepted
 - Every stored shape has one schema, shared with the form for heroes (ADR 0005).
 - The theme key is read in two places, `useTheme` and the inline script, which must change
   together.
+- The favorites page lists every favorite at once, without pagination. Realistic lists are short,
+  `MAX_FAVORITES` bounds what storage holds, avatars below the fold load lazily, and each card
+  keeps its view object, so a toggle re-renders one card. A list near the cap would render
+  hundreds of cards; paging it is the step to take if that ever matters.

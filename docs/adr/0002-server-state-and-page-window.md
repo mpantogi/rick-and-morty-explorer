@@ -30,8 +30,9 @@ Status: accepted
   in-range page is requested in parallel. Otherwise the first planned page goes first and the rest
   follow, so no request goes past the last page.
 - `placeholderData: keepPreviousData` keeps the previous page on screen, marked as updating. The
-  next UI page is prefetched once the current one is ready, and a detail page starts from the
-  character the list or the favorites already cached (`initialData`).
+  next UI page is prefetched once the current one is ready. A detail page starts from the
+  character the list or the favorites already cached, and the favorites list from the characters
+  the cache already holds (`initialData`); it requests only when one of them is missing.
 - `QueryCache.onError` raises one toast per error case (deduplicated by id) and stays silent for
   404s and cancellations. Each region renders its own error with a retry.
 - `queryClient.query` replaces `ensureQueryData`, `fetchQuery` and `prefetchQuery`, which are

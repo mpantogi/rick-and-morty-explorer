@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/vue-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { storeToRefs } from 'pinia'
 import { computed, type ComputedRef } from 'vue'
 
@@ -7,6 +7,7 @@ import {
   type CharacterKey,
   type CharacterView,
   characterQueries,
+  findCachedCharacters,
   parseCharacterKey,
   toCharacterView,
   useHeroesStore,
@@ -42,12 +43,23 @@ function apiIdsOf(keys: readonly CharacterKey[]): number[] {
 // dropped, and heroes this browser does not hold, disappear from view but stay saved.
 function inSavedOrder(
   keys: readonly CharacterKey[],
-  characters: readonly ApiCharacter[],
+  characters: readonly CharacterView[],
   heroes: readonly CharacterView[],
 ): CharacterView[] {
-  const known = [...characters.map(toCharacterView), ...heroes]
-  const views = new Map(known.map((view) => [view.key, view] as const))
+  const views = new Map([...characters, ...heroes].map((view) => [view.key, view] as const))
   return keys.flatMap((key) => views.get(key) ?? [])
+}
+
+// One view per cached character, so a toggle re-renders only the card it changes.
+function createViewCache(): (character: ApiCharacter) => CharacterView {
+  const views = new WeakMap<ApiCharacter, CharacterView>()
+  return (character) => {
+    const cached = views.get(character)
+    if (cached) return cached
+    const view = toCharacterView(character)
+    views.set(character, view)
+    return view
+  }
 }
 
 // Placeholder data still holds a removed favorite; filtering by the current keys hides it at once.
@@ -57,11 +69,15 @@ function toListLikeState(items: CharacterView[], isPlaceholder: boolean): ListLi
 }
 
 export function useFavoriteCharacters(): FavoriteCharacters {
+  const queryClient = useQueryClient()
   const { keys } = storeToRefs(useFavoritesStore())
   const { views: heroes } = storeToRefs(useHeroesStore())
   const apiIds = computed(() => apiIdsOf(keys.value))
+  const viewOf = createViewCache()
+  // Characters already cached (a removal, or favorites saved from the list) need no request.
   const query = useQuery(() => ({
     ...characterQueries.byIds(apiIds.value),
+    initialData: () => findCachedCharacters(queryClient, apiIds.value),
     placeholderData: keepPreviousData<ApiCharacter[]>,
     enabled: apiIds.value.length > 0 && !import.meta.env.SSR,
   }))
@@ -77,7 +93,7 @@ export function useFavoriteCharacters(): FavoriteCharacters {
     const data = query.data.value
     if (data === undefined) return LOADING
     return toListLikeState(
-      inSavedOrder(keys.value, data, heroes.value),
+      inSavedOrder(keys.value, data.map(viewOf), heroes.value),
       query.isPlaceholderData.value,
     )
   })
