@@ -20,7 +20,9 @@ Status: accepted
   origin; `font-src`, `manifest-src` and `base-uri` `'self'`; `object-src 'none'`;
   `form-action 'self'`.
 - The build refuses a page (`CspError`) whose inline scripts are anything but `index.html`'s own
-  and at most one state script, so a stray script cannot get hashed into the policy.
+  and at most one state script, so a stray script cannot get hashed into the policy. A state
+  script is exactly `window.__INITIAL_STATE__=` and one JSON string literal holding a JSON object
+  (both levels are parsed), with an optional trailing `;`.
 - `public/_headers` carries what a meta tag cannot: `frame-ancestors 'none'`, `X-Frame-Options`,
   HSTS, COOP, `Referrer-Policy`, `Permissions-Policy` and `nosniff`.
 - `style-src` allows `'unsafe-inline'`: vue-sonner sets inline styles, and VueUse's `useColorMode`

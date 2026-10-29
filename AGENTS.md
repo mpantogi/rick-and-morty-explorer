@@ -174,7 +174,8 @@ least 4.5:1 in both themes.
   `build/csp.ts`: scripts come from this origin plus the sha256 hash of each inline script, so
   `'unsafe-inline'` and `'unsafe-eval'` never appear in `script-src`. The build refuses a page whose
   inline scripts are anything but `index.html`'s own (the no-flash theme script) and vite-ssg's
-  `window.__INITIAL_STATE__` script: never add an inline script, and keep JSON-LD as an
+  state script (exactly `window.__INITIAL_STATE__=` and a JSON string holding a JSON object):
+  never add an inline script, and keep JSON-LD as an
   `application/ld+json` block through `usePageSeo`. Styles allow `'unsafe-inline'` because
   vue-sonner and VueUse set inline styles.
 - `public/_headers` holds what a meta tag cannot carry (`frame-ancestors`, `X-Frame-Options`, HSTS,

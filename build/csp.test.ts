@@ -64,6 +64,23 @@ describe('hashInlineScripts', () => {
 describe('buildCsp', () => {
   const policy = buildCsp([KNOWN_HASH], API_ORIGIN)
 
+  it('pins every directive of the policy', () => {
+    expect(policy).toBe(
+      [
+        "default-src 'self'",
+        `script-src 'self' ${KNOWN_HASH}`,
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' https:",
+        `connect-src 'self' ${API_ORIGIN}`,
+        "font-src 'self'",
+        "manifest-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+      ].join('; '),
+    )
+  })
+
   it('allows scripts from this origin and the hashed inline ones only', () => {
     expect(directive(policy, 'script-src')).toBe(`script-src 'self' ${KNOWN_HASH}`)
     expect(policy).not.toContain('unsafe-eval')
@@ -119,6 +136,25 @@ describe('injectCsp', () => {
 
   it('refuses any inline script beyond the template and the state script', () => {
     const html = page({ body: '<script>alert(1)</script>' })
+
+    expect(() => injectCsp(html, options)).toThrow(CspError)
+  })
+
+  it('accepts a state script that ends with a semicolon', () => {
+    const html = page({ body: `<script>${STATE_SCRIPT};</script>` })
+
+    expect(() => injectCsp(html, options)).not.toThrow()
+  })
+
+  it.each([
+    ['code after the state', 'window.__INITIAL_STATE__=1;alert(1)'],
+    ['code after the state string', `${STATE_SCRIPT};alert(1)`],
+    ['an object literal instead of a JSON string', 'window.__INITIAL_STATE__={"vueQuery":{}}'],
+    ['a JSON string that holds no object', 'window.__INITIAL_STATE__="[1]"'],
+    ['a JSON string that is not JSON', 'window.__INITIAL_STATE__="alert(1)"'],
+    ['another global', 'window.__OTHER_STATE__="{}"'],
+  ])('refuses a state script with %s', (_, script) => {
+    const html = page({ body: `<script>${script}</script>` })
 
     expect(() => injectCsp(html, options)).toThrow(CspError)
   })

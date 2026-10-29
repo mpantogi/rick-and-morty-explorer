@@ -42,9 +42,26 @@ export function buildCsp(hashes: readonly string[], apiOrigin: string): string {
   ].join('; ')
 }
 
+function parsesTo(text: string): unknown {
+  try {
+    return JSON.parse(text) as unknown
+  } catch {
+    return undefined
+  }
+}
+
+// vite-ssg writes `window.__INITIAL_STATE__=` and one JSON string literal holding a JSON object.
+function isStateScript(text: string): boolean {
+  if (!text.startsWith(STATE_SCRIPT_PREFIX)) return false
+  const literal = parsesTo(text.slice(STATE_SCRIPT_PREFIX.length).replace(/;$/, ''))
+  if (typeof literal !== 'string') return false
+  const state = parsesTo(literal)
+  return typeof state === 'object' && state !== null && !Array.isArray(state)
+}
+
 // A page may run the template's scripts plus vite-ssg's state script, nothing it gained in render.
 function assertExpectedScripts(scripts: readonly string[], template: readonly string[]): void {
-  const own = scripts.filter((text) => !text.startsWith(STATE_SCRIPT_PREFIX))
+  const own = scripts.filter((text) => !isStateScript(text))
   const stateScripts = scripts.length - own.length
   const matchesTemplate =
     own.length === template.length && own.every((text, index) => text === template[index])
