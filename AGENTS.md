@@ -2,24 +2,42 @@
 
 Instructions for AI coding agents working in this repository. Humans start with `README.md`.
 
+## Project map
+
+| Path                       | Contents                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------ |
+| `src/`                     | The app, in Feature-Sliced Design layers (see Architecture below)                    |
+| `build/`                   | vite-ssg hooks the build runs: per-page CSP, `sitemap.xml`, `robots.txt`, `llms.txt` |
+| `scripts/`                 | `serve-dist`, `check-budget`, `generate-icons`, `record-e2e-fixture`                 |
+| `test/`                    | Vitest setup, render helpers, MSW server and handlers, API semantics, fixtures       |
+| `e2e/`                     | Playwright specs, `fixtures.ts` and `support/` (API mock, routes, state probe)       |
+| `public/`                  | Copied into `dist/` as is: `_redirects`, `_headers`, generated brand assets          |
+| `docs/adr/`                | Architecture decision records                                                        |
+| `.github/workflows/ci.yml` | CI                                                                                   |
+
+`scripts/` run directly in Node 24 with type stripping, and `build/` loads through the Vite config.
+Both use erasable TypeScript only and import with `.ts` extensions, including the `src/` modules
+they share (`tsconfig.node.json` sets `erasableSyntaxOnly`).
+
 ## Commands
 
 Run Yarn through Corepack, `corepack yarn <command>`. It works without `corepack enable` and
 leaves the machine's global Yarn untouched. Use Node 24.
 
-| Command                                             | Purpose                                                               |
-| --------------------------------------------------- | --------------------------------------------------------------------- |
-| `corepack yarn install`                             | Install dependencies and the git pre-commit hook                      |
-| `corepack yarn dev`                                 | Vite dev server                                                       |
-| `corepack yarn build`                               | Prerender every page into `dist/` (vite-ssg, three live API requests) |
-| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing and headers on port 4173     |
-| `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches)           |
-| `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                  |
-| `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API            |
-| `corepack yarn icons`                               | Regenerate the brand assets in `public/` from the logo mark           |
-| `corepack yarn check:budget`                        | Gzip budget of the home page's initial JS (150 KiB) and CSS (30 KiB)  |
-| `corepack yarn verify`                              | `format:check`, `lint`, `typecheck`, `test:coverage`, `build`, budget |
-| `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier                   |
+| Command                                             | Purpose                                                                |
+| --------------------------------------------------- | ---------------------------------------------------------------------- |
+| `corepack yarn install`                             | Install dependencies and the git pre-commit hook                       |
+| `corepack yarn dev`                                 | Vite dev server                                                        |
+| `corepack yarn build`                               | Prerender every page into `dist/` (vite-ssg, three live API requests)  |
+| `corepack yarn preview`                             | Serve `dist/` with Netlify-style routing and headers on port 4173      |
+| `corepack yarn test` / `test:coverage`              | Vitest once / with coverage gates (85% lines, 80% branches)            |
+| `corepack yarn test:e2e --project=chromium`         | Playwright against the built `dist/`                                   |
+| `corepack yarn test:e2e`                            | The whole matrix: Chromium, Firefox, WebKit, Pixel 10, iPhone 17, iPad |
+| `corepack yarn record:fixture`                      | Re-record `e2e/support/api-fixture.json` from the live API             |
+| `corepack yarn icons`                               | Regenerate the brand assets in `public/` from the logo mark            |
+| `corepack yarn check:budget`                        | Gzip budget of the home page's initial JS (150 KiB) and CSS (30 KiB)   |
+| `corepack yarn verify`                              | `format:check`, `lint`, `typecheck`, `test:coverage`, `build`, budget  |
+| `corepack yarn lint` / `typecheck` / `format:check` | ESLint (zero warnings), `vue-tsc --build`, Prettier                    |
 
 Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `test:coverage`,
 `build`, `check:budget`), then `test:e2e --project=chromium`.
@@ -33,7 +51,8 @@ uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that bui
 - Build first: the Playwright web server only serves an existing `dist/` through
   `scripts/serve-dist.ts`, which mirrors Netlify (`_redirects` rewrites, `_headers`, real 404
   status).
-- Install the browser once with `corepack yarn playwright install chromium`.
+- Install the browser once with `corepack yarn playwright install chromium` (add `firefox webkit`
+  for the whole matrix).
 - Every test runs under an automatic console guard that fails on `console.error`, uncaught errors
   and CSP violations. A test that causes a 4xx/5xx on purpose declares the narrowest URL pattern
   with `consoleGuard.allowHttpErrors(pattern)`.
@@ -53,12 +72,14 @@ uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that bui
   through the `request` fixture, parsed with `DOMParser` inside the page (it never runs the
   page's scripts). Only `@journey` specs run beyond Chromium, so `keyboard.spec.ts` (Tab order,
   visible focus rings) and these two are Chromium-only.
+- WebKit on macOS (the `webkit`, `iphone-17` and `ipad` projects) skips links on Tab, as Safari
+  does by default. A journey that tabs to a link presses `Alt+Tab` there (`home.spec.ts`).
 
 ### Deploy
 
 Netlify builds with `netlify.toml`: `yarn build`, publish `dist`, Node 24 and the production
-`VITE_SITE_URL`. `public/_redirects` and `public/_headers` ship inside `dist`; keep
-`scripts/serve-dist.ts` in step with any rule added there.
+`VITE_SITE_URL`; the README lists the deploy steps. `public/_redirects` and `public/_headers` ship
+inside `dist`; keep `scripts/serve-dist.ts` in step with any rule added there.
 
 ## Architecture: Feature-Sliced Design
 
