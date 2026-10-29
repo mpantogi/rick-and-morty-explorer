@@ -15,7 +15,7 @@ export default defineConfig((configEnv) =>
               name: 'unit',
               environment: 'jsdom',
               environmentOptions: { jsdom: { url: 'https://rickandmortyapi.com/' } },
-              include: ['src/**/*.test.ts'],
+              include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
               setupFiles: ['./test/setup.ts'],
             },
           },

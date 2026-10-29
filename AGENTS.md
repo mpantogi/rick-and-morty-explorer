@@ -181,6 +181,10 @@ least 4.5:1 in both themes.
   by-id lookups (`/x/[1,2]` answers a sorted list without missing ids, `/x/1` the record or a
   404). Assert the fixture totals, never the live API's. Write the test first for logic and
   components.
+- MSW answers a request a few event-loop turns after `fetch()`, so teardown waits until every
+  query client `renderWithApp` mounted is idle (`test/settle-queries.ts`); a request still running
+  would otherwise meet the next test's handlers. A test that holds a response
+  (`holdListResponses`, a gate) releases it before it ends.
 
 ## Security
 

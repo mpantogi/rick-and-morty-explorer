@@ -7,10 +7,6 @@ import { holdListResponses, server } from '../../../../test/msw/server'
 import { renderWithApp } from '../../../../test/render'
 import CharacterBrowser from './CharacterBrowser.vue'
 
-// Each wait spans a full render of the widget around a mocked response. A loaded CI runner took
-// over a second for one that takes 80 ms locally, past vi.waitFor's 1 s default.
-const SETTLED = { timeout: 3000 }
-
 // Samples every DOM change: the region must never hold two state branches at once.
 function trackStates(root: Element) {
   const seen: string[] = []
@@ -49,7 +45,7 @@ describe('CharacterBrowser', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Loading characters…')
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
     states.stop()
 
     expect(states.seen).toEqual(['loading', 'ready'])
@@ -61,7 +57,7 @@ describe('CharacterBrowser', () => {
     const { user } = await setup()
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
     const toggle = screen.getByRole('button', { name: 'Favorite Morty Smith' })
 
     await user.click(toggle)
@@ -74,13 +70,13 @@ describe('CharacterBrowser', () => {
     const { user, router, summary } = await setup()
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
 
     await user.click(screen.getByRole('link', { name: 'Next' }))
 
     await vi.waitFor(() => {
       expect(summary()).toHaveTextContent('Showing 13–24 of 25 characters')
-    }, SETTLED)
+    })
     expect(router.currentRoute.value.fullPath).toBe('/?page=2')
     expect(screen.getByRole('heading', { level: 2, name: 'Results' })).toHaveFocus()
   })
@@ -89,14 +85,14 @@ describe('CharacterBrowser', () => {
     const { user, summary } = await setup('/?page=2')
     await vi.waitFor(() => {
       expect(summary()).toHaveTextContent('Showing 13–24 of 25 characters')
-    }, SETTLED)
+    })
     const search = screen.getByRole('searchbox', { name: 'Name' })
 
     await user.type(search, 'morty{Enter}')
 
     await vi.waitFor(() => {
       expect(summary()).toHaveTextContent('Showing 1–4 of 4 characters')
-    }, SETTLED)
+    })
     expect(search).toHaveFocus()
   })
 
@@ -105,14 +101,14 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(summary()).toHaveTextContent('Showing 1 of 1 character')
-    }, SETTLED)
+    })
   })
 
   it('offers a reset when nothing matches, and returns focus to the search box', async () => {
     const { user, results, summary, router } = await setup('/?name=zzzz')
     await vi.waitFor(() => {
       expect(results().getByText('No characters match these filters.')).toBeInTheDocument()
-    }, SETTLED)
+    })
     expect(summary()).toHaveTextContent('No characters match these filters')
     expect(results().getByText('Try a shorter name or fewer filters.')).toBeInTheDocument()
 
@@ -120,7 +116,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
     expect(router.currentRoute.value.fullPath).toBe('/')
     expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveFocus()
   })
@@ -130,7 +126,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(results().getByText("There's no page 4.")).toBeInTheDocument()
-    }, SETTLED)
+    })
     expect(summary()).toHaveTextContent("There's no page 4.")
     expect(results().getByText('This search has 1 page.')).toBeInTheDocument()
     expect(results().getByRole('link', { name: 'Go to the first page' })).toHaveAttribute(
@@ -143,13 +139,13 @@ describe('CharacterBrowser', () => {
     const rendered = await setup('/?name=morty&page=4')
     await vi.waitFor(() => {
       expect(rendered.emitted('outOfRange')).toEqual([[true]])
-    }, SETTLED)
+    })
 
     await rendered.router.push('/?name=morty')
 
     await vi.waitFor(() => {
       expect(rendered.results().getAllByRole('article')).toHaveLength(4)
-    }, SETTLED)
+    })
     expect(rendered.emitted('outOfRange')).toEqual([[true], [false]])
   })
 
@@ -158,7 +154,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
     expect(rendered.emitted('outOfRange')).toBeUndefined()
   })
 
@@ -168,7 +164,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(results().getByText("Couldn't load characters.")).toBeInTheDocument()
-    }, SETTLED)
+    })
     expect(summary()).toHaveTextContent("Characters couldn't load")
     expect(container.querySelector('[data-state="loading"]')).not.toBeInTheDocument()
 
@@ -177,14 +173,14 @@ describe('CharacterBrowser', () => {
     expect(screen.getByRole('heading', { level: 2, name: 'Results' })).toHaveFocus()
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
   })
 
   it('keeps the cards readable and marks the region busy while a new search loads', async () => {
     const { router, summary, container } = await setup()
     await vi.waitFor(() => {
       expect(screen.getAllByRole('article')).toHaveLength(12)
-    }, SETTLED)
+    })
     const region = container.querySelector('#results')
     const release = holdListResponses()
 
@@ -192,7 +188,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(region).toHaveAttribute('aria-busy', 'true')
-    }, SETTLED)
+    })
     expect(summary()).toHaveTextContent('Updating results…')
     expect(screen.getByRole('heading', { level: 3, name: 'Rick Sanchez' })).toBeInTheDocument()
     expect(container.querySelector('.character-browser__progress')).toHaveAttribute(
@@ -204,7 +200,7 @@ describe('CharacterBrowser', () => {
 
     await vi.waitFor(() => {
       expect(region).toHaveAttribute('aria-busy', 'false')
-    }, SETTLED)
+    })
     expect(container.querySelector('.character-browser__progress')).not.toBeInTheDocument()
     expect(screen.getAllByRole('article')).toHaveLength(4)
   })

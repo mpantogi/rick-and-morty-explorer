@@ -8,6 +8,8 @@ import { createMemoryHistory, createRouter, type RouteRecordRaw } from 'vue-rout
 
 import { routes as appRoutes } from '@/app/router/routes'
 
+import { trackQueryClient } from './settle-queries'
+
 interface RenderWithAppOptions {
   route?: string
   props?: Record<string, unknown>
@@ -31,6 +33,7 @@ export async function renderWithApp(
     queryClient = createTestQueryClient(),
   }: RenderWithAppOptions = {},
 ) {
+  trackQueryClient(queryClient)
   const router = createRouter({ history: createMemoryHistory(), routes })
   await router.push(route)
   await router.isReady()
