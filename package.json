@@ -27,7 +27,7 @@
     "postinstall": "simple-git-hooks"
   },
   "dependencies": {
-    "@lucide/vue": "1.62.0",
+    "@lucide/vue": "1.63.0",
     "@tanstack/vue-query": "5.105.0",
     "@unhead/vue": "2.1.17",
     "@vue/devtools-api": "8.2.1",

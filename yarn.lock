@@ -596,12 +596,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lucide/vue@npm:1.62.0":
-  version: 1.62.0
-  resolution: "@lucide/vue@npm:1.62.0"
+"@lucide/vue@npm:1.63.0":
+  version: 1.63.0
+  resolution: "@lucide/vue@npm:1.63.0"
   peerDependencies:
     vue: ">=3.0.1"
-  checksum: 10c0/11b1661c8033f11166f032bbc82c07134371b0908e176a09226d5f7a6c1e38a313fadfcf72afaee7303486cd0b576d32e0738edfe15de634de7311c51a579d0d
+  checksum: 10c0/0e9b88d1848552b9ae647a4bff50192053f986ddfea7d16e4a8541f36685c381c08b0f20f67ac629709baec484b1a7b2dc9d214cb331db08fc34b5a50a5ea18c
   languageName: node
   linkType: hard
 
@@ -5049,7 +5049,7 @@ __metadata:
   resolution: "rick-and-morty-explorer@workspace:."
   dependencies:
     "@axe-core/playwright": "npm:4.14.0"
-    "@lucide/vue": "npm:1.62.0"
+    "@lucide/vue": "npm:1.63.0"
     "@playwright/test": "npm:1.64.1"
     "@tailwindcss/vite": "npm:4.3.3"
     "@tanstack/vue-query": "npm:5.105.0"

@@ -113,7 +113,7 @@ radii use Tailwind's default scale.
 
 - Vue 3.5.44 with `<script setup>` and the Composition API
 - Vue Router 5.4.0, Pinia 4.1.0, TanStack Vue Query 5.105.0, VueUse 15.0.0
-- Zod 4.6.7, vue-sonner 2.0.9 (toasts), @unhead/vue 2.1.17 (head tags), @lucide/vue 1.62.0 (icons)
+- Zod 4.6.7, vue-sonner 2.0.9 (toasts), @unhead/vue 2.1.17 (head tags), @lucide/vue 1.63.0 (icons)
 - vee-validate 4.15.1 (forms), fed by the Zod schemas through a small local adapter
 - Vite 8.3.5 with vite-ssg 28.3.0, TypeScript 6.0.3, vue-tsc 3.3.13
 - Tailwind CSS 4.3.3
@@ -123,8 +123,7 @@ radii use Tailwind's default scale.
 - simple-git-hooks 2.14.0 and lint-staged 17.6.0 for the pre-commit check
 - Yarn 4.18.1 on Node 24
 
-Every dependency is pinned to an exact version. `@lucide/vue` stays on 1.62.0 for now: Yarn 4.18's
-one-day `npmMinimalAgeGate` refuses 1.63.0 (published 2026-10-28T06:11Z) until 2026-10-29T06:12Z.
+Every dependency is pinned to an exact version.
 
 ## Prerequisites
 
