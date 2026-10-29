@@ -7,6 +7,7 @@ import {
   isCharacterKey,
   parseCharacterKey,
 } from './character-key'
+import { heroSchema } from './hero-schema'
 
 const HERO_KEY = 'hero:0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
 
@@ -37,6 +38,15 @@ describe('isCharacterKey', () => {
       expect(isCharacterKey(key)).toBe(false)
     },
   )
+
+  it.each([
+    ['a lowercase v4 uuid', '0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'],
+    ['a uuid that is not version 4', '0b4f3a52-8f1e-1a5b-9c7d-2e6f1a3b4c5d'],
+    ['a v4 uuid with another variant', '0b4f3a52-8f1e-4a5b-7c7d-2e6f1a3b4c5d'],
+    ['an uppercase v4 uuid', '0B4F3A52-8F1E-4A5B-9C7D-2E6F1A3B4C5D'],
+  ])('takes %s as a hero key exactly when the hero schema takes it as an id', (_, id) => {
+    expect(isCharacterKey(heroKey(id))).toBe(heroSchema.shape.id.safeParse(id).success)
+  })
 
   it('backs the schema that validates stored keys', () => {
     expect(characterKeySchema.safeParse('api:2').success).toBe(true)

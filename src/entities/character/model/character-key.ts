@@ -4,8 +4,8 @@ export type CharacterKey = `api:${number}` | `hero:${string}`
 
 type ParsedKey = { source: 'api'; id: number } | { source: 'hero'; id: string }
 
-// Canonical positive API ids, or the v4 uuid every created hero gets from crypto.randomUUID().
-const KEY = /^(?:api:[1-9]\d*|hero:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/
+// Canonical positive API ids, or a lowercase v4 uuid: exactly the hero ids heroSchema accepts.
+const KEY = /^(?:api:[1-9]\d*|hero:[\da-f]{8}-[\da-f]{4}-4[\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12})$/
 const SEPARATOR = ':'
 
 export function isCharacterKey(value: unknown): value is CharacterKey {
