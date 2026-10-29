@@ -3,9 +3,9 @@ import { z } from '@/shared/zod'
 const httpUrl = z.url({ protocol: /^https?$/ })
 // Episode ids are read from these URLs, so one without an id fails the parse.
 const episodeUrl = httpUrl.regex(/\/episode\/\d+$/)
-const placeRef = z.object({ name: z.string(), url: z.string() })
+const placeRef = z.object({ name: z.string() })
 
-// z.object strips url/created, which keeps the query cache and the prerendered state small.
+// z.object strips the fields the app never reads, so the cache and prerendered state stay small.
 export const apiCharacterSchema = z.object({
   id: z.int().positive(),
   name: z.string().min(1),
@@ -23,8 +23,6 @@ export const apiCharacterPageSchema = z.object({
   info: z.object({
     count: z.int().nonnegative(),
     pages: z.int().nonnegative(),
-    next: z.string().nullable(),
-    prev: z.string().nullable(),
   }),
   results: z.array(apiCharacterSchema),
 })
