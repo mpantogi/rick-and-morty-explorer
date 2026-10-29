@@ -21,8 +21,9 @@ Status: accepted
   the form, so a failed submit focuses the first invalid field.
 - Image URLs are `https:` only, and the live preview validates with the same field schema
   (`heroInputSchema.shape.image`).
-- Errors appear once a field has been left or the form submitted (`validateOnceTouched`), never
-  while the visitor is still typing. Each error is wired to its control with `aria-invalid`,
+- Errors first appear on submit, then follow every edit (`validateAfterSubmit`). Leaving a field
+  shows nothing: an error shown on blur pushed the submit button down while it was pressed, so the
+  release missed it and the click was lost. Each error is wired to its control with `aria-invalid`,
   `aria-describedby` and `aria-errormessage`, through `BaseField`'s slot props for the text
   fields.
 

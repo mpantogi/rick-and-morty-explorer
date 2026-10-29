@@ -31,19 +31,20 @@ const router = useRouter()
 const form = useTemplateRef<HTMLFormElement>('form')
 const genderErrorId = `${useId()}-gender-error`
 
-// Leaving a field or submitting sets touched; until then typing and autofill never show an error.
-const validateOnceTouched = ({ touched }: { touched: boolean }) => ({
-  validateOnModelUpdate: touched,
-  validateOnChange: touched,
-})
-
-const { defineField, errors, handleSubmit } = useForm({
+const { defineField, errors, handleSubmit, submitCount } = useForm({
   validationSchema: toTypedSchema(heroInputSchema),
   initialValues: { name: '', image: '' },
 })
-const [name, nameEvents] = defineField('name', validateOnceTouched)
-const [gender, genderEvents] = defineField('gender', validateOnceTouched)
-const [image, imageEvents] = defineField('image', validateOnceTouched)
+
+// Errors first show on submit, then follow every edit. An error shown on blur would push Create
+// hero down while it is pressed, so the release would miss it and the click would be lost.
+const validateAfterSubmit = () => {
+  const live = submitCount.value > 0
+  return { validateOnBlur: live, validateOnChange: live, validateOnModelUpdate: live }
+}
+const [name, nameEvents] = defineField('name', validateAfterSubmit)
+const [gender, genderEvents] = defineField('gender', validateAfterSubmit)
+const [image, imageEvents] = defineField('image', validateAfterSubmit)
 
 function focusFirstInvalid({ errors: invalid }: { errors: Partial<Record<HeroField, string>> }) {
   const field = FIELDS.find((key) => invalid[key])

@@ -90,11 +90,17 @@ describe('CreateHeroForm', () => {
     },
   )
 
-  it('shows the name error once the visitor leaves the field', async () => {
-    const { user, name } = await setup()
-
+  // A blur-time error would move the submit button under a pressed pointer and lose the click.
+  it('shows no error on leaving a field, only once the form is submitted', async () => {
+    const { user, name, submit } = await setup()
     await user.type(name(), 'R')
     await user.tab()
+    await new Promise((resolve) => setTimeout(resolve, VALIDATION_SETTLE_MS))
+
+    expect(name()).toHaveAttribute('aria-invalid', 'false')
+    expect(screen.queryByText(NAME_TOO_SHORT)).not.toBeInTheDocument()
+
+    await user.click(submit())
 
     await vi.waitFor(() => {
       expect(name()).toHaveAccessibleDescription(`${NAME_HINT} ${NAME_TOO_SHORT}`)
