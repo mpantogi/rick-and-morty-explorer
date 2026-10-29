@@ -1,7 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, openPage, test, useStoredHeroes } from './fixtures'
-import { LIST_URL } from './support/api-mock'
+import { holdResponses, LIST_URL } from './support/api-mock'
 import { PORTAL_PETE } from './support/heroes'
 import { openRoute, ROUTES } from './support/routes'
 
@@ -22,19 +22,6 @@ interface MountedApp {
 
 function hasHorizontalOverflow(page: Page): Promise<boolean> {
   return page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)
-}
-
-// Holds every matching response until the returned function releases them.
-async function holdResponses(page: Page, url: RegExp): Promise<() => void> {
-  let release: () => void = () => undefined
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  await page.route(url, async (route) => {
-    await gate
-    await route.fallback()
-  })
-  return release
 }
 
 // A client-side navigation, as a link would make, to a page with no link on screen.

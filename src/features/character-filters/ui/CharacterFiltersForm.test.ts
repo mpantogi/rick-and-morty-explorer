@@ -122,6 +122,7 @@ describe('CharacterFiltersForm', () => {
 
   it.each([
     ['searchbox', 'Name', 'name'],
+    ['combobox', 'Species', 'species'],
     ['textbox', 'Type', 'type'],
   ] as const)(
     'applies typed text on Enter in the %s %s, without waiting for the typing pause',

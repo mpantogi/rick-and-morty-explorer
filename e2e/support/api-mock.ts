@@ -72,3 +72,16 @@ export function trackApiCalls(page: Page): string[] {
 export async function mockApi(page: Page): Promise<void> {
   await page.route(API_ROUTES, answer)
 }
+
+// Holds every matching response until the returned function releases them.
+export async function holdResponses(page: Page, url: RegExp): Promise<() => void> {
+  let release: () => void = () => undefined
+  const gate = new Promise<void>((resolve) => {
+    release = resolve
+  })
+  await page.route(url, async (route) => {
+    await gate
+    await route.fallback()
+  })
+  return release
+}

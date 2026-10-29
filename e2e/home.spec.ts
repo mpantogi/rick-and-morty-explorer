@@ -1,13 +1,20 @@
 import type { Page } from '@playwright/test'
 
 import { expect, openPage, test } from './fixtures'
-import { FIRST_LIST_PAGE_URL, failWith, LIST_URL, NO_MATCH_URL } from './support/api-mock'
+import {
+  FIRST_LIST_PAGE_URL,
+  failWith,
+  holdResponses,
+  LIST_URL,
+  NO_MATCH_URL,
+} from './support/api-mock'
 import { captureAround, countChangedPixels } from './support/pixels'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 const SERVER_ERROR = 500
 // Just inside the 300 ms pause before stale results start to fade.
 const PAUSE_PROBE_MS = 250
+const RICK_SEARCH_URL = /\/api\/character\?name=rick/
 // A 2 px ring around a card repaints over a thousand pixels; a clipped one repaints none.
 const VISIBLE_RING_PIXELS = 500
 // UI page 999 starts at item 11,976, which the window asks for on API page 599.
@@ -39,19 +46,6 @@ async function openFilters(page: Page): Promise<void> {
 interface PauseProbe {
   min: number
   done: boolean
-}
-
-// Holds every search for "rick" until the returned function releases it.
-async function holdRickSearch(page: Page): Promise<() => void> {
-  let release: () => void = () => undefined
-  const gate = new Promise<void>((resolve) => {
-    release = resolve
-  })
-  await page.route(/\/api\/character\?name=rick/, async (route) => {
-    await gate
-    await route.fallback()
-  })
-  return release
 }
 
 // Samples the results' opacity every frame for the first windowMs after they turn busy. The window
@@ -137,7 +131,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     await openPage(page, '/')
     await expect(cards(page)).toHaveCount(12)
 
-    await page.getByRole('searchbox', { name: 'Name' }).pressSequentially('rick', { delay: 50 })
+    await page.getByRole('searchbox', { name: 'Name' }).pressSequentially('rick')
 
     await expect(summary(page)).toHaveText('Showing 1–7 of 7 characters')
     await expect(page).toHaveURL('/?name=rick')
@@ -364,7 +358,7 @@ test.describe('character list', { tag: '@journey' }, () => {
   }) => {
     await openPage(page, '/')
     await expect(cards(page)).toHaveCount(12)
-    const release = await holdRickSearch(page)
+    const release = await holdResponses(page, RICK_SEARCH_URL)
 
     await page.getByRole('searchbox', { name: 'Name' }).fill('rick')
 
@@ -378,7 +372,7 @@ test.describe('character list', { tag: '@journey' }, () => {
   test('never fades the results while an update is still inside the pause', async ({ page }) => {
     await openPage(page, '/')
     await expect(cards(page)).toHaveCount(12)
-    const release = await holdRickSearch(page)
+    const release = await holdResponses(page, RICK_SEARCH_URL)
     await installPauseProbe(page, PAUSE_PROBE_MS)
 
     await page.getByRole('searchbox', { name: 'Name' }).fill('rick')

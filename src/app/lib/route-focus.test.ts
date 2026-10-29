@@ -1,10 +1,12 @@
-import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query'
+import { VueQueryPlugin } from '@tanstack/vue-query'
 import { createHead } from '@unhead/vue/client'
 import { createPinia } from 'pinia'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApp, h, nextTick } from 'vue'
 import { createMemoryHistory, createRouter, RouterView } from 'vue-router'
 
+import { createTestQueryClient } from '../../../test/render'
+import { trackQueryClient } from '../../../test/settle-queries'
 import { routes } from '../router/routes'
 import { installRouteFocus } from './route-focus'
 
@@ -15,13 +17,14 @@ async function mountApp(initialPath = '/') {
   installRouteFocus(router)
   const host = document.createElement('div')
   document.body.append(host)
+  // Tracked, so the teardown waits for the list requests these pages start.
+  const queryClient = createTestQueryClient()
+  trackQueryClient(queryClient)
   const app = createApp(() => h(RouterView))
     .use(router)
     .use(createPinia())
     .use(createHead())
-    .use(VueQueryPlugin, {
-      queryClient: new QueryClient({ defaultOptions: { queries: { retry: false } } }),
-    })
+    .use(VueQueryPlugin, { queryClient })
   app.mount(host)
   await router.isReady()
   return {

@@ -3,11 +3,11 @@ import { delay } from 'msw/utils/delay'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 
+import { API } from '../../../test/msw/handlers'
 import { server } from '../../../test/msw/server'
 import { ApiError } from './api-error'
 import { buildApiUrl, getJson } from './http-client'
 
-const API = 'https://rickandmortyapi.com/api'
 const REQUEST_TIMEOUT_MS = 10_000
 const itemSchema = z.object({ id: z.number() })
 
