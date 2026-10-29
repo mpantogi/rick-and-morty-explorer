@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 
 import { expect, openPage, test, useStoredHeroes } from './fixtures'
 import { PORTAL_PETE } from './support/heroes'
@@ -14,6 +14,11 @@ const PRESS_MS = 150
 const SECURE_URL_ERROR = 'Enter a secure image URL: https:// and a domain name, not an IP address.'
 const UNKNOWN_HERO_PATH = '/heroes/0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
 
+interface Position {
+  x: number
+  y: number
+}
+
 function form(page: Page) {
   return {
     name: page.getByRole('textbox', { name: 'Name' }),
@@ -21,6 +26,21 @@ function form(page: Page) {
     gender: page.getByRole('group', { name: 'Gender' }),
     submit: page.getByRole('button', { name: 'Create hero' }),
   }
+}
+
+// Records where the button is when the press starts and when it ends, wherever the release lands.
+async function trackPressPositions(button: Locator): Promise<() => Promise<Position[]>> {
+  const positions = await button.evaluateHandle((element) => {
+    const seen: Position[] = []
+    const record = () => {
+      const { x, y } = element.getBoundingClientRect()
+      seen.push({ x, y })
+    }
+    element.addEventListener('pointerdown', record)
+    window.addEventListener('pointerup', record, { capture: true })
+    return seen
+  })
+  return () => positions.jsonValue()
 }
 
 function firstCard(page: Page) {
@@ -75,13 +95,17 @@ test.describe('create hero', { tag: '@journey' }, () => {
   })
 
   // Anything that moves the button while it is held makes the release miss it, losing the click.
-  test('submits on a full press right after an address is typed', async ({ page }) => {
+  test('keeps Create hero still while it is pressed, so the press submits', async ({ page }) => {
     await openPage(page, '/heroes/new')
     const fields = form(page)
-
     await fields.image.fill(INSECURE_IMAGE)
+    const pressPositions = await trackPressPositions(fields.submit)
+
     await fields.submit.click({ delay: PRESS_MS })
 
+    const [atPress, atRelease] = await pressPositions()
+    expect(atPress).toBeDefined()
+    expect(atRelease).toEqual(atPress)
     await expect(fields.name).toBeFocused()
     await expect(fields.name).toHaveAccessibleErrorMessage('Enter a name.')
     await expect(fields.image).toHaveAccessibleErrorMessage(SECURE_URL_ERROR)
