@@ -151,7 +151,7 @@ function submitOnce(event: Event): void {
           name="image"
           type="url"
           inputmode="url"
-          autocomplete="url"
+          autocomplete="off"
           :placeholder="IMAGE_PLACEHOLDER"
           required
           :aria-describedby="describedBy"

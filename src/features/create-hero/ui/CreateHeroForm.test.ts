@@ -203,6 +203,12 @@ describe('CreateHeroForm', () => {
     expect(savedHeroes()).toHaveLength(1)
   })
 
+  it('offers no autofill for the image, which is not the visitor’s own address', async () => {
+    const { image } = await setup()
+
+    expect(image()).toHaveAttribute('autocomplete', 'off')
+  })
+
   it('keeps the form and explains the limit when heroes are full', async () => {
     const limit = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
     const full = Array.from({ length: MAX_HEROES }, () => ({
