@@ -41,7 +41,8 @@ export function installChunkReload(
 ): () => void {
   return router.onError((error: unknown, to) => {
     const loadDestination = () => {
-      loadPage(to.fullPath)
+      // Prefixing the origin keeps a crafted path such as //evil.example on this site.
+      loadPage(location.origin + router.resolve(to).href)
     }
     if (isChunkLoadError(error) && reloadOnce(loadDestination)) return
     reportError(error, 'navigation')

@@ -33,7 +33,7 @@ function failingPrefetch(): Promise<never> {
 
 describe('installChunkReload', () => {
   let uninstall: () => void = () => undefined
-  const loadPage = vi.fn()
+  const loadPage = vi.fn<(url: string) => void>()
 
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] })
@@ -51,9 +51,26 @@ describe('installChunkReload', () => {
 
     await navigateToBrokenRoute(router)
 
-    expect(loadPage).toHaveBeenCalledExactlyOnceWith(DESTINATION)
+    expect(loadPage).toHaveBeenCalledExactlyOnceWith(`${location.origin}${DESTINATION}`)
     expect(sessionStorage.getItem(STORAGE_KEYS.reloadedAt)).toBe(String(Date.now()))
   })
+
+  it.each(['//evil.example/x', '/\\evil.example/x'])(
+    'keeps a crafted destination such as %s on this site',
+    async (path) => {
+      const router = createRouter({
+        history: createMemoryHistory(),
+        routes: [{ path: '/:pathMatch(.*)*', component: () => Promise.reject(CHUNK_ERROR) }],
+      })
+      uninstall = installChunkReload(router, loadPage)
+
+      await router.push(path).catch(() => undefined)
+
+      expect(loadPage).toHaveBeenCalledOnce()
+      const url = loadPage.mock.lastCall?.[0] ?? ''
+      expect(new URL(url, location.href).origin).toBe(location.origin)
+    },
+  )
 
   it('never reloads for a failed idle prefetch, which leaves the page being read alone', async () => {
     vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] })
