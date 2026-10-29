@@ -22,11 +22,12 @@ const NAV_LINKS = [
         class="site-header__logo inline-flex h-11 items-center gap-2 justify-self-start rounded-lg font-bold whitespace-nowrap text-fg hover:text-accent"
       >
         <AppLogo />
-        <span class="site-header__wordmark hidden sm:inline">Rick and Morty Explorer</span>
+        <span class="site-header__wordmark hidden md:inline">Rick and Morty Explorer</span>
       </RouterLink>
       <nav aria-label="Main" class="site-nav col-span-2 row-start-2 sm:ml-auto">
-        <ul class="site-nav__list grid grid-cols-3 gap-1 sm:flex sm:gap-2">
-          <li v-for="link in NAV_LINKS" :key="link.to" class="site-nav__item">
+        <!-- Items share the row by their labels' width and wrap, so enlarged text never overlaps. -->
+        <ul class="site-nav__list flex flex-wrap gap-1 sm:flex-nowrap sm:gap-2">
+          <li v-for="link in NAV_LINKS" :key="link.to" class="site-nav__item grow sm:grow-0">
             <RouterLink
               :to="link.to"
               class="site-nav__link flex h-11 items-center justify-center rounded-lg px-2 text-sm font-semibold whitespace-nowrap text-fg decoration-2 underline-offset-8 transition-colors duration-150 hover:text-accent aria-[current=page]:underline motion-reduce:transition-none sm:px-3"

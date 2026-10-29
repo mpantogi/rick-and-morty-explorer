@@ -54,6 +54,30 @@ function cellBoxes(list: Locator) {
   )
 }
 
+// Labels that spill out of their link, and links whose boxes overlap a later one.
+function navLabelProblems(page: Page) {
+  return page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link')
+    .evaluateAll((links) => {
+      const items = links.map((link) => ({
+        label: link.textContent.trim(),
+        box: link.getBoundingClientRect(),
+        clipped: link.scrollWidth > link.clientWidth,
+      }))
+      const overlaps = (a: DOMRect, b: DOMRect) =>
+        a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+      return {
+        clipped: items.filter((item) => item.clipped).map((item) => item.label),
+        overlapping: items
+          .filter((item, index) =>
+            items.slice(index + 1).some((other) => overlaps(item.box, other.box)),
+          )
+          .map((item) => item.label),
+      }
+    })
+}
+
 for (const route of ROUTES) {
   for (const width of WIDTHS) {
     test(`${route.name} page fits ${String(width)} px without horizontal scrolling`, async ({
@@ -74,6 +98,20 @@ for (const route of ROUTES) {
       for (const height of linkHeights) expect(height).toBeLessThanOrEqual(NAV_LINK_MAX_HEIGHT)
     })
   }
+}
+
+// Phones with enlarged text must wrap the main navigation, never squeeze its labels past their links.
+for (const width of [320, 375] as const) {
+  test(`main navigation keeps every label inside its link at ${String(width)} px with text at 200%`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: VIEWPORT_HEIGHT })
+    await openPage(page, '/')
+
+    await page.addStyleTag({ content: 'html { font-size: 200%; }' })
+
+    expect(await navLabelProblems(page)).toEqual({ clipped: [], overlapping: [] })
+  })
 }
 
 for (const width of CARD_WIDTHS) {
