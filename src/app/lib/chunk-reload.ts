@@ -1,8 +1,8 @@
 import type { Router } from 'vue-router'
 
+import { STORAGE_KEYS } from '@/shared/config'
 import { reportError } from '@/shared/lib'
 
-const RELOADED_AT_KEY = 'rme:reloaded-at'
 const RELOAD_GUARD_MS = 10_000
 const CHUNK_ERROR_MESSAGES = [
   'Failed to fetch dynamically imported module',
@@ -17,36 +17,33 @@ export function isChunkLoadError(error: unknown): boolean {
   )
 }
 
-function reloadOnce(reload: () => void): boolean {
+function reloadOnce(load: () => void): boolean {
   try {
     const now = Date.now()
-    const lastReload = Number(sessionStorage.getItem(RELOADED_AT_KEY) ?? 0)
+    const lastReload = Number(sessionStorage.getItem(STORAGE_KEYS.reloadedAt) ?? 0)
     if (now - lastReload < RELOAD_GUARD_MS) return false
-    sessionStorage.setItem(RELOADED_AT_KEY, String(now))
+    sessionStorage.setItem(STORAGE_KEYS.reloadedAt, String(now))
   } catch {
     // Without storage the loop guard cannot work, so leave the error to the error UI.
     return false
   }
-  reload()
+  load()
   return true
 }
 
+// Only a failed navigation reloads, and it loads where the visitor was going. A failed prefetch
+// (vite:preloadError) is left alone: the page being read still works.
 export function installChunkReload(
   router: Router,
-  reload: () => void = () => {
-    location.reload()
+  loadPage: (url: string) => void = (url) => {
+    location.assign(url)
   },
 ): () => void {
-  const onPreloadError = (event: Event) => {
-    if (reloadOnce(reload)) event.preventDefault()
-  }
-  window.addEventListener('vite:preloadError', onPreloadError)
-  const removeRouterHandler = router.onError((error: unknown) => {
-    if (isChunkLoadError(error) && reloadOnce(reload)) return
+  return router.onError((error: unknown, to) => {
+    const loadDestination = () => {
+      loadPage(to.fullPath)
+    }
+    if (isChunkLoadError(error) && reloadOnce(loadDestination)) return
     reportError(error, 'navigation')
   })
-  return () => {
-    window.removeEventListener('vite:preloadError', onPreloadError)
-    removeRouterHandler()
-  }
 }
