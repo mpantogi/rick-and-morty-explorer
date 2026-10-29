@@ -1,4 +1,4 @@
-import { CancelledError, QueryCache, QueryClient } from '@tanstack/vue-query'
+import { CancelledError, type Query, QueryCache, QueryClient } from '@tanstack/vue-query'
 import { toast } from 'vue-sonner'
 
 import { ApiError, type ErrorCase, toErrorCase } from '@/shared/api'
@@ -25,14 +25,10 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
   return failureCount < MAX_RETRIES && error instanceof ApiError && error.isRetryable
 }
 
-function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === 'AbortError'
-}
-
-// Regions render their own in-place state. This adds the de-duplicated toast, and reports what a
-// developer must see: API contract drift, and any non-ApiError (a bug inside a query function).
-function notifyQueryError(error: unknown): void {
-  if (error instanceof CancelledError || isAbortError(error)) return
+// Regions show their own state; this adds one toast per case and reports contract drift and bugs.
+// Unwatched queries (prefetches, a window's own pages) stay silent; the watched window reports.
+function notifyQueryError(error: unknown, query: Query<unknown, unknown, unknown>): void {
+  if (query.getObserversCount() === 0 || error instanceof CancelledError) return
   if (!(error instanceof ApiError)) reportError(error, 'query')
   else if (error.kind === 'parse') reportError(error, 'api-contract')
   const errorCase = toErrorCase(error)

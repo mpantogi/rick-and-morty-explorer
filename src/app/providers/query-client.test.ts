@@ -1,3 +1,4 @@
+import { QueryObserver } from '@tanstack/vue-query'
 import { describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 
@@ -14,12 +15,18 @@ const UNKNOWN_TOAST = {
   description: 'Check your connection and try again.',
 }
 
-async function failQuery(error: Error, key = 'failing') {
-  const client = createQueryClient()
-  await client
-    .query({ queryKey: [key], queryFn: () => Promise.reject(error), retry: false })
-    .catch(() => undefined)
-  return client
+// Fails a query that a region is watching, as useQuery does; nothing watches a prefetch.
+async function failWatchedQuery(error: Error, key = 'failing', client = createQueryClient()) {
+  const observer = new QueryObserver(client, {
+    queryKey: [key],
+    queryFn: () => Promise.reject(error),
+    retry: false,
+  })
+  const unsubscribe = observer.subscribe(() => undefined)
+  await vi.waitFor(() => {
+    expect(observer.getCurrentResult().status).toBe('error')
+  })
+  unsubscribe()
 }
 
 const GC_TIME_MS = 30 * 60_000
@@ -67,11 +74,7 @@ describe('central query error policy', () => {
     const client = createQueryClient()
     const serverError = new ApiError('http', 'down', { status: 500 })
 
-    for (const key of ['page-1', 'page-2']) {
-      await client
-        .query({ queryKey: [key], queryFn: () => Promise.reject(serverError), retry: false })
-        .catch(() => undefined)
-    }
+    for (const key of ['page-1', 'page-2']) await failWatchedQuery(serverError, key, client)
 
     expect(toastError).toHaveBeenCalledTimes(2)
     expect(toastError.mock.calls.map(([, options]) => options?.id)).toEqual([
@@ -87,7 +90,7 @@ describe('central query error policy', () => {
   it('blames the connection for network failures', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
 
-    await failQuery(new ApiError('network', 'offline'))
+    await failWatchedQuery(new ApiError('network', 'offline'))
 
     expect(toastError).toHaveBeenCalledWith(UNKNOWN_TOAST.title, {
       id: 'query-error:unknown',
@@ -98,29 +101,40 @@ describe('central query error policy', () => {
   it('stays silent for a 404, which regions render as not found or empty', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
 
-    await failQuery(new ApiError('http', 'missing', { status: 404 }))
+    await failWatchedQuery(new ApiError('http', 'missing', { status: 404 }))
 
     expect(toastError).not.toHaveBeenCalled()
   })
 
-  it('stays silent for an aborted request', async () => {
+  it('stays silent when a prefetch nobody watches fails, as the page on screen is fine', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const client = createQueryClient()
 
-    await failQuery(new DOMException('aborted', 'AbortError'))
+    await client
+      .query({
+        queryKey: ['next-page'],
+        queryFn: () => Promise.reject(new ApiError('parse', 'shape', { status: 200 })),
+        retry: false,
+      })
+      .catch(() => undefined)
 
     expect(toastError).not.toHaveBeenCalled()
+    expect(consoleError).not.toHaveBeenCalled()
   })
 
   it('stays silent for a cancelled query', async () => {
     const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
     const client = createQueryClient()
-    const pending = client
-      .query({ queryKey: ['slow'], queryFn: () => new Promise<never>(() => undefined) })
-      .catch(() => undefined)
+    const observer = new QueryObserver(client, {
+      queryKey: ['slow'],
+      queryFn: () => new Promise<never>(() => undefined),
+    })
+    const unsubscribe = observer.subscribe(() => undefined)
 
     // The default revert: true rethrows before QueryCache.onError; only revert: false reaches it.
     await client.cancelQueries({ queryKey: ['slow'] }, { revert: false })
-    await pending
+    unsubscribe()
 
     expect(toastError).not.toHaveBeenCalled()
   })
@@ -130,7 +144,7 @@ describe('central query error policy', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const drift = new ApiError('parse', 'shape', { status: 200, cause: [{ path: ['status'] }] })
 
-    await failQuery(drift)
+    await failWatchedQuery(drift)
 
     expect(consoleError).toHaveBeenCalledWith('[api-contract]', drift)
     expect(toastError).toHaveBeenCalledWith(SERVER_TOAST.title, expect.anything())
@@ -141,7 +155,7 @@ describe('central query error policy', () => {
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
     const bug = new TypeError("Cannot read properties of undefined (reading 'results')")
 
-    await failQuery(bug)
+    await failWatchedQuery(bug)
 
     expect(consoleError).toHaveBeenCalledExactlyOnceWith('[query]', bug)
     expect(toastError).toHaveBeenCalledWith(UNKNOWN_TOAST.title, {
@@ -158,7 +172,7 @@ describe('central query error policy', () => {
     vi.spyOn(toast, 'error').mockImplementation(() => 0)
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
 
-    await failQuery(error)
+    await failWatchedQuery(error)
 
     expect(consoleError).not.toHaveBeenCalled()
   })

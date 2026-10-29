@@ -47,7 +47,7 @@ function createRequestScope(callerSignal: AbortSignal | undefined): RequestScope
   return {
     signal: controller.signal,
     failure(error, fallback) {
-      // A caller abort passes through untouched so vue-query treats it as a cancellation.
+      // A caller's own abort is not a network failure, so it passes through untouched.
       if (callerSignal?.aborted) return error
       if (timedOut)
         return new ApiError('timeout', `Timed out after ${REQUEST_TIMEOUT_MS} ms`, { cause: error })
