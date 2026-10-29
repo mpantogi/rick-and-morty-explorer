@@ -28,6 +28,29 @@ async function prerenderedEpisodeCount(request: APIRequestContext, id: number): 
   return characterSchema.parse(detail?.state.data).episode.length
 }
 
+const SCRIPT_ASSET = /\/assets\/[\w-]+\.js/g
+const CHARACTER_CHUNK = /\/assets\/character-[\w-]+\.js$/
+
+// The character page's own chunk: a script its prerendered HTML loads and the home page does not.
+async function characterPageChunk(request: APIRequestContext): Promise<string> {
+  const scriptsOf = async (path: string) =>
+    new Set((await (await request.get(path)).text()).match(SCRIPT_ASSET))
+  const home = await scriptsOf('/')
+  const chunk = [...(await scriptsOf('/characters/1'))].find(
+    (url) => CHARACTER_CHUNK.test(url) && !home.has(url),
+  )
+  if (chunk === undefined) throw new Error('The character page loads no chunk of its own')
+  return chunk
+}
+
+// Requests the home page makes for the chunk fail; a full load of another page gets it.
+async function failChunkFromHome(page: Page, chunk: string): Promise<void> {
+  await page.route(`**${chunk}`, async (route) => {
+    const fromHome = new URL(route.request().frame().url()).pathname === '/'
+    await (fromHome ? route.abort() : route.continue())
+  })
+}
+
 function facts(page: Page) {
   return page.locator('.character-profile__facts')
 }
@@ -121,5 +144,24 @@ test.describe('character detail', { tag: '@journey' }, () => {
     await expect(
       page.getByText("The Rick and Morty API isn't responding", { exact: true }),
     ).toBeVisible()
+  })
+})
+
+test.describe('chunk recovery', () => {
+  test('opens a character in full when its page chunk fails to load', async ({
+    page,
+    request,
+    consoleGuard,
+  }) => {
+    consoleGuard.allowHttpErrors(CHARACTER_CHUNK)
+    await failChunkFromHome(page, await characterPageChunk(request))
+    await openPage(page, '/')
+    const fullLoad = page.waitForEvent('load')
+
+    await page.locator('#results').getByRole('link', { name: 'Rick Sanchez', exact: true }).click()
+
+    await fullLoad
+    await expect(page).toHaveURL('/characters/1')
+    await expect(page.getByRole('heading', { level: 1, name: 'Rick Sanchez' })).toBeVisible()
   })
 })
