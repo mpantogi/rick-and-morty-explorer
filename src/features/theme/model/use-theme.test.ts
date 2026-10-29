@@ -81,7 +81,7 @@ describe('useTheme', () => {
     const started = startTheme()
     stop = started.stop
 
-    started.theme.isDark.value = true
+    started.theme.toggle()
     await nextTick()
     expect(localStorage.getItem(STORAGE_KEYS.theme)).toBe('dark')
 

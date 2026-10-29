@@ -13,17 +13,12 @@ export const useTheme = createSharedComposable(() => {
     onError: reportStorageError,
   })
   const mode = useColorMode({ storageRef: stored })
-  const isDark = computed({
-    get: () => mode.value === 'dark',
-    set: (dark: boolean) => {
-      mode.value = dark ? 'dark' : 'light'
-    },
-  })
+  const isDark = computed(() => mode.value === 'dark')
 
   return {
     isDark,
     toggle: () => {
-      isDark.value = !isDark.value
+      mode.value = isDark.value ? 'light' : 'dark'
     },
   }
 })
