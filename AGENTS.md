@@ -181,8 +181,10 @@ least 4.5:1 in both themes.
   `application/ld+json` block through `usePageSeo`. Styles allow `'unsafe-inline'` because
   vue-sonner and VueUse set inline styles.
 - `public/_headers` holds what a meta tag cannot carry (`frame-ancestors`, `X-Frame-Options`, HSTS,
-  COOP, `Referrer-Policy`, `Permissions-Policy`, `nosniff`) and the one-year immutable cache for
-  `/assets/*`.
+  COOP, `Referrer-Policy`, `Permissions-Policy`, `nosniff`), the one-year immutable cache for
+  `/assets/*`, and the web manifest's `Content-Type` (Netlify serves `.webmanifest` as
+  `application/octet-stream`). `scripts/serve-dist.ts` maps no type for it either, so the E2E
+  check only passes through that rule.
 - Never use `v-html`. User text renders through interpolation only.
 - Validate every image URL with zod before it reaches an `<img>`: `http(s)` only for API data,
   `https` and a domain name (no IP address or localhost) for user input.

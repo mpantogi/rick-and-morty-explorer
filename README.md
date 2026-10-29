@@ -208,7 +208,7 @@ app fail fast if either is not an `https:` URL. Set them in the shell or in an u
 ## Deploy
 
 The site is static: Netlify serves `dist/` as built, including `public/_redirects` (the hero page
-rewrites) and `public/_headers` (security and cache headers).
+rewrites) and `public/_headers` (security and cache headers, and the web manifest's media type).
 
 - **Netlify CLI:** `yarn build`, then `netlify deploy --prod --dir=dist` (without a global install:
   `yarn dlx netlify-cli deploy --prod --dir=dist`).

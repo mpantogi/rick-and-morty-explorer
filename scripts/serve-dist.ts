@@ -26,7 +26,6 @@ const MIME_TYPES: Readonly<Record<string, string>> = {
   '.ico': 'image/x-icon',
   '.txt': 'text/plain; charset=utf-8',
   '.xml': 'application/xml; charset=utf-8',
-  '.webmanifest': 'application/manifest+json',
 }
 
 interface Rewrite {
@@ -120,10 +119,11 @@ async function findFile(path: string): Promise<string | null> {
   return null
 }
 
+// Like Netlify, an unknown extension is octet-stream unless a `_headers` rule sets the type.
 function send(req: IncomingMessage, res: ServerResponse, { file, status, headers }: Reply): void {
   res.writeHead(status, {
-    ...headers,
     'Content-Type': MIME_TYPES[extname(file)] ?? 'application/octet-stream',
+    ...headers,
   })
   if (req.method === 'HEAD') res.end()
   else createReadStream(file).pipe(res)
