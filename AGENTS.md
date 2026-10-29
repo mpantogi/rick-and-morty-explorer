@@ -154,6 +154,9 @@ least 4.5:1 in both themes.
   disables are the `console.error` in `src/shared/lib/report-error.ts` and the `scrollBehavior`
   deprecation in `src/app/main.ts`.
 - No `console.*` in `src` outside `reportError`.
+- Every TypeScript project (app, tests, `build/` and `scripts/`, `e2e/`) sets
+  `noUncheckedIndexedAccess`: handle the `undefined` an index can return, never with a non-null
+  assertion.
 - Forms use vee-validate 4 with Zod schemas through `toTypedSchema`
   (`src/shared/lib/validation/to-typed-schema.ts`); `@vee-validate/zod` does not support Zod 4, so
   never add it. One Zod schema validates both the form and what is read back from storage.

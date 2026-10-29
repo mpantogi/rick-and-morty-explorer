@@ -34,18 +34,19 @@ export function countChangedPixels(page: Page, before: Buffer, after: Buffer): P
         context.drawImage(bitmap, 0, 0)
         return context.getImageData(0, 0, bitmap.width, bitmap.height).data
       }
-      const [first, second] = await Promise.all(images.map(decode))
+      const [first, second] = await Promise.all([decode(images.before), decode(images.after)])
+      if (first.length !== second.length) throw new Error('The two captures differ in size')
       let changed = 0
       for (let index = 0; index < first.length; index += stride) {
         const delta = [0, 1, 2].map((channel) =>
-          Math.abs(first[index + channel] - second[index + channel]),
+          Math.abs((first[index + channel] ?? 0) - (second[index + channel] ?? 0)),
         )
         if (Math.max(...delta) > tolerance) changed += 1
       }
       return changed
     },
     {
-      images: [before.toString('base64'), after.toString('base64')],
+      images: { before: before.toString('base64'), after: after.toString('base64') },
       tolerance: CHANNEL_TOLERANCE,
       stride: RGBA,
     },

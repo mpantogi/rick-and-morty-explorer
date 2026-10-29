@@ -58,10 +58,11 @@ async function readOptional(file: string): Promise<string> {
 // Netlify `_redirects`: only status-200 rewrites are used by this site.
 async function loadRewrites(): Promise<Rewrite[]> {
   const lines = (await readOptional(join(DIST, '_redirects'))).split('\n')
-  return lines
-    .map((line) => line.trim().split(/\s+/))
-    .filter(([from, to, status]) => from && to && !from.startsWith('#') && status === '200')
-    .map(([from, to]) => ({ from: from.split('/'), to }))
+  return lines.flatMap((line) => {
+    const [from, to, status] = line.trim().split(/\s+/)
+    if (!from || !to || from.startsWith('#') || status !== '200') return []
+    return [{ from: from.split('/'), to }]
+  })
 }
 
 // Netlify `_headers`: an unindented path (exact, or a prefix ending in `*`), then indented headers.

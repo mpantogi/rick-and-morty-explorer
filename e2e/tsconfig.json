@@ -6,6 +6,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "noEmit": true,
+    "noUncheckedIndexedAccess": true,
     "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "paths": {

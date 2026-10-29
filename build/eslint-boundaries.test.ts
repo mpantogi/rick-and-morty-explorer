@@ -9,7 +9,9 @@ const eslint = new ESLint({ cwd: process.cwd() })
 // Each case lints code as if it lived in an existing file of the importing layer,
 // so the real config, resolver and TypeScript project all apply.
 async function boundaryMessages(filePath: string, code: string): Promise<string[]> {
-  const [{ messages }] = await eslint.lintText(code, { filePath })
+  const [result] = await eslint.lintText(code, { filePath })
+  if (!result) throw new Error(`ESLint returned no result for ${filePath}`)
+  const { messages } = result
   const fatal = messages.find((message) => message.fatal)
   if (fatal) throw new Error(`Could not lint ${filePath}: ${fatal.message}`)
   return messages.filter((message) => message.ruleId === RULE).map((message) => message.message)

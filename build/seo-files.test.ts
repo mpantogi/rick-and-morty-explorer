@@ -11,7 +11,7 @@ const BUILD_DATE = '2026-10-29'
 const AI_CRAWLERS = ['GPTBot', 'OAI-SearchBot', 'ClaudeBot', 'PerplexityBot']
 
 function locs(sitemap: string): string[] {
-  return [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => loc)
+  return [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc = '']) => loc)
 }
 
 // robots.txt groups are separated by blank lines.

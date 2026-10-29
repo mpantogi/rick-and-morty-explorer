@@ -17,7 +17,7 @@ export interface CspOptions {
 }
 
 export function inlineScripts(html: string): string[] {
-  return [...html.matchAll(INLINE_EXECUTABLE)].map(([, text]) => text)
+  return [...html.matchAll(INLINE_EXECUTABLE)].map(([, text = '']) => text)
 }
 
 export function hashInlineScripts(html: string): string[] {
