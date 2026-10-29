@@ -33,4 +33,17 @@ describe('BaseInput', () => {
     expect(input).toHaveAttribute('id', 'name')
     expect(input).toHaveAttribute('maxlength', '100')
   })
+
+  it("puts a parent's BEM mix right after its own block, before any utility", () => {
+    render(BaseInput, {
+      props: { modelValue: '', id: 'species' },
+      attrs: { class: 'species-combobox__input pr-11', 'aria-label': 'Species' },
+    })
+
+    expect([...screen.getByRole('textbox', { name: 'Species' }).classList].slice(0, 3)).toEqual([
+      'input',
+      'species-combobox__input',
+      'pr-11',
+    ])
+  })
 })

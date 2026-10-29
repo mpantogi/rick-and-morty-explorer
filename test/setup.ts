@@ -9,6 +9,8 @@ import { settleQueries } from './settle-queries'
 
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
+  // jsdom does no layout, so it leaves scrollIntoView out; listboxes call it as the active option moves.
+  Element.prototype.scrollIntoView = () => undefined
 })
 
 afterEach(async () => {

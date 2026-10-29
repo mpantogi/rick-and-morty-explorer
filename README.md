@@ -43,6 +43,11 @@ Live site: https://rickverse-explorer.netlify.app
   (`’`), so typing `Morty's` with a plain `'` misses them, and there is no accent folding
   (`Martinez` does not find `Martínez`). Working around either would take extra API requests per
   search, or a client-side filter that breaks the API's counts and paging, so both are accepted.
+- **One listbox for status, gender and species.** Status and gender use `BaseSelect` and species
+  uses a free-text combobox, all on one `BaseListbox` that follows the WAI-ARIA combobox patterns
+  (focus stays on the control, `aria-activedescendant` marks the option). The popups of a native
+  `<select>` and `<datalist>` differ per browser and cannot be styled; reka-ui 2.11 would add a
+  second VueUse major and floating-ui for three fields.
 - **Local persistence.** Favorites and heroes are Pinia stores backed by VueUse `useStorage`,
   with versioned keys, a Zod check on every read and caps of 2,000 favorites and 500 heroes. When
   the browser blocks site data, the app says so once and keeps them in memory for the visit.
@@ -98,7 +103,8 @@ control, badge and skeleton uses them:
 | `BaseLink`     | Permanently underlined inline link, internal (`to`) or external (`href`)                                |
 | `BaseField`    | Label, hint and error for one control, with the ids and ARIA attributes passed to it through slot props |
 | `BaseInput`    | Text input with `v-model` and the shared control styling                                                |
-| `BaseSelect`   | Select with `v-model`, typed options and the same styling                                               |
+| `BaseSelect`   | Select-only combobox with `v-model` and typed options, styled like the other controls                   |
+| `BaseListbox`  | The option list `BaseSelect` and the species field open; `useListbox` drives its keyboard focus         |
 | `BaseBadge`    | Pill in a `neutral`, `success`, `danger` or `accent` tone, with an optional dot                         |
 | `BaseSkeleton` | Pulsing placeholder sized by its caller                                                                 |
 

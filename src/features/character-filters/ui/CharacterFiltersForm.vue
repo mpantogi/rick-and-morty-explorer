@@ -8,18 +8,17 @@ import {
   FILTER_MAX_LENGTH,
   GENDERS,
   genderLabel,
-  KNOWN_SPECIES,
   STATUSES,
   statusLabel,
 } from '@/entities/character'
 import { BaseButton, BaseField, BaseInput, BaseSelect } from '@/shared/ui'
 
 import type { CharacterFiltersController } from '../model/use-character-filters'
+import SpeciesCombobox from './SpeciesCombobox.vue'
 
 const { controller } = defineProps<{ controller: CharacterFiltersController }>()
 
 const PANEL_ID = 'filters-panel'
-const SPECIES_LIST_ID = 'species-options'
 const STATUS_OPTIONS = [
   { value: '', label: 'Any status' },
   ...STATUSES.map((status) => ({ value: status, label: statusLabel(status) })),
@@ -92,36 +91,24 @@ defineExpose({ focusName })
       :id="PANEL_ID"
       :class="['filters__panel', isPanelOpen ? 'grid' : 'hidden', 'gap-4 md:grid md:grid-cols-4']"
     >
-      <BaseField v-slot="{ id }" label="Status" class="filters__field">
+      <BaseField v-slot="{ id, labelId }" label="Status" class="filters__field">
         <BaseSelect
           :id
+          :label-id
           :model-value="controller.draft.status"
-          name="status"
           :options="STATUS_OPTIONS"
           @update:model-value="(value) => controller.update('status', value)"
         />
       </BaseField>
-      <BaseField v-slot="{ id }" label="Species" class="filters__field">
-        <BaseInput
+      <BaseField v-slot="{ id, labelId }" label="Species" class="filters__field">
+        <SpeciesCombobox
           :id
+          :label-id
           :model-value="controller.draft.species"
-          name="species"
-          type="text"
-          :list="SPECIES_LIST_ID"
-          :maxlength="FILTER_MAX_LENGTH"
-          autocomplete="off"
-          placeholder="e.g. Alien"
           @update:model-value="(value) => controller.update('species', value)"
+          @pick="controller.applyNow"
         />
       </BaseField>
-      <datalist :id="SPECIES_LIST_ID" class="filters__species-list">
-        <option
-          v-for="species in KNOWN_SPECIES"
-          :key="species"
-          :value="species"
-          class="filters__species-option"
-        />
-      </datalist>
       <BaseField v-slot="{ id }" label="Type" class="filters__field">
         <BaseInput
           :id
@@ -134,11 +121,11 @@ defineExpose({ focusName })
           @update:model-value="(value) => controller.update('type', value)"
         />
       </BaseField>
-      <BaseField v-slot="{ id }" label="Gender" class="filters__field">
+      <BaseField v-slot="{ id, labelId }" label="Gender" class="filters__field">
         <BaseSelect
           :id
+          :label-id
           :model-value="controller.draft.gender"
-          name="gender"
           :options="GENDER_OPTIONS"
           @update:model-value="(value) => controller.update('gender', value)"
         />

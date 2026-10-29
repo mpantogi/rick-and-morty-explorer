@@ -40,32 +40,44 @@ describe('CharacterFiltersForm', () => {
   })
 
   it('offers every status and gender with an "any" option first', async () => {
-    await setup()
+    const { user } = await setup()
 
-    const optionsOf = (name: string) =>
-      within(screen.getByRole('combobox', { name }))
+    const optionsOf = async (name: string) => {
+      await user.click(screen.getByRole('combobox', { name }))
+      const labels = within(screen.getByRole('listbox', { name }))
         .getAllByRole('option')
         .map((option) => option.textContent.trim())
-    expect(optionsOf('Status')).toEqual(['Any status', 'Alive', 'Dead', 'Unknown'])
-    expect(optionsOf('Gender')).toEqual(['Any gender', 'Female', 'Male', 'Genderless', 'Unknown'])
+      await user.keyboard('{Escape}')
+      return labels
+    }
+    expect(await optionsOf('Status')).toEqual(['Any status', 'Alive', 'Dead', 'Unknown'])
+    expect(await optionsOf('Gender')).toEqual([
+      'Any gender',
+      'Female',
+      'Male',
+      'Genderless',
+      'Unknown',
+    ])
   })
 
-  it('suggests the known species', async () => {
-    const { container } = await setup()
+  it('suggests the known species from the species button', async () => {
+    const { user } = await setup()
 
-    const species = screen.getByRole('combobox', { name: 'Species' })
-    const list = container.querySelector(`datalist#${species.getAttribute('list') ?? ''}`)
-    expect([...(list?.querySelectorAll('option') ?? [])].map((option) => option.value)).toContain(
-      'Mythological Creature',
-    )
+    await user.click(screen.getByRole('button', { name: 'Species' }))
+
+    expect(
+      within(screen.getByRole('listbox', { name: 'Species' })).getByRole('option', {
+        name: 'Mythological Creature',
+      }),
+    ).toBeInTheDocument()
   })
 
   it('shows the applied filters in the controls', async () => {
     await setup('/?name=rick&status=dead&gender=male')
 
     expect(screen.getByRole('searchbox', { name: 'Name' })).toHaveValue('rick')
-    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveValue('dead')
-    expect(screen.getByRole('combobox', { name: 'Gender' })).toHaveValue('male')
+    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Dead')
+    expect(screen.getByRole('combobox', { name: 'Gender' })).toHaveTextContent('Male')
   })
 
   it('opens and closes the filter panel from its toggle', async () => {
@@ -98,7 +110,8 @@ describe('CharacterFiltersForm', () => {
   it('applies a status at once', async () => {
     const { user, query } = await setup()
 
-    await user.selectOptions(screen.getByRole('combobox', { name: 'Status' }), 'Alive')
+    await user.click(screen.getByRole('combobox', { name: 'Status' }))
+    await user.click(screen.getByRole('option', { name: 'Alive' }))
 
     await vi.waitFor(() => {
       expect(query()).toEqual({ status: 'alive' })
@@ -115,6 +128,17 @@ describe('CharacterFiltersForm', () => {
     await new Promise((resolve) => setImmediate(resolve))
 
     expect(query()).toEqual({ name: 'morty' })
+  })
+
+  it('applies a picked species at once', async () => {
+    const { query } = await setup()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+
+    await fireEvent.update(screen.getByRole('combobox', { name: 'Species' }), 'ali')
+    await fireEvent.click(screen.getByRole('option', { name: 'Alien' }))
+    await new Promise((resolve) => setImmediate(resolve))
+
+    expect(query()).toEqual({ species: 'Alien' })
   })
 
   it('offers Reset filters only while a filter is applied', async () => {

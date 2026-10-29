@@ -68,6 +68,36 @@ test.describe('keyboard', () => {
     )
   })
 
+  test('picks a status from its list without a pointer', async ({ page }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    const status = page.getByRole('combobox', { name: 'Status' })
+
+    await tabTo(page, status)
+    await page.keyboard.press('ArrowDown')
+    await expect(page.getByRole('listbox', { name: 'Status' })).toBeVisible()
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL('/?status=alive')
+    await expect(status).toHaveText('Alive')
+    await expect(status).toBeFocused()
+  })
+
+  test('picks a species suggestion without a pointer', async ({ page }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    const species = page.getByRole('combobox', { name: 'Species' })
+
+    await tabTo(page, species)
+    await page.keyboard.type('ali')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+
+    await expect(page).toHaveURL('/?species=Alien')
+    await expect(species).toHaveValue('Alien')
+  })
+
   test('opens a character from its card with Enter and lands on its name', async ({ page }) => {
     await openPage(page, '/')
     await expect(cards(page)).toHaveCount(12)

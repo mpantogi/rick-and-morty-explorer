@@ -113,9 +113,9 @@ Layers in `src/`, importing downward only: `app → pages → widgets → featur
 ## Design system
 
 Reusable UI is built once in `src/shared/ui` as `Base*` components: `BaseButton`, `BaseLink`,
-`BaseField`, `BaseInput`, `BaseSelect`, `BaseBadge`, `BaseSkeleton`. Use them for every button,
-link, form control, badge and skeleton; never hand-roll those styles again. Add a primitive or a
-variant only when it has at least two real call sites, with no speculative props.
+`BaseField`, `BaseInput`, `BaseSelect`, `BaseListbox`, `BaseBadge`, `BaseSkeleton`. Use them for
+every button, link, form control, badge and skeleton; never hand-roll those styles again. Add a
+primitive or a variant only when it has at least two real call sites, with no speculative props.
 
 The brand mark is defined once in `src/shared/ui/brand/logo-mark.ts`: `AppLogo` renders it, and
 `scripts/generate-icons.ts` (Chromium through Playwright) renders it into `public/` as

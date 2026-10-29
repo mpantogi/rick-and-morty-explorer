@@ -22,6 +22,25 @@ for (const theme of THEMES) {
     })
   }
 
+  for (const { control, open } of [
+    { control: 'status list', open: { role: 'combobox', name: 'Status' } },
+    { control: 'species suggestions', open: { role: 'button', name: 'Species' } },
+  ] as const) {
+    test(`home with the ${control} open has no WCAG 2.2 AA violations in the ${theme} theme`, async ({
+      page,
+      makeAxeBuilder,
+    }) => {
+      await useStoredTheme(page, theme)
+      await openPage(page, '/')
+
+      await page.getByRole(open.role, { name: open.name }).click()
+      await expect(page.getByRole('listbox')).toBeVisible()
+
+      const { violations } = await makeAxeBuilder().analyze()
+      expect(violations).toEqual([])
+    })
+  }
+
   test(`home error state has no WCAG 2.2 AA violations in the ${theme} theme`, async ({
     page,
     consoleGuard,

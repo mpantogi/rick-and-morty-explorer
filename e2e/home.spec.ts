@@ -85,6 +85,11 @@ function readPauseProbe(page: Page): Promise<PauseProbe | undefined> {
   return page.evaluate(() => (window as Window & { pauseProbe?: PauseProbe }).pauseProbe)
 }
 
+async function pickOption(page: Page, name: string, option: string): Promise<void> {
+  await page.getByRole('combobox', { name }).click()
+  await page.getByRole('listbox', { name }).getByRole('option', { name: option }).click()
+}
+
 test.describe('character list', { tag: '@journey' }, () => {
   test('lists the first 12 characters', async ({ page }) => {
     await openPage(page, '/')
@@ -185,16 +190,18 @@ test.describe('character list', { tag: '@journey' }, () => {
   for (const { filter, apply, url, total } of [
     {
       filter: 'status',
-      apply: (page: Page) =>
-        page.getByRole('combobox', { name: 'Status' }).selectOption({ label: 'Dead' }),
+      apply: (page: Page) => pickOption(page, 'Status', 'Dead'),
       url: '/?status=dead',
       total: 18,
     },
     {
       filter: 'species',
       apply: async (page: Page) => {
-        await page.getByRole('combobox', { name: 'Species' }).fill('Alien')
-        await page.getByRole('button', { name: 'Search' }).click()
+        await page.getByRole('combobox', { name: 'Species' }).fill('ali')
+        await page
+          .getByRole('listbox', { name: 'Species' })
+          .getByRole('option', { name: 'Alien' })
+          .click()
       },
       url: '/?species=Alien',
       total: 19,
@@ -210,8 +217,7 @@ test.describe('character list', { tag: '@journey' }, () => {
     },
     {
       filter: 'gender',
-      apply: (page: Page) =>
-        page.getByRole('combobox', { name: 'Gender' }).selectOption({ label: 'Female' }),
+      apply: (page: Page) => pickOption(page, 'Gender', 'Female'),
       url: '/?gender=female',
       total: 12,
     },
@@ -234,10 +240,33 @@ test.describe('character list', { tag: '@journey' }, () => {
     await openPage(page, '/')
     await openFilters(page)
 
-    const listId = await page.getByRole('combobox', { name: 'Species' }).getAttribute('list')
+    await page.getByRole('button', { name: 'Species' }).click()
+
     await expect(
-      page.locator(`datalist#${listId ?? ''} option[value="Mythological Creature"]`),
-    ).toHaveCount(1)
+      page.getByRole('listbox', { name: 'Species' }).getByRole('option', {
+        name: 'Mythological Creature',
+      }),
+    ).toBeVisible()
+  })
+
+  test('opens and commits a status with Space, as the keyboard pattern expects', async ({
+    page,
+  }) => {
+    await openPage(page, '/')
+    await expect(cards(page)).toHaveCount(12)
+    await openFilters(page)
+    const status = page.getByRole('combobox', { name: 'Status' })
+    const list = page.getByRole('listbox', { name: 'Status' })
+    await status.focus()
+
+    await page.keyboard.press('Space')
+    await expect(list).toBeVisible()
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Space')
+
+    await expect(page).toHaveURL('/?status=alive')
+    await expect(list).toBeHidden()
+    await expect(status).toBeFocused()
   })
 
   test('resets every filter and returns focus to the search box', async ({ page }) => {

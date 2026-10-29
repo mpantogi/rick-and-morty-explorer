@@ -16,6 +16,7 @@ const {
 defineSlots<{
   default: (control: {
     id: string
+    labelId: string
     describedBy: string | undefined
     invalid: boolean
     errorId: string | undefined
@@ -24,6 +25,7 @@ defineSlots<{
 
 const { mix, rest } = useBemMix()
 const id = useId()
+const labelId = `${id}-label`
 const hintId = `${id}-hint`
 const errorId = computed(() => (error ? `${id}-error` : undefined))
 const describedBy = computed(() => {
@@ -34,8 +36,8 @@ const describedBy = computed(() => {
 
 <template>
   <div v-bind="rest()" :class="['field', mix(), 'flex flex-col gap-1.5']">
-    <label :for="id" class="field__label text-sm font-semibold">{{ label }}</label>
-    <slot :id :described-by="describedBy" :invalid="Boolean(error)" :error-id="errorId" />
+    <label :id="labelId" :for="id" class="field__label text-sm font-semibold">{{ label }}</label>
+    <slot :id :label-id :described-by="describedBy" :invalid="Boolean(error)" :error-id="errorId" />
     <p v-if="hint" :id="hintId" class="field__hint text-sm text-muted">{{ hint }}</p>
     <p v-if="error" :id="errorId" class="field__error text-sm text-danger">{{ error }}</p>
   </div>
