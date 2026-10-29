@@ -1,3 +1,4 @@
+import { FIRST_PAGE } from '@/features/character-filters'
 import { paths } from '@/shared/config'
 
 interface HomeSeo {
@@ -7,7 +8,6 @@ interface HomeSeo {
 }
 
 const HOME_TITLE = 'Rick and Morty Explorer: Browse Every Character'
-const FIRST_PAGE = 1
 
 interface HomeListView {
   page: number
