@@ -13,6 +13,8 @@ const NOT_FOUND = 404
 const PRESS_MS = 150
 const SECURE_URL_ERROR = 'Enter a secure image URL: https:// and a domain name, not an IP address.'
 const UNKNOWN_HERO_PATH = '/heroes/0b4f3a52-8f1e-4a5b-9c7d-2e6f1a3b4c5d'
+// The app's hero cap (MAX_HEROES in src/shared/config/limits.ts).
+const MAX_HEROES = 500
 
 interface Position {
   x: number
@@ -109,6 +111,25 @@ test.describe('create hero', { tag: '@journey' }, () => {
     await expect(fields.name).toBeFocused()
     await expect(fields.name).toHaveAccessibleErrorMessage('Enter a name.')
     await expect(fields.image).toHaveAccessibleErrorMessage(SECURE_URL_ERROR)
+  })
+
+  test('keeps focus on Create hero when a full browser refuses the save', async ({ page }) => {
+    const saved = Array.from({ length: MAX_HEROES }, (_, index) => ({
+      ...PORTAL_PETE,
+      id: crypto.randomUUID(),
+      name: `Saved hero ${String(index)}`,
+    }))
+    await useStoredHeroes(page, saved)
+    await openPage(page, '/heroes/new')
+    await createHero(page)
+    const { submit } = form(page)
+
+    await submit.focus()
+    await page.keyboard.press('Enter')
+
+    await expect(page.getByText('Limit reached', { exact: true })).toBeVisible()
+    await expect(page).toHaveURL('/heroes/new')
+    await expect(submit).toBeFocused()
   })
 
   test('creates a hero that leads the character list, even after a reload', async ({ page }) => {

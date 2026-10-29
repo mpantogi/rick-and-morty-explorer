@@ -188,6 +188,21 @@ describe('CreateHeroForm', () => {
     })
   })
 
+  it('creates one hero when the visitor submits twice in a row', async () => {
+    vi.spyOn(toast, 'success').mockImplementation(() => 'id')
+    const { user, router, name, image, gender, submit } = await setup()
+    await user.type(name(), 'Portal Pete')
+    await user.click(within(gender()).getByRole('radio', { name: 'Male' }))
+    await user.type(image(), IMAGE)
+
+    await user.dblClick(submit())
+
+    await vi.waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/')
+    })
+    expect(savedHeroes()).toHaveLength(1)
+  })
+
   it('keeps the form and explains the limit when heroes are full', async () => {
     const limit = vi.spyOn(toast, 'error').mockImplementation(() => 'id')
     const full = Array.from({ length: MAX_HEROES }, () => ({

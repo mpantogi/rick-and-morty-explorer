@@ -31,7 +31,7 @@ const router = useRouter()
 const form = useTemplateRef<HTMLFormElement>('form')
 const genderErrorId = `${useId()}-gender-error`
 
-const { defineField, errors, handleSubmit, submitCount } = useForm({
+const { defineField, errors, handleSubmit, isSubmitting, submitCount } = useForm({
   validationSchema: toTypedSchema(heroInputSchema),
   initialValues: { name: '', image: '' },
 })
@@ -67,6 +67,13 @@ const onSubmit = handleSubmit(async (values) => {
   })
   await router.push(paths.home)
 }, focusFirstInvalid)
+
+// vee-validate has no re-entry guard, so a second press before the redirect would add a twin.
+// Disabling the button instead would drop its focus to the page whenever the save is refused.
+function submitOnce(event: Event): void {
+  if (isSubmitting.value) event.preventDefault()
+  else void onSubmit(event)
+}
 </script>
 
 <template>
@@ -74,7 +81,7 @@ const onSubmit = handleSubmit(async (values) => {
     ref="form"
     novalidate
     class="hero-form flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem]"
-    @submit="onSubmit"
+    @submit="submitOnce"
   >
     <div class="hero-form__fields flex flex-col gap-6">
       <BaseField
