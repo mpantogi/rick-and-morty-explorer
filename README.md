@@ -7,22 +7,103 @@ vite-ssg. Unofficial fan project.
 
 Live site: https://rickverse-explorer.netlify.app
 
-## Project status
+## Task → feature map
 
-In progress. In place: the app shell, theme, error pages, the `Base*` design system, the
-character list (12 characters per page over the API's 20-item pages, URL-synced filters,
-pagination, and loading, empty and error states), character detail pages (profile and episode
-list), favorites (saved in this browser, listed on their own page) and the create-hero form (name,
-gender and an https image URL with a live preview, saved in this browser). Created heroes lead the
-character list, follow its filters and have a page of their own. The build writes `sitemap.xml`,
-`robots.txt` and `llms.txt`, and the brand mark ships as a favicon set, web manifest icons and a
-social card. Every page carries a Content Security Policy with build-time hashes of its inline
-scripts, and `public/_headers` adds the security and caching headers. `netlify.toml` holds the
-Netlify build settings. A budget check keeps the JavaScript and CSS the home page loads up front
-under 150 KiB and 30 KiB gzipped, and the character page's code loads while the browser is idle.
-End-to-end tests cover the SEO tags and crawler files, the security headers and CSP, and keyboard
-use. GitHub Actions (`.github/workflows/ci.yml`) runs the dependency audit, every check, the
-build and the full Playwright matrix on each push to `main` and on pull requests.
+| Task                   | What it does                                                                                    | Where                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 1.1 12 per page        | 12 characters per page over the API's 20-item pages; pagination kept in the URL (`?page=n`)     | `widgets/character-browser`, `entities/character`         |
+| 1.2 Filters            | Name (debounced search), Status, Species (with suggestions), Type, Gender; applied by the API   | `features/character-filters`                              |
+| 1.3 Character detail   | `/characters/:id`: photo, name, status, species, type, gender, origin, location, every episode  | `pages/character`, `entities/episode`                     |
+| 2 Create hero          | Name, gender radios and an `https:` image URL with live preview; the hero leads the list        | `features/create-hero`, `pages/hero-create`, `pages/hero` |
+| 3 Dark mode            | Header toggle, light by default, `#202329` canvas, saved and applied before first paint         | `features/theme`, `index.html`                            |
+| 4 Favorites            | A heart on every card and character page; `/favorites` lists them, newest first                 | `features/favorites`, `widgets/favorites-list`            |
+| Composition API        | `<script setup lang="ts">` everywhere, logic in `use*` composables, enforced by ESLint          | `eslint.config.ts`                                        |
+| Tailwind and BEM       | BEM class first on every element, then utilities; semantic colour tokens                        | [Design system](#design-system)                           |
+| Architecture           | Feature-Sliced Design, enforced by eslint-plugin-boundaries                                     | [Architecture](#architecture)                             |
+| Tests                  | Vitest, Testing Library and MSW, test-first; Playwright in six browser and device projects      | [Testing](#testing)                                       |
+| Server state           | TanStack Vue Query for every API request; Pinia only for favorites and heroes                   | [ADR 0002](docs/adr/0002-server-state-and-page-window.md) |
+| Performance, semantics | Code splitting, idle prefetch, prioritised images, a bundle budget; landmarks, live regions     | `scripts/check-budget.ts`, `src/app/lib`                  |
+| SEO, security          | Titles, canonicals, social tags, JSON-LD, sitemap, robots, `llms.txt`; per-page CSP and headers | `build/`, `public/_headers`                               |
+| Deployment             | Static site on Netlify                                                                          | [Deploy](#deploy)                                         |
+
+## Decisions and trade-offs
+
+- **Static generation without hydration.** vite-ssg prerenders every page for crawlers and first
+  paint, and the client then mounts fresh over it. Favorites, heroes and the theme live in
+  `localStorage`, which a build cannot see, so hydrating would mean gating each of them; regions
+  that depend on them render a skeleton in the HTML instead. Character pages embed their data, so
+  they open without a request. [ADR 0001](docs/adr/0001-ssg-without-hydration.md)
+- **12 over 20.** The API pages by 20 and the task asks for 12. A pure function maps each UI page
+  (after any matching heroes) onto the one or two API pages that cover it, and each API page is
+  cached on its own, so paging never repeats a request.
+  [ADR 0002](docs/adr/0002-server-state-and-page-window.md)
+- **Filters keep the API's semantics.** Filtering happens on the server, and created heroes are
+  filtered locally with the same rules. The API matches substrings, so `species=human` also returns
+  Humanoid characters; there is no exact filter. Fourteen names use the typographic apostrophe
+  (`’`), so typing `Morty's` with a plain `'` misses them, and there is no accent folding
+  (`Martinez` does not find `Martínez`). Working around either would take extra API requests per
+  search, or a client-side filter that breaks the API's counts and paging, so both are accepted.
+- **Local persistence.** Favorites and heroes are Pinia stores backed by VueUse
+  `useLocalStorage`, with versioned keys, a Zod check on every read and caps of 2,000 favorites and
+  500 heroes. pinia-plugin-persistedstate is not used because `useLocalStorage`, from a library the
+  app already depends on, already gives each store a validated, cross-tab-synced ref.
+  [ADR 0006](docs/adr/0006-local-persistence-with-vueuse.md)
+- **Errors.** The query client raises one toast per kind of failure, and each region shows its own
+  error with a retry. A missing character or route gets a full error page; 404s from filters are an
+  empty state, not an error.
+- **Forms.** vee-validate 4 has no Zod 4 support, so a 30-line local adapter feeds it the same Zod
+  schema that validates stored heroes. [ADR 0005](docs/adr/0005-vee-validate-zod4-adapter.md)
+- **Content Security Policy.** Inline scripts are allowed by build-time hashes, never by
+  `'unsafe-inline'`, and Zod runs without `eval`.
+  [ADR 0004](docs/adr/0004-csp-with-build-time-hashes.md)
+- **API availability.** The Rick and Morty API is run by volunteers with no SLA. Prerendered
+  character pages keep working when it is down; the list, the filters and favorites need it and
+  show an error with a retry. Requests time out after 10 s and network or server errors are retried
+  twice. The next step would be a static snapshot: the build already loads every character and
+  episode, and publishing that data with the site would give the list a fallback.
+
+## Architecture
+
+Feature-Sliced Design. Layers import downward only, slices of one layer never import each other,
+and other layers import a slice through its `index.ts`.
+
+```text
+src/
+  app/        entry (vite-ssg), router, query client, prerender data (ssg/), styles
+  pages/      home, character, favorites, hero-create, hero, not-found
+  widgets/    layout, character-browser, favorites-list
+  features/   character-filters, favorites, create-hero, theme
+  entities/   character, episode
+  shared/     api (fetch client), config, lib, ui (design system), zod (jitless Zod)
+build/        vite-ssg hooks: per-page CSP, sitemap.xml, robots.txt, llms.txt
+scripts/      serve-dist, check-budget, generate-icons, record-e2e-fixture
+test/         Vitest setup, MSW handlers, API semantics, fixtures
+e2e/          Playwright specs, fixtures, API mock and state probe
+docs/adr/     architecture decision records
+public/       _redirects, _headers, icons, web manifest, social card
+```
+
+## Design system
+
+Reusable UI is built once in `src/shared/ui` as `Base*` components, and every button, link, form
+control, badge and skeleton uses them:
+
+| Component      | Purpose                                                                                                 |
+| -------------- | ------------------------------------------------------------------------------------------------------- |
+| `BaseButton`   | `primary`, `secondary` or `ghost`, at `md` or `icon` size; renders a router link, a link or a button    |
+| `BaseLink`     | Permanently underlined inline link, internal (`to`) or external (`href`)                                |
+| `BaseField`    | Label, hint and error for one control, with the ids and ARIA attributes passed to it through slot props |
+| `BaseInput`    | Text input with `v-model` and the shared control styling                                                |
+| `BaseSelect`   | Select with `v-model`, typed options and the same styling                                               |
+| `BaseBadge`    | Pill in a `neutral`, `success`, `danger` or `accent` tone, with an optional dot                         |
+| `BaseSkeleton` | Pulsing placeholder sized by its caller                                                                 |
+
+Colours are semantic tokens in `src/app/styles/main.css` (`canvas`, `surface`, `field`, `fg`,
+`muted`, `line`, `accent`, `danger`, `success`, the status colours and their subtle fills). Light
+values sit on `:root` and dark values on `.dark`, both taken from Tailwind's default palette except
+the required `#202329` canvas, and `@theme inline` exposes them as utilities (`bg-surface`,
+`text-muted`). Every text pair reaches at least 4.5:1 contrast in both themes. Spacing, type and
+radii use Tailwind's default scale.
 
 ## Tech stack
 
@@ -78,22 +159,37 @@ yarn dev
 | `yarn format`         | Format the repo with Prettier                                        |
 | `yarn format:check`   | Check formatting without writing                                     |
 
-The end-to-end tests need a build and a browser:
-
-```sh
-yarn build
-yarn playwright install chromium
-yarn test:e2e --project=chromium
-```
-
 `yarn build` loads every character and episode from the live API in three bulk requests and
 prerenders one page per character, with its data embedded. It then writes `sitemap.xml` (home plus
 every character page), `robots.txt` and `llms.txt` into `dist/`. If the API is down, the build
 fails rather than publishing broken pages.
 
-The E2E suite never calls the live API: every request to it is answered from
-`e2e/support/api-fixture.json`, a recording of characters 1–60 and their episodes. Refresh it with
-`yarn record:fixture` and commit the result.
+## Testing
+
+- **Unit and integration (Vitest):** pure logic, composables and components, written test-first.
+  Components render with the real router, Pinia, Vue Query and head manager (`test/render.ts`).
+  MSW answers API requests from real recorded characters and episodes, with the API's own
+  filtering, paging and 404 rules (`test/api-semantics.ts`). Coverage must stay at 85% of lines,
+  statements and functions and 80% of branches. `build/eslint-boundaries.test.ts` proves the
+  architecture gate rejects what it should.
+- **End-to-end (Playwright):** runs against the built `dist/`, served by `scripts/serve-dist.ts`
+  with Netlify's rewrites, headers and 404 status. Every API request is answered from
+  `e2e/support/api-fixture.json` (characters 1–60 and their episodes), and any console error,
+  uncaught error or CSP violation fails the test. Chromium runs every spec: user journeys,
+  keyboard use, axe (WCAG 2.2 AA) on every route in both themes, layout at widths from 320 to
+  1920 px, single-state checks on every data region, SEO tags and crawler files, and security
+  headers. Firefox, WebKit, Pixel 10, iPhone 17 and iPad run the `@journey` specs.
+
+```sh
+yarn build
+yarn playwright install chromium firefox webkit
+yarn test:e2e                      # the whole matrix
+yarn test:e2e --project=chromium   # Chromium only
+```
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests: a
+dependency audit, format, lint, typecheck, coverage, build and budget, then the whole Playwright
+matrix against that build.
 
 ## Configuration
 
