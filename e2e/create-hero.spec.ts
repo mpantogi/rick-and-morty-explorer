@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect, openPage, test, useStoredHeroes } from './fixtures'
 import { PORTAL_PETE } from './support/heroes'
+import { openMainNav } from './support/main-nav'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 // The API mock serves IMAGE, an avatar; BROKEN_IMAGE is answered with a 404 in its own test.
@@ -207,10 +208,7 @@ test.describe('create hero', { tag: '@journey' }, () => {
 
     await listToggle.click()
     await expect(listToggle).toHaveAttribute('aria-pressed', 'true')
-    await page
-      .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Favorites' })
-      .click()
+    await (await openMainNav(page)).getByRole('link', { name: 'Favorites' }).click()
 
     const favorites = page.locator('#favorites')
     await expect(favorites.getByRole('heading', { level: 2 })).toHaveText(['Portal Pete'])

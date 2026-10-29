@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 
 import { expect, openPage, test, useStoredFavorites } from './fixtures'
 import { mockApi } from './support/api-mock'
+import { openMainNav } from './support/main-nav'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
 function favoriteNames(page: Page) {
@@ -13,10 +14,7 @@ function favoriteToggle(page: Page, name: string) {
 }
 
 async function openFavorites(page: Page): Promise<void> {
-  await page
-    .getByRole('navigation', { name: 'Main' })
-    .getByRole('link', { name: 'Favorites' })
-    .click()
+  await (await openMainNav(page)).getByRole('link', { name: 'Favorites' }).click()
   await expect(page.getByRole('heading', { level: 1, name: 'Favorites' })).toBeVisible()
 }
 

@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { expect, openPage, test } from './fixtures'
+import { openMainNav } from './support/main-nav'
 
 // Browsers set to block site data throw from the storage getters themselves.
 async function blockSiteData(page: Page): Promise<void> {
@@ -35,10 +36,7 @@ test.describe('blocked storage', { tag: '@journey' }, () => {
     const toggle = page.getByRole('button', { name: 'Favorite Rick Sanchez', exact: true })
     await toggle.click()
     await expect(toggle).toHaveAttribute('aria-pressed', 'true')
-    await page
-      .getByRole('navigation', { name: 'Main' })
-      .getByRole('link', { name: 'Favorites' })
-      .click()
+    await (await openMainNav(page)).getByRole('link', { name: 'Favorites' }).click()
     await expect(page.locator('#favorites').getByRole('heading', { level: 2 })).toHaveText([
       'Rick Sanchez',
     ])
