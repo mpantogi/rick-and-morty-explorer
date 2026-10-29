@@ -45,6 +45,8 @@ Before calling work done, run `verify` (`format:check`, `lint`, `typecheck`, `te
 CI (`.github/workflows/ci.yml`) runs on every push to `main` and on pull requests: the `verify`
 job audits dependencies (`yarn npm audit --all --recursive`), then runs the `verify` steps and
 uploads `dist/`; the `e2e` job runs the whole Playwright matrix against that build. Keep both green.
+Every action is pinned to a full commit SHA with its version in a comment
+(`actions/checkout@<sha> # v7.0.1`); to update one, resolve the new tag's commit and change both.
 
 ### End-to-end tests
 
