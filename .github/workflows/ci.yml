@@ -14,7 +14,9 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # A pinned image and a time cap: a runner upgrade becomes a reviewed change, a hung step a fast fail.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Before setup-node: its Yarn cache lookup must see Yarn 4 from packageManager, not the runner's 1.x.
@@ -40,7 +42,8 @@ jobs:
 
   e2e:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: corepack enable
@@ -65,7 +68,8 @@ jobs:
   deploy:
     needs: e2e
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     environment:
       name: production
       url: https://rickverse-explorer.netlify.app
