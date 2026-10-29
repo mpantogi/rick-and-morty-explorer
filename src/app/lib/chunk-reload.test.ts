@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMemoryHistory, createRouter, type Router } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 import { STORAGE_KEYS } from '@/shared/config'
 
@@ -10,6 +11,10 @@ import { scheduleRoutePrefetch } from './route-prefetch'
 const RELOAD_GUARD_MS = 10_000
 const IDLE_FALLBACK_MS = 2000
 const DESTINATION = '/broken?page=2'
+const NAVIGATION_TOAST = {
+  title: "Couldn't open this page",
+  description: 'Check your connection and try again.',
+}
 const CHUNK_ERROR = new TypeError(
   'Failed to fetch dynamically imported module: https://example.org/assets/x.js',
 )
@@ -123,6 +128,33 @@ describe('installChunkReload', () => {
     await navigateToBrokenRoute(router)
 
     expect(loadPage).not.toHaveBeenCalled()
+  })
+
+  it('stays on the working page when a chunk fails offline, and says why', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false)
+    const router = routerWithBrokenRoute(CHUNK_ERROR)
+    uninstall = installChunkReload(router, loadPage)
+
+    await navigateToBrokenRoute(router)
+
+    expect(loadPage).not.toHaveBeenCalled()
+    expect(toastError).toHaveBeenCalledExactlyOnceWith(NAVIGATION_TOAST.title, {
+      id: 'navigation-error',
+      description: NAVIGATION_TOAST.description,
+    })
+  })
+
+  it('tells the visitor when a navigation fails and no reload can recover it', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => undefined)
+    const toastError = vi.spyOn(toast, 'error').mockImplementation(() => 0)
+    const router = routerWithBrokenRoute(new Error('guard exploded'))
+    uninstall = installChunkReload(router, loadPage)
+
+    await navigateToBrokenRoute(router)
+
+    expect(toastError).toHaveBeenCalledOnce()
   })
 
   it('reports navigation errors it does not recover from', async () => {
