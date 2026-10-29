@@ -12,7 +12,7 @@ const model = defineModel<string>({ required: true })
 
 const root = useTemplateRef<HTMLElement>('root')
 // The API matches species as a substring, so this stays free text that suggests the known values.
-// Typing narrows the suggestions; opening from the arrow keys or the button shows them all.
+// Typing narrows the suggestions; opening from a click, the arrow keys or the button shows them all.
 const query = ref('')
 const matches = computed(() => {
   const needle = query.value.trim().toLocaleLowerCase()
@@ -28,6 +28,16 @@ onClickOutside(root, () => {
 function showAll(activeIndex: number): void {
   query.value = ''
   listbox.open(activeIndex)
+}
+
+function currentIndex(): number {
+  return KNOWN_SPECIES.findIndex((species) => species === model.value)
+}
+
+// A click in an open list's text moves the caret, so Enter goes back to applying the text.
+function onClick(): void {
+  if (listbox.isOpen.value) listbox.open(-1)
+  else showAll(currentIndex())
 }
 
 function onInput(event: Event): void {
@@ -48,7 +58,7 @@ function pick(index: number): void {
 function toggle(): void {
   document.getElementById(id)?.focus()
   if (listbox.isOpen.value) listbox.close()
-  else showAll(KNOWN_SPECIES.findIndex((species) => species === model.value))
+  else showAll(currentIndex())
 }
 
 // A handler returns false to leave the key's default action alone.
@@ -114,6 +124,7 @@ function onKeydown(event: KeyboardEvent): void {
       :aria-expanded="listbox.isOpen.value"
       :aria-controls="listbox.id"
       :aria-activedescendant="listbox.activeId.value"
+      @click="onClick"
       @input="onInput"
       @keydown="onKeydown"
     />

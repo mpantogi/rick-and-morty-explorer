@@ -148,6 +148,30 @@ describe('SpeciesCombobox', () => {
     expect(field()).toHaveAttribute('aria-activedescendant', alien.id)
   })
 
+  it('shows every species when the field is clicked, with the current one active', async () => {
+    const { user, field, list } = setup('Alien')
+
+    await user.click(field())
+
+    expect(optionLabels(list())).toEqual([...KNOWN_SPECIES])
+    expect(field()).toHaveAttribute(
+      'aria-activedescendant',
+      within(list()).getByRole('option', { name: 'Alien' }).id,
+    )
+  })
+
+  it('keeps the narrowed suggestions when the open field is clicked, with none active', async () => {
+    const { user, field, list } = setup()
+    await user.type(field(), 'ali')
+    await user.keyboard('{ArrowDown}')
+
+    await user.click(field())
+
+    expect(field()).toHaveAttribute('aria-expanded', 'true')
+    expect(optionLabels(list())).toEqual(['Alien'])
+    expect(field()).not.toHaveAttribute('aria-activedescendant')
+  })
+
   it('opens every species on the first one with the down arrow', async () => {
     const { user, field, list } = setup()
     field().focus()

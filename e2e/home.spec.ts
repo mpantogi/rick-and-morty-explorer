@@ -232,18 +232,23 @@ test.describe('character list', { tag: '@journey' }, () => {
     })
   }
 
-  test('offers the known species as suggestions', async ({ page }) => {
-    await openPage(page, '/')
-    await openFilters(page)
+  for (const { opener, role } of [
+    { opener: 'its button', role: 'button' },
+    { opener: 'a click on the field', role: 'combobox' },
+  ] as const) {
+    test(`offers the known species as suggestions from ${opener}`, async ({ page }) => {
+      await openPage(page, '/')
+      await openFilters(page)
 
-    await page.getByRole('button', { name: 'Species' }).click()
+      await page.getByRole(role, { name: 'Species' }).click()
 
-    await expect(
-      page.getByRole('listbox', { name: 'Species' }).getByRole('option', {
-        name: 'Mythological Creature',
-      }),
-    ).toBeVisible()
-  })
+      await expect(
+        page.getByRole('listbox', { name: 'Species' }).getByRole('option', {
+          name: 'Mythological Creature',
+        }),
+      ).toBeVisible()
+    })
+  }
 
   test('opens and commits a status with Space, as the keyboard pattern expects', async ({
     page,
