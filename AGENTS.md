@@ -83,6 +83,9 @@ Every action is pinned to a full commit SHA with its version in a comment
   never from a hard-coded number; the client-side mock data in the fixture can be hard-coded.
 - WebKit on macOS (the `webkit`, `iphone-17` and `ipad` projects) skips links on Tab, as Safari
   does by default. A journey that tabs to a link presses `Alt+Tab` there (`home.spec.ts`).
+- Playwright checks the hit target only when a press starts, so anything that moves under the
+  pointer before release takes the click. A toast slides up over the bottom of a phone screen:
+  close it (`Close toast`) and wait until it is hidden before acting on what it covers.
 
 ### Deploy
 

@@ -27,7 +27,11 @@ test.describe('blocked storage', { tag: '@journey' }, () => {
     await openPage(page, '/')
 
     await expect(page.locator('#results').getByRole('article')).toHaveCount(12)
-    await expect(page.getByText("Couldn't save in this browser", { exact: true })).toBeVisible()
+    const warning = page.getByText("Couldn't save in this browser", { exact: true })
+    await expect(warning).toBeVisible()
+    // On a phone the warning slides up over the first card's heart, so close it as a visitor would.
+    await page.getByRole('button', { name: 'Close toast' }).click()
+    await expect(warning).toBeHidden()
     const toggle = page.getByRole('button', { name: 'Favorite Rick Sanchez', exact: true })
     await toggle.click()
     await expect(toggle).toHaveAttribute('aria-pressed', 'true')
