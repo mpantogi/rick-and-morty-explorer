@@ -91,7 +91,7 @@ control, badge and skeleton uses them:
 
 | Component      | Purpose                                                                                                 |
 | -------------- | ------------------------------------------------------------------------------------------------------- |
-| `BaseButton`   | `primary`, `secondary` or `ghost`, at `md` or `icon` size; renders a router link, a link or a button    |
+| `BaseButton`   | `primary`, `secondary` or `ghost`, at `md` or `icon` size; renders a router link or a button            |
 | `BaseLink`     | Permanently underlined inline link, internal (`to`) or external (`href`)                                |
 | `BaseField`    | Label, hint and error for one control, with the ids and ARIA attributes passed to it through slot props |
 | `BaseInput`    | Text input with `v-model` and the shared control styling                                                |

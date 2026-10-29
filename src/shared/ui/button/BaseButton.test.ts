@@ -55,18 +55,6 @@ describe('BaseButton', () => {
     await expect.poll(() => router.currentRoute.value.path).toBe(paths.favorites)
   })
 
-  it('renders a plain anchor for an external address', async () => {
-    await renderWithApp(BaseButton, {
-      props: { href: 'https://rickandmortyapi.com' },
-      slots: { default: 'API status' },
-    })
-
-    expect(screen.getByRole('link', { name: 'API status' })).toHaveAttribute(
-      'href',
-      'https://rickandmortyapi.com',
-    )
-  })
-
   it('forwards aria attributes and listeners to the rendered control', async () => {
     const onClick = vi.fn()
     const { user } = await renderWithApp(BaseButton, {

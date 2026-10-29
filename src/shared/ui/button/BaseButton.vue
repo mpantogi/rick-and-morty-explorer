@@ -11,13 +11,11 @@ const {
   variant = 'secondary',
   size = 'md',
   to = '',
-  href = '',
   type = 'button',
 } = defineProps<{
   variant?: ButtonVariant
   size?: ButtonSize
   to?: RouteLocationRaw
-  href?: string
   type?: 'button' | 'submit'
 }>()
 defineSlots<{ default?: () => unknown }>()
@@ -63,6 +61,5 @@ const classes = () => [
 
 <template>
   <RouterLink v-if="to" :to v-bind="rest()" :class="classes()"><slot /></RouterLink>
-  <a v-else-if="href" :href v-bind="rest()" :class="classes()"><slot /></a>
   <button v-else :type v-bind="rest()" :class="classes()"><slot /></button>
 </template>
