@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { CharacterGrid, CharacterGridSkeleton, UI_PAGE_SIZE } from '@/entities/character'
 import { FavoriteToggle, useFavoriteCharacters } from '@/features/favorites'
 import { paths } from '@/shared/config'
+import { focusPageTitle } from '@/shared/lib'
 import { BaseButton, EmptyState, RegionError } from '@/shared/ui'
 
 // The prerendered page cannot read this browser's favorites, so it reserves a short row of cards.
@@ -23,10 +24,6 @@ const count = computed(() => {
 })
 
 // A removed card takes its button with it, and Try again removes itself: focus the page title.
-function focusPageTitle(): void {
-  document.getElementById('page-title')?.focus()
-}
-
 function onFavoriteChange(isFavorite: boolean): void {
   if (!isFavorite) focusPageTitle()
 }

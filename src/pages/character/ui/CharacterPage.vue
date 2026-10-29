@@ -5,7 +5,7 @@ import { CharacterProfile, CharacterProfileSkeleton, useCharacter } from '@/enti
 import { EpisodeList, EpisodeListSkeleton, useEpisodes } from '@/entities/episode'
 import { FavoriteToggle } from '@/features/favorites'
 import { paths } from '@/shared/config'
-import { usePageSeo } from '@/shared/lib'
+import { focusPageTitle, usePageSeo } from '@/shared/lib'
 import { BackLink, BreadcrumbTrail, ErrorView, RegionError } from '@/shared/ui'
 
 import { characterPageSeo, episodeCount } from '../model/character-seo'
@@ -33,19 +33,15 @@ usePageSeo({
 
 const appearances = computed(() => `Appears in ${episodeCount(episodeIds.value.length)}`)
 
-function focusTitle(): void {
-  document.getElementById('page-title')?.focus()
-}
-
 // Try again removes itself and each state renders its own h1, so the title takes focus while loading
 // and again once settled, unless the visitor has moved focus elsewhere meanwhile.
 async function retryProfile(): Promise<void> {
   const settled = retry()
   await nextTick()
-  focusTitle()
+  focusPageTitle()
   await settled
   await nextTick()
-  if (document.activeElement === document.body) focusTitle()
+  if (document.activeElement === document.body) focusPageTitle()
 }
 
 function retryEpisodes(): void {

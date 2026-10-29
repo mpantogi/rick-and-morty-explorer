@@ -1,4 +1,5 @@
 export type { AsyncState } from './async-state'
+export { focusPageTitle } from './focus-page-title'
 export { ignorePrefetchError } from './ignore-prefetch-error'
 export { reportError } from './report-error'
 export { truncate } from './seo/truncate'

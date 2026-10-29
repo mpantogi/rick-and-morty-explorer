@@ -111,12 +111,15 @@ describe('FavoritesList', () => {
       expect(screen.getAllByRole('article')).toHaveLength(2)
     })
     const paths = recordRequests()
+    const focus = vi.spyOn(HTMLElement.prototype, 'focus')
 
     await user.click(screen.getByRole('button', { name: 'Favorite Beth Smith' }))
 
     expect(cardNames()).toEqual(['Rick Sanchez'])
     expect(status()).toHaveTextContent(/^1 favorite$/)
     expect(screen.getByRole('heading', { level: 1, name: 'Favorites' })).toHaveFocus()
+    // Focus moves to the title, but the visitor stays where they were in a long list.
+    expect(focus).toHaveBeenLastCalledWith({ preventScroll: true })
     expect(container.querySelector('#favorites')).toHaveAttribute('aria-busy', 'false')
     await new Promise((resolve) => setTimeout(resolve))
     expect(paths).toEqual([])
