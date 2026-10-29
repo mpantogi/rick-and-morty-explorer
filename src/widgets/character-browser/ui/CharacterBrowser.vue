@@ -4,6 +4,7 @@ import { computed, nextTick, useTemplateRef, watch } from 'vue'
 import {
   CharacterGrid,
   CharacterGridSkeleton,
+  sameFilters,
   UI_PAGE_SIZE,
   useCharacterList,
 } from '@/entities/character'
@@ -24,7 +25,6 @@ const filtersForm = useTemplateRef<InstanceType<typeof CharacterFiltersForm>>('f
 // The stale page fades only once an update outlasts 300 ms, so a cached response never flickers.
 const isUpdating = computed(() => state.value.kind === 'ready' && state.value.isUpdating)
 const summary = computed(() => resultsSummary(state.value, controller.page.value))
-const filtersKey = computed(() => JSON.stringify(controller.filters.value))
 const isOutOfRange = computed(
   () => state.value.kind === 'empty' && state.value.reason === 'out-of-range',
 )
@@ -44,8 +44,8 @@ function pagesLine(totalPages: number): string {
 
 // Paging swaps every card under the visitor, so focus moves to the top of the new results.
 // A filter change also resets the page, but then focus must stay in the form.
-watch([controller.page, filtersKey], ([page, filters], [previousPage, previousFilters]) => {
-  if (filters === previousFilters && page !== previousPage) void nextTick(focusHeading)
+watch([controller.page, controller.filters], ([page, filters], [previousPage, previousFilters]) => {
+  if (page !== previousPage && sameFilters(filters, previousFilters)) void nextTick(focusHeading)
 })
 
 // Both controls below remove themselves, so focus moves somewhere meaningful first.
