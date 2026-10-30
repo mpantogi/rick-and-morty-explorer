@@ -48,6 +48,29 @@ describe('AppHeader', () => {
     expect(menuButton()).toHaveAttribute('aria-expanded', 'false')
   })
 
+  it('takes the visitor to the top from the logo and from a main link', async () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo')
+    const { user } = await renderWithApp(AppHeader, { route: '/?page=2' })
+
+    await user.click(screen.getByRole('link', { name: 'Rick and Morty Explorer, home' }))
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0)
+    scrollTo.mockClear()
+
+    await user.click(screen.getByRole('link', { name: 'Characters' }))
+    expect(scrollTo).toHaveBeenLastCalledWith(0, 0)
+  })
+
+  it('leaves the page where it is when a link opens in a new tab', async () => {
+    const scrollTo = vi.spyOn(window, 'scrollTo')
+    const { user } = await renderWithApp(AppHeader, { route: '/?page=2' })
+
+    await user.keyboard('{Control>}')
+    await user.click(screen.getByRole('link', { name: 'Rick and Morty Explorer, home' }))
+    await user.keyboard('{/Control}')
+
+    expect(scrollTo).not.toHaveBeenCalled()
+  })
+
   it('closes the menu on a click outside the header', async () => {
     const { user } = await renderWithApp(AppHeader)
     await user.click(menuButton())

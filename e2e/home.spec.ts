@@ -8,6 +8,7 @@ import {
   LIST_URL,
   NO_MATCH_URL,
 } from './support/api-mock'
+import { openMainNav } from './support/main-nav'
 import { captureAround, countChangedPixels } from './support/pixels'
 import { installStateProbe, readStateProbe, statesOf } from './support/state-probe'
 
@@ -19,8 +20,10 @@ const RICK_SEARCH_URL = /\/api\/character\?name=rick/
 const VISIBLE_RING_PIXELS = 500
 // UI page 999 starts at item 11,976, which the window asks for on API page 599.
 const PAST_LAST_API_PAGE_URL = /\/api\/character\?page=599$/
-// With text at 200%, the empty state outgrows this screen, so its Reset sits far below the heading.
+// The results start below the fold here, and with text at 200% the empty state outgrows the screen.
 const SHORT_PHONE_VIEWPORT = { width: 320, height: 480 }
+// Scrolled, yet with the header's links still on screen: it does not stick to the top.
+const SLIGHTLY_SCROLLED_PX = 10
 
 // Safari on macOS tabs past links unless Option is held, which is how its keyboard users reach them.
 function tabToLinkKey(browserName: string): string {
@@ -37,6 +40,14 @@ function cards(page: Page) {
 
 function summary(page: Page) {
   return results(page).getByRole('status')
+}
+
+async function followLogo(page: Page): Promise<void> {
+  await page.getByRole('link', { name: 'Rick and Morty Explorer, home' }).click()
+}
+
+async function followCharactersLink(page: Page): Promise<void> {
+  await (await openMainNav(page)).getByRole('link', { name: 'Characters' }).click()
 }
 
 // Below md the extra filters sit behind a toggle; from md up they are always shown.
@@ -113,6 +124,72 @@ test.describe('character list', { tag: '@journey' }, () => {
     await expect(page).toHaveURL('/')
     await expect(cards(page).first().getByRole('heading')).toHaveText('Rick Sanchez')
   })
+
+  for (const { link, from, to, before, after } of [
+    { link: 'Next', from: '/', to: '/?page=2', before: 'Rick Sanchez', after: 'Alien Googah' },
+    { link: 'Previous', from: '/?page=2', to: '/', before: 'Alien Googah', after: 'Rick Sanchez' },
+  ]) {
+    test(`scrolls to the results when ${link} changes the page`, async ({ page }) => {
+      await page.setViewportSize(SHORT_PHONE_VIEWPORT)
+      await openPage(page, from)
+      await expect(cards(page).first().getByRole('heading')).toHaveText(before)
+
+      await page
+        .getByRole('navigation', { name: 'Pagination' })
+        .getByRole('link', { name: link })
+        .click()
+
+      await expect(page).toHaveURL(to)
+      await expect(cards(page).first().getByRole('heading')).toHaveText(after)
+      // Scrolling snaps to device pixels, so a fractional pixel ratio can stop just short of 0.
+      await expect
+        .poll(() =>
+          page.locator('#results').evaluate((el) => Math.abs(el.getBoundingClientRect().top)),
+        )
+        .toBeLessThan(1)
+    })
+  }
+
+  test('stays where it is when Enter repeats the search after a page link', async ({ page }) => {
+    await page.setViewportSize(SHORT_PHONE_VIEWPORT)
+    await openPage(page, '/')
+    await expect(cards(page).first().getByRole('heading')).toHaveText('Rick Sanchez')
+    await page
+      .getByRole('navigation', { name: 'Pagination' })
+      .getByRole('link', { name: 'Next' })
+      .click()
+    await expect(cards(page).first().getByRole('heading')).toHaveText('Alien Googah')
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+    })
+
+    await page.getByRole('searchbox', { name: 'Name' }).press('Enter')
+
+    await expect(page).toHaveURL('/')
+    await expect(cards(page).first().getByRole('heading')).toHaveText('Rick Sanchez')
+    expect(await page.evaluate(() => window.scrollY)).toBe(0)
+  })
+
+  for (const { link, path, follow } of [
+    { link: 'logo', path: '/?page=2', follow: followLogo },
+    { link: 'logo', path: '/', follow: followLogo },
+    { link: 'Characters link', path: '/?page=2', follow: followCharactersLink },
+  ]) {
+    test(`the ${link} goes to the top of the page from ${path}`, async ({ page }) => {
+      await openPage(page, path)
+      await expect(cards(page).first()).toBeVisible()
+      await page.evaluate((top) => {
+        window.scrollTo(0, top)
+      }, SLIGHTLY_SCROLLED_PX)
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0)
+
+      await follow(page)
+
+      await expect(page).toHaveURL('/')
+      await expect(cards(page).first().getByRole('heading')).toHaveText('Rick Sanchez')
+      expect(await page.evaluate(() => window.scrollY)).toBe(0)
+    })
+  }
 
   test('opens a later page directly', async ({ page }) => {
     await openPage(page, '/?page=5')

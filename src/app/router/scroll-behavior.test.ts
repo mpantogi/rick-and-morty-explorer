@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
+
+import { PAGE_LINK_STATE } from '@/features/character-filters'
 
 import { routes } from './routes'
 import { scrollBehavior } from './scroll-behavior'
@@ -20,7 +22,17 @@ async function scrollFor(
   return scrollBehavior(await locationAt(to), fromLocation, saved)
 }
 
+const RESULTS_SCROLL = { el: '#results', top: 0 }
+
+function arriveThroughPageLink(): void {
+  window.history.replaceState(PAGE_LINK_STATE, '')
+}
+
 describe('scrollBehavior', () => {
+  afterEach(() => {
+    window.history.replaceState(null, '')
+  })
+
   it('restores the saved position on back and forward navigation', async () => {
     expect(await scrollFor('/?page=2', '/', { left: 0, top: 640 })).toEqual({ left: 0, top: 640 })
   })
@@ -29,34 +41,27 @@ describe('scrollBehavior', () => {
     expect(await scrollFor('/#main', '/nope')).toEqual({ el: '#main' })
   })
 
-  it('scrolls to the results when only the home page number changes', async () => {
-    expect(await scrollFor('/?name=rick&page=3', '/?name=rick&page=2')).toEqual({
-      el: '#results',
-      top: 0,
-    })
-    expect(await scrollFor('/?status=alive&name=rick&page=2', '/?name=rick&status=alive')).toEqual({
-      el: '#results',
-      top: 0,
-    })
+  it('scrolls to the results when a page link changes the URL', async () => {
+    arriveThroughPageLink()
+
+    expect(await scrollFor('/?name=rick&page=3', '/?name=rick&page=2')).toEqual(RESULTS_SCROLL)
+    expect(await scrollFor('/', '/?page=2')).toEqual(RESULTS_SCROLL)
   })
 
-  it('keeps the scroll position when the home filters change', async () => {
-    expect(await scrollFor('/?name=morty', '/?name=rick&page=2')).toBe(false)
-    expect(await scrollFor('/?name=rick', '/')).toBe(false)
+  it('keeps the scroll position when a link repeats the URL of a page link entry', async () => {
+    arriveThroughPageLink()
+
+    expect(await scrollFor('/', '/')).toBe(false)
   })
 
   it.each([
+    ['/', '/?page=2'],
     ['/', '/?page=1'],
-    ['/', '/?page=0'],
-    ['/?name=rick&status=alive', '/?status=alive&name=rick'],
-    ['/?name=Rick+Sanchez', '/?name=Rick%20Sanchez'],
-    ['/?name=rick', '/?name=%20rick%20&foo=bar'],
-  ])('keeps the scroll position when %s canonicalises %s', async (to, from) => {
+    ['/?name=morty', '/?name=rick&page=2'],
+    ['/?name=rick', '/?name=rick&page=2'],
+    ['/?name=rick', '/'],
+  ])('keeps the scroll position when %s follows %s without a page link', async (to, from) => {
     expect(await scrollFor(to, from)).toBe(false)
-  })
-
-  it('keeps the scroll position when a replace leaves the list where it is', async () => {
-    expect(await scrollFor('/?name=rick&page=2', '/?name=rick&page=2')).toBe(false)
   })
 
   it('scrolls to the top for any other navigation', async () => {

@@ -19,7 +19,13 @@ import {
   sameFilters,
 } from '@/entities/character'
 
-import { FIRST_PAGE, parseListQuery, toListQuery } from './list-query'
+import {
+  FIRST_PAGE,
+  NOT_PAGE_LINK_STATE,
+  PAGE_LINK_STATE,
+  parseListQuery,
+  toListQuery,
+} from './list-query'
 
 export interface CharacterFiltersController {
   readonly filters: Readonly<Ref<CharacterFilters>>
@@ -46,7 +52,7 @@ export function useCharacterFilters(): CharacterFiltersController {
   const draft = reactive<CharacterFilters>({ ...filters.value })
 
   function replaceQuery(query: LocationQueryRaw): void {
-    void router.replace({ query })
+    void router.replace({ query, state: NOT_PAGE_LINK_STATE })
   }
 
   // Filter changes replace history and start again from page 1; only pagination pushes.
@@ -89,6 +95,6 @@ export function useCharacterFilters(): CharacterFiltersController {
       Object.assign(draft, EMPTY_FILTERS)
       replaceQuery({})
     },
-    pageLink: (target) => ({ query: toListQuery(filters.value, target) }),
+    pageLink: (target) => ({ query: toListQuery(filters.value, target), state: PAGE_LINK_STATE }),
   }
 }

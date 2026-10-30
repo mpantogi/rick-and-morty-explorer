@@ -9,8 +9,9 @@ import { settleQueries } from './settle-queries'
 
 beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' })
-  // jsdom does no layout, so it leaves scrollIntoView out; listboxes and the results heading call it.
+  // jsdom does no layout, so it leaves scrolling out; listboxes, the heading and the header call it.
   Element.prototype.scrollIntoView = () => undefined
+  window.scrollTo = () => undefined
 })
 
 afterEach(async () => {

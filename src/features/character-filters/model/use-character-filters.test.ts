@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 
 import { renderComposable } from '../../../../test/render'
+import { NOT_PAGE_LINK_STATE, PAGE_LINK_STATE } from './list-query'
 import { useCharacterFilters } from './use-character-filters'
 
 const DEBOUNCE_MS = 300
@@ -183,10 +184,26 @@ describe('useCharacterFilters', () => {
     })
   })
 
+  it('clears the page link mark whenever it rewrites the URL', async () => {
+    const { controller, replace } = await setup('/?name=rick&page=2')
+
+    controller.applyNow()
+    controller.reset()
+
+    expect(replace).toHaveBeenNthCalledWith(1, {
+      query: { name: 'rick' },
+      state: NOT_PAGE_LINK_STATE,
+    })
+    expect(replace).toHaveBeenNthCalledWith(2, { query: {}, state: NOT_PAGE_LINK_STATE })
+  })
+
   it('links other pages with the applied filters', async () => {
     const { controller } = await setup('/?name=rick&page=2')
 
-    expect(controller.pageLink(3)).toEqual({ query: { name: 'rick', page: '3' } })
-    expect(controller.pageLink(1)).toEqual({ query: { name: 'rick' } })
+    expect(controller.pageLink(3)).toEqual({
+      query: { name: 'rick', page: '3' },
+      state: PAGE_LINK_STATE,
+    })
+    expect(controller.pageLink(1)).toEqual({ query: { name: 'rick' }, state: PAGE_LINK_STATE })
   })
 })

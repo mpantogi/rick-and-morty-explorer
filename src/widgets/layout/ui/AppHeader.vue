@@ -24,6 +24,12 @@ function closeMenu(): void {
   isMenuOpen.value = false
 }
 
+// The router keeps the scroll while the list stays on screen, so a header link goes up itself.
+// A click the router did not claim (Ctrl or Cmd for a new tab) leaves this page where it is.
+function scrollToTop(event: MouseEvent): void {
+  if (event.defaultPrevented) window.scrollTo(0, 0)
+}
+
 // Runs after every navigation, a link to the page already open included. That link hides with
 // the menu, so focus inside the menu returns to its button.
 function closeAfterNavigation(): void {
@@ -47,6 +53,7 @@ onUnmounted(useRouter().afterEach(closeAfterNavigation))
         aria-label="Rick and Morty Explorer, home"
         aria-current="false"
         class="site-header__logo inline-flex h-11 items-center gap-2 justify-self-start rounded-lg font-bold whitespace-nowrap text-fg hover:text-accent"
+        @click="scrollToTop"
       >
         <AppLogo />
         <span class="site-header__wordmark hidden md:inline">Rick and Morty Explorer</span>
@@ -78,6 +85,7 @@ onUnmounted(useRouter().afterEach(closeAfterNavigation))
             <RouterLink
               :to="link.to"
               class="site-nav__link flex h-11 items-center rounded-lg px-2 text-sm font-semibold whitespace-nowrap text-fg decoration-2 underline-offset-8 transition-colors duration-150 hover:text-accent aria-[current=page]:underline motion-reduce:transition-none sm:px-3"
+              @click="scrollToTop"
             >
               {{ link.label }}
             </RouterLink>
