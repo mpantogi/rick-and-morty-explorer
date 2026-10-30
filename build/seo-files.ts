@@ -16,9 +16,10 @@ export class SeoFilesError extends Error {
   override readonly name = 'SeoFilesError'
 }
 
-export function buildSitemap(siteUrl: string, ids: readonly number[], date: string): string {
+// No lastmod: the API has no modification dates, and a build date would mark every page as changed.
+export function buildSitemap(siteUrl: string, ids: readonly number[]): string {
   const urls = [paths.home, ...ids.map((id) => paths.character(id))].map(
-    (path) => `  <url><loc>${siteUrl}${path}</loc><lastmod>${date}</lastmod></url>`,
+    (path) => `  <url><loc>${siteUrl}${path}</loc></url>`,
   )
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -71,9 +72,8 @@ export async function writeSeoFiles(outDir: string, siteUrl: string): Promise<vo
       `no character pages in ${outDir}/characters; the sitemap would list none`,
     )
   }
-  const date = new Date().toISOString().slice(0, 'YYYY-MM-DD'.length)
   await Promise.all([
-    writeFile(join(outDir, 'sitemap.xml'), buildSitemap(siteUrl, ids, date)),
+    writeFile(join(outDir, 'sitemap.xml'), buildSitemap(siteUrl, ids)),
     writeFile(join(outDir, 'robots.txt'), buildRobots(siteUrl)),
     writeFile(join(outDir, 'llms.txt'), buildLlmsTxt(siteUrl)),
   ])

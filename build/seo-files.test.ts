@@ -2,12 +2,11 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { buildLlmsTxt, buildRobots, buildSitemap, SeoFilesError, writeSeoFiles } from './seo-files'
 
 const SITE_URL = 'https://rickverse-explorer.netlify.app'
-const BUILD_DATE = '2026-10-29'
 const AI_CRAWLERS = ['GPTBot', 'OAI-SearchBot', 'ClaudeBot', 'PerplexityBot']
 
 function locs(sitemap: string): string[] {
@@ -23,8 +22,8 @@ function robotsGroups(robots: string): string[][] {
 }
 
 describe('buildSitemap', () => {
-  it('lists the home page and every character page with the build date', () => {
-    const sitemap = buildSitemap(SITE_URL, [1, 2, 826], BUILD_DATE)
+  it('lists the home page and every character page', () => {
+    const sitemap = buildSitemap(SITE_URL, [1, 2, 826])
 
     expect(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n')).toBe(true)
     expect(sitemap).toContain('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
@@ -34,12 +33,12 @@ describe('buildSitemap', () => {
       `${SITE_URL}/characters/2`,
       `${SITE_URL}/characters/826`,
     ])
-    expect(sitemap.match(/<lastmod>2026-10-29<\/lastmod>/g)).toHaveLength(4)
   })
 
-  it('leaves out priority and change frequency, which search engines ignore', () => {
-    const sitemap = buildSitemap(SITE_URL, [1], BUILD_DATE)
+  it('leaves out lastmod, priority and change frequency', () => {
+    const sitemap = buildSitemap(SITE_URL, [1])
 
+    expect(sitemap).not.toContain('<lastmod>')
     expect(sitemap).not.toContain('<priority>')
     expect(sitemap).not.toContain('<changefreq>')
   })
@@ -95,11 +94,9 @@ describe('writeSeoFiles', () => {
 
   beforeEach(async () => {
     outDir = await mkdtemp(join(tmpdir(), 'seo-files-'))
-    vi.useFakeTimers({ now: new Date(`${BUILD_DATE}T12:00:00Z`), toFake: ['Date'] })
   })
 
   afterEach(async () => {
-    vi.useRealTimers()
     await rm(outDir, { recursive: true, force: true })
   })
 
@@ -116,7 +113,7 @@ describe('writeSeoFiles', () => {
     const [sitemap, robots, llms] = await Promise.all(
       ['sitemap.xml', 'robots.txt', 'llms.txt'].map((file) => readFile(join(outDir, file), 'utf8')),
     )
-    expect(sitemap).toBe(buildSitemap(SITE_URL, [1, 2, 10], BUILD_DATE))
+    expect(sitemap).toBe(buildSitemap(SITE_URL, [1, 2, 10]))
     expect(robots).toBe(buildRobots(SITE_URL))
     expect(llms).toBe(buildLlmsTxt(SITE_URL))
   })
